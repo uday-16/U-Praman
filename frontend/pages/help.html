@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Institutional Help &amp; Standards Documentation — PRAMAN</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <style>
+    .faq-category {
+      margin-bottom: 2rem;
+    }
+    .category-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-navy);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .faq-item {
+      background: var(--surface-white);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: border-color var(--transition-fast);
+    }
+    .faq-item:hover {
+      border-color: var(--govt-blue);
+    }
+    .faq-header {
+      padding: 1.125rem 1.5rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--primary-navy);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .faq-header:hover {
+      background: #F8FAFC;
+    }
+    .faq-content {
+      padding: 0 1.5rem 1.25rem 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      display: none;
+      border-top: 1px solid #F1F5F9;
+      margin-top: 0.25rem;
+      padding-top: 1rem;
+    }
+    .faq-item.open {
+      border-color: var(--govt-blue);
+    }
+    .faq-item.open .faq-content {
+      display: block;
+    }
+    .faq-item.open .faq-icon {
+      transform: rotate(180deg);
+      stroke: var(--govt-blue);
+    }
+    .faq-icon {
+      transition: transform var(--transition-fast);
+      flex-shrink: 0;
+      margin-left: 1rem;
+    }
+  </style>
+</head>
+<body style="background: var(--bg-main);">
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+    <div class="app-main-wrapper">
+      <div id="topbar-root"></div>
+      
+      <main class="app-content">
+        <!-- Page Header -->
+        <div style="margin-bottom: 2rem;">
+          <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(11, 92, 173, 0.08); color: var(--primary-navy); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Official Knowledge Base
+          </div>
+          <h1 class="page-title" style="margin-bottom: 0.25rem;">Help Center &amp; Standards Documentation</h1>
+          <p class="page-subtitle">Guidance on AI standards matching methodology, Quality Control Orders (QCOs), and procurement audit compliance.</p>
+        </div>
+
+        <!-- Search Bar Banner -->
+        <div style="background: linear-gradient(135deg, var(--primary-navy) 0%, var(--govt-blue) 100%); padding: 2rem; border-radius: var(--radius-lg); color: white; margin-bottom: 2.5rem; box-shadow: var(--shadow-subtle);">
+          <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: white;">How can we assist your procurement process today?</h2>
+          <p style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 1.25rem; max-width: 640px;">Search through BIS standard mapping guidelines, gazette notifications, or technical tolerance criteria.</p>
+          
+          <div style="max-width: 600px; position: relative;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="faq-search" class="form-input" placeholder="e.g., QCO mandatory list, IS 456 concrete strength, match score threshold..." style="padding-left: 2.75rem; border: none; height: 48px; border-radius: var(--radius-md); font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+          </div>
+        </div>
+
+        <!-- FAQ Categories -->
+        <div style="max-width: 900px;">
+
+          <!-- Category 1: BIS Standards Matching -->
+          <div class="faq-category">
+            <h3 class="category-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--govt-blue)" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              BIS Standards Matching &amp; Recommendation Engine
+            </h3>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>How does the PRAMAN AI engine match tender requirements with Indian Standards?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                PRAMAN parses uploaded procurement documents or entered specifications against the official Bureau of Indian Standards (BIS) digital catalogue. It evaluates product classification, chemical composition tolerances, mechanical strength parameters, safety standards, and environmental application ratings. Scores are weighted by clause alignment and statutory QCO coverage.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>What does the match score percentage (e.g. 96%) indicate?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                The match score represents the percentage of technical parameters, material grades, and test methods in your requirement that are explicitly covered by the published standard. Scores above 85% are classified as "Strong Match", 70-84% as "Related Standard", and below 70% flag a potential technical review recommendation.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>How are amendments and reaffirmed editions handled?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                PRAMAN maintains real-time synchronization with Gazette of India notifications and BIS reaffirmation registers. Every recommended standard includes its latest revision year, reaffirmation date, and active amendment numbers (e.g. IS 2062:2025 with Amendment No. 2).
+              </div>
+            </div>
+          </div>
+
+          <!-- Category 2: Gazette & QCO Compliance -->
+          <div class="faq-category">
+            <h3 class="category-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--govt-blue)" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Quality Control Orders (QCO) &amp; Mandatory Certification
+            </h3>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>How does PRAMAN verify Quality Control Order (QCO) compliance?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                When a product falls under a mandatory QCO issued by DPIIT, Ministry of Steel, or Ministry of Electronics, PRAMAN flags the standard with a mandatory badge ("Mandatory QCO — ISI Mark Compulsory"). Procurement officers are alerted that non-certified bidding will violate General Financial Rules (GFR Rule 144).
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>Can I override a mandatory standard in a public tender?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                Public procurement rules strictly prohibit procuring non-ISI marked items for goods covered under active QCOs unless explicit exemption has been granted by the relevant ministry. PRAMAN's audit trail records all recommendations and warnings for transparency.
+              </div>
+            </div>
+          </div>
+
+          <!-- Category 3: Document Analysis -->
+          <div class="faq-category">
+            <h3 class="category-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--govt-blue)" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Document Upload &amp; Requirement Parsing
+            </h3>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>Which file formats are supported for automatic tender parsing?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                PRAMAN supports PDF tender documents, Microsoft Word files (.docx), and plain text files (.txt). Scanned PDFs are processed via optical character recognition to extract technical specification schedules and Bill of Quantity (BOQ) line items.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-header">
+                <span>How do I export the compliance evidence report?</span>
+                <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="faq-content">
+                From the Results or Report view, click "Export Official PDF" or "Export CSV Matrix". The system generates a formatted compliance record complete with BIS clause references, requirement mapping matrices, and officer sign-off metadata for GeM bid filing.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Help Desk Callout -->
+        <div style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem 2rem; margin-top: 2rem; max-width: 900px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; box-shadow: var(--shadow-subtle);">
+          <div>
+            <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--primary-navy); margin-bottom: 0.25rem;">Need Technical Help with a Special Procurement Scheme?</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">Our standards desk provides assistance for complex infrastructure projects and cross-departmental tenders.</p>
+          </div>
+          <a href="mailto:support@praman.gov.in" class="btn btn-secondary" style="font-weight: 700; border-color: var(--border-color); white-space: nowrap;">Contact BIS Support Desk</a>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
+
+    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('help');
+    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Help & Documentation');
+    initSidebarEvents();
+    initTopbarEvents();
+
+    // Accordion toggle logic
+    document.querySelectorAll('.faq-header').forEach(header => {
+      header.addEventListener('click', () => {
+        header.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Search filter logic
+    const searchInput = document.getElementById('faq-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        document.querySelectorAll('.faq-item').forEach(item => {
+          const text = item.innerText.toLowerCase();
+          if (!query || text.includes(query)) {
+            item.style.display = 'block';
+            if (query && text.includes(query)) {
+              item.classList.add('open');
+            }
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,245 @@
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: var(--surface-white);
+  border-top: 1px solid var(--border-color);
+  z-index: 100;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  width: 20%;
+}
+
+.mobile-nav-item svg {
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-nav-item.active {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Comprehensive Responsive System (Desktop, Laptop, Tablet, Mobile)
+   ========================================================================== */
+
+/* 1. Large Desktop to Laptop (1025px - 1280px) */
+@media (max-width: 1280px) {
+  .container {
+    padding: 0 24px;
+  }
+  .brand-img {
+    height: 36px;
+    max-height: 36px;
+  }
+  .navbar-container {
+    padding: 0 24px;
+  }
+  .grid-5 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* 2. Tablet & Medium Screens (769px - 1024px) */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .app-main-wrapper {
+    margin-left: 0;
+  }
+
+  .topbar-search {
+    width: 220px;
+  }
+
+  .brand-img {
+    height: 34px;
+    max-height: 34px;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .category-card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Infrastructure 3-column section fallback */
+  .section-spacer div[style*="grid-template-columns: 1fr 1.2fr 0.8fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  /* Footer 4-column fallback */
+  footer div[style*="grid-template-columns: 2fr 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+/* 3. Small Tablets & Large Phones (577px - 768px) */
+@media (max-width: 768px) {
+  body:has(#navbar-root),
+  body.public-page {
+    padding-top: 96px;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .brand-img {
+    height: 30px;
+    max-height: 30px;
+  }
+
+  .gov-motto {
+    display: none;
+  }
+
+  .navbar-container {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .navbar-links {
+    gap: 1rem;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.2rem;
+  }
+
+  .navbar-search-btn {
+    width: auto !important;
+    padding: 0.35rem 0.6rem !important;
+  }
+
+  .search-btn-text, .search-kbd-badge {
+    display: none;
+  }
+
+  .hero-section {
+    padding: 3rem 0 2rem 0;
+  }
+
+  .hero-title {
+    font-size: 2.25rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem !important;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-hero-primary, .btn-hero-secondary {
+    width: 100% !important;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .hero-trust-strip-inner {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 0.75rem !important;
+  }
+
+  .trust-divider {
+    display: none !important;
+  }
+
+  .category-card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-2, .grid-3, .grid-4, .grid-5 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  .match-criteria-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .step-indicator {
+    overflow-x: auto;
+  }
+
+  .why-drawer {
+    width: 100%;
+    right: -100%;
+  }
+
+  .app-content {
+    padding: 1rem 1rem 5rem 1rem;
+  }
+
+  /* Responsive Data Tables */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 4. Small Mobile Devices (<= 576px) */
+@media (max-width: 576px) {
+  .brand-img {
+    height: 26px;
+    max-height: 26px;
+  }
+
+  .category-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  footer div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .top-gov-container {
+    padding: 0 12px;
+    font-size: 0.7rem;
+  }
+
+  .top-gov-left span:nth-child(3) {
+    display: none;
+  }
+}

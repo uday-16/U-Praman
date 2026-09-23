@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Standards — PRAMAN Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/standards.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+    <div class="app-main-wrapper">
+      <div id="topbar-root"></div>
+
+      <main class="app-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+          <div>
+            <h1 class="page-title">Saved standards</h1>
+            <p class="page-subtitle">Quick access to bookmarked Indian Standards records.</p>
+          </div>
+          <a href="/pages/standards.html" class="btn btn-secondary btn-sm" style="font-weight: 700;">Explore standards catalog</a>
+        </div>
+
+        <div id="saved-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+          <!-- Dynamically rendered -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="saved-empty" style="display: none; text-align: center; padding: 4rem 2rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom: 1rem;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Save standards you want to review later</h3>
+          <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Explore standards or analyze a requirement to save standards to your bookmarks.</p>
+          <a href="/pages/standards.html" class="btn btn-primary" style="font-weight: 800;">Explore standards</a>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
+    import { mockStandards } from '/js/data/standards.js';
+    import { Storage } from '/js/utils/storage.js';
+    import { showToast } from '/js/components/toast.js';
+
+    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('saved');
+    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Saved');
+
+    const grid = document.getElementById('saved-cards-grid');
+    const empty = document.getElementById('saved-empty');
+
+    function renderSaved() {
+      const savedIds = Storage.getSavedStandards();
+      const savedStandards = mockStandards.filter(s => savedIds.includes(s.id));
+
+      if (savedStandards.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+      } else {
+        empty.style.display = 'none';
+        grid.style.display = 'grid';
+        grid.innerHTML = savedStandards.map(s => `
+          <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid var(--border-color); padding: 1.5rem;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <span class="badge badge-primary">${s.category}</span>
+                <button class="btn btn-secondary btn-sm remove-saved-btn" data-id="${s.id}" title="Remove Bookmark">✕ Remove</button>
+              </div>
+              <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 0.25rem;">${s.isNumber}</h3>
+              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem;">${s.title}</div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">${s.scope}</p>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.875rem;">
+              <span class="badge badge-success">${s.status} (${s.year})</span>
+              <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">View details →</a>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-saved-btn')) {
+        const id = e.target.dataset.id;
+        Storage.toggleSaveStandard(id);
+        showToast('Standard removed from bookmarks', 'info');
+        renderSaved();
+      }
+    });
+
+    renderSaved();
+  </script>
+</body>
+</html>

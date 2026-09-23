@@ -1,0 +1,68 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.app-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.app-content {
+  flex: 1;
+  padding: 28px 32px 48px;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.section-spacer {
+  padding: 4.5rem 0; /* 72px rhythm */
+}
+
+.section-spacer-lg {
+  padding: 5.5rem 0; /* 88px rhythm */
+}
+
+/* Card System */
+.card {
+  background: var(--surface-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-blue-light);
+}
+
+/* Grid Layout Utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}

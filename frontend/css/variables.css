@@ -1,0 +1,118 @@
+:root {
+  /* Core PRAMAN Institutional Design Tokens */
+  --navy: #0B3558;        /* Primary Navy / Headers / Primary Action Buttons */
+  --navy-deep: #082A46;   /* Dark Navy / Deep Accents */
+  --blue-pro: #1769AA;    /* Professional Blue */
+  --gold: #C08A28;        /* Accent, active states */
+  --paper: #F8FAFC;       /* Light Gray Page Background */
+  --ink: #102A43;         /* Primary Text */
+  --ink-soft: #64748B;    /* Secondary Text */
+  --line: #E2E8F0;        /* Subtle Border */
+  --white: #FFFFFF;
+  --green: #2F7D5C;       /* Success states */
+  --saffron: #FF8A3D;     /* Tricolor identity marker */
+
+  /* Backward Compatibility & Component System Aliases */
+  --gov-blue: var(--navy);
+  --primary-navy: var(--navy);
+  --primary-blue: var(--navy);
+  --primary-blue-hover: var(--navy-deep);
+  --primary-blue-light: #EBF3FC;
+  
+  --deep-navy: var(--navy-deep);
+  --deep-blue: var(--navy-deep);
+  --secondary-blue: var(--navy);
+  --govt-blue: var(--navy);
+  
+  --indian-green: var(--green);
+  --indian-green-light: #E7F6E7;
+  
+  --saffron-accent: var(--saffron);
+  --saffron-accent-light: #FFF4E5;
+  
+  /* Neutral Color Palette */
+  --bg-main: var(--paper);
+  --surface-white: var(--white);
+  --soft-blue: #EBF3FC;
+  --surface-hover: #F1F5F9;
+  --surface-active: #E2E8F0;
+  
+  /* Text Colors */
+  --text-primary: var(--ink);
+  --text-secondary: var(--ink-soft);
+  --text-muted: #64748B;
+  --text-white: var(--white);
+  
+  /* Borders & Dividers */
+  --border-color: var(--line);
+  --border-light: #F1F5F9;
+  --border-dark: #CBD5E1;
+  
+  /* System Feedback */
+  --success: var(--green);
+  --success-bg: #E7F6E7;
+  --warning: var(--gold);
+  --warning-bg: #FEF3C7;
+  --error: #C62828;
+  --error-bg: #FEE2E2;
+  
+  /* Typography Scale */
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: var(--font-sans);
+  
+  --fs-xs: 0.75rem;     /* 12px */
+  --fs-sm: 0.85rem;     /* 13.6px */
+  --fs-base: 1rem;      /* 16px */
+  --fs-lg: 1.125rem;    /* 18px */
+  --fs-xl: 1.25rem;     /* 20px */
+  --fs-2xl: 1.625rem;   /* 26px */
+  --fs-3xl: 2.25rem;    /* 36px */
+  --fs-4xl: 3.5rem;     /* 56px Hero */
+
+  /* Standard Spacing Scale (8px Grid System) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Layout Container Bounds */
+  --container-max-width: 1280px;
+  
+  /* Radiuses (8-14px Restrained Enterprise Card Bounds) */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-card: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-full: 9999px;
+  
+  /* Shadows (Restrained Subtle Bounds) */
+  --shadow-subtle: 0 1px 3px rgba(11, 31, 58, 0.04);
+  --shadow-sm: 0 2px 8px rgba(11, 31, 58, 0.06);
+  --shadow-md: 0 6px 20px rgba(11, 31, 58, 0.08);
+  --shadow-lg: 0 12px 32px rgba(11, 31, 58, 0.10);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* High Contrast Mode Styles */
+body.high-contrast {
+  --bg-main: #FFFFFF;
+  --surface-white: #FFFFFF;
+  --text-primary: #000000;
+  --text-secondary: #111111;
+  --border-color: #000000;
+  --primary-blue: #004499;
+  --deep-navy: #002244;
+}
+

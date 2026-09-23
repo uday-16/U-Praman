@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis History Archive — PRAMAN Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+    <div class="app-main-wrapper">
+      <div id="topbar-root"></div>
+
+      <main class="app-content">
+        <!-- Page Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(11, 92, 173, 0.08); color: var(--primary-navy); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Procurement Audit Trail
+            </div>
+            <h1 class="page-title" style="margin-bottom: 0.25rem;">Analysis History Archive</h1>
+            <p class="page-subtitle">Track, filter, and review all official procurement requirement analyses and standards recommendations.</p>
+          </div>
+          <a href="/pages/analyze.html" class="btn btn-primary" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + New Requirement Analysis
+          </a>
+        </div>
+
+        <!-- Filter Controls -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; background: white; padding: 1.25rem 1.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-subtle);">
+          <div style="flex: 1; min-width: 280px; position: relative;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="history-search" class="form-input" placeholder="Search by tender title, IS code, or keyword..." style="padding-left: 2.5rem;" />
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-right: 0.25rem;">Status:</span>
+            <button class="btn btn-primary btn-sm filter-btn" data-status="All">All Records</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-status="Completed">Completed</button>
+            <button class="btn btn-secondary btn-sm filter-btn" data-status="Needs Review">Needs Review</button>
+          </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="data-table-wrapper" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-subtle); overflow: hidden;">
+          <table class="data-table">
+            <thead>
+              <tr style="background: #F8FAFC; border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Analysis ID</th>
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Requirement / Item Title</th>
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Category</th>
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Status</th>
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Standards Found</th>
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Date Analyzed</th>
+                <th style="padding: 1rem 1.25rem; font-weight: 700; color: var(--primary-navy); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
+    import { Storage } from '/js/utils/storage.js';
+
+    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('history');
+    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / History Archive');
+    initSidebarEvents();
+    initTopbarEvents();
+
+    const analyses = Storage.getAnalyses();
+    const tbody = document.getElementById('history-tbody');
+    const searchInput = document.getElementById('history-search');
+    let currentFilter = 'All';
+
+    function renderHistory() {
+      const q = searchInput.value.toLowerCase().trim();
+      const filtered = analyses.filter(a => {
+        const matchesQ = !q || a.product.toLowerCase().includes(q) || (a.requirementText && a.requirementText.toLowerCase().includes(q)) || (a.id && a.id.toLowerCase().includes(q));
+        const matchesStat = currentFilter === 'All' || a.status === currentFilter || (currentFilter === 'Completed' && a.status === 'Ready');
+        return matchesQ && matchesStat;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:4rem 2rem;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.75rem; color: #94A3B8;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem;">No analysis records match your search criteria</div><div style="font-size: 0.85rem;">Try adjusting your search keyword or switching the status filter tab.</div></td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(a => `
+          <tr style="border-bottom: 1px solid var(--border-color); transition: background var(--transition-fast);">
+            <td style="padding: 1rem 1.25rem; font-family: monospace; font-size: 0.85rem; color: var(--govt-blue); font-weight: 700;">${a.id}</td>
+            <td style="padding: 1rem 1.25rem;">
+              <div style="font-weight: 700; color: var(--primary-navy); font-size: 0.95rem;">${a.product}</div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.15rem;">${a.requirementText || 'Standard procurement specification review'}</div>
+            </td>
+            <td style="padding: 1rem 1.25rem;"><span style="display: inline-block; background: #F1F5F9; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">${a.category || 'Engineering'}</span></td>
+            <td style="padding: 1rem 1.25rem;"><span class="badge ${a.status === 'Completed' || a.status === 'Ready' ? 'badge-success' : 'badge-warning'}">${a.status || 'Ready'}</span></td>
+            <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${a.standardsCount} BIS Codes</td>
+            <td style="padding: 1rem 1.25rem; color: var(--text-secondary); font-size: 0.85rem;">${a.date}</td>
+            <td style="padding: 1rem 1.25rem; text-align: right;"><a href="/pages/results.html?id=${a.id}" class="btn btn-secondary btn-sm" style="font-weight: 700; border-color: var(--border-color);">Review Results</a></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    searchInput.addEventListener('input', renderHistory);
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.className = 'btn btn-secondary btn-sm filter-btn');
+        btn.className = 'btn btn-primary btn-sm filter-btn';
+        currentFilter = btn.dataset.status;
+        renderHistory();
+      });
+    });
+
+    renderHistory();
+  </script>
+</body>
+</html>
+

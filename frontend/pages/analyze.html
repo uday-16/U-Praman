@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyze Requirement — PRAMAN Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body style="background: var(--bg-main);">
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+    <div class="app-main-wrapper">
+      <div id="topbar-root"></div>
+
+      <main class="app-content">
+        <div style="margin-bottom: 2rem;">
+          <h1 class="page-title">Analyze procurement requirement</h1>
+          <p class="page-subtitle">Upload tender specification documents or enter requirement text to extract parameters and match Indian Standards.</p>
+        </div>
+
+        <div class="card" style="background: white; border: 1px solid var(--border-color); padding: 2rem; max-width: 960px;">
+          <!-- 3 Input Mode Tabs -->
+          <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid var(--line); padding-bottom: 1rem; flex-wrap: wrap;">
+            <button id="tab-describe" class="btn btn-primary btn-sm" style="font-weight: 600;">1. Describe Product</button>
+            <button id="tab-spec" class="btn btn-secondary btn-sm" style="font-weight: 600;">2. Paste Technical Spec</button>
+            <button id="tab-upload" class="btn btn-secondary btn-sm" style="font-weight: 600;">3. Upload Tender PDF</button>
+          </div>
+
+          <!-- Mode 1: Describe Product -->
+          <div id="section-describe">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label" for="desc-prompt" style="font-weight: 600; color: var(--ink);">Describe the product or equipment to procure</label>
+              <textarea id="desc-prompt" class="form-textarea" rows="4" placeholder="e.g. Industrial safety helmets for CPWD construction site workers requiring impact protection and electrical insulation..."></textarea>
+            </div>
+          </div>
+
+          <!-- Mode 2: Paste Technical Spec -->
+          <div id="section-spec" style="display: none;">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label" for="req-title-input" style="font-weight: 600; color: var(--ink);">Tender / Specification Title</label>
+              <input type="text" id="req-title-input" class="form-input" placeholder="e.g. Supply of Low Voltage 415V Switchgear for Power Substation" value="Industrial Electrical Switchgear Procurement" />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label" for="req-category-select" style="font-weight: 600; color: var(--ink);">Product Category</label>
+              <select id="req-category-select" class="form-select" style="height: 40px;">
+                <option value="Electrical Distribution">Electrical Distribution &amp; Switchgear</option>
+                <option value="Safety & Personal Protection">Safety &amp; Personal Protection</option>
+                <option value="Steel & Construction">Steel &amp; Structural Materials</option>
+                <option value="Solar & Renewable Energy">Solar &amp; Renewable Energy</option>
+                <option value="Water Supply & Sanitation">Water Supply &amp; Sanitation</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label" for="req-text-input" style="font-weight: 600; color: var(--ink);">Technical Specification Text</label>
+              <textarea id="req-text-input" class="form-textarea" rows="5" placeholder="Paste full technical specifications, material grades, performance parameters, and testing criteria...">Procurement of 1000 units low voltage 415V AC indoor switchgear with 50kA short circuit rating for industrial power plant distribution.</textarea>
+            </div>
+          </div>
+
+          <!-- Mode 3: Upload Tender PDF -->
+          <div id="section-upload" style="display: none;">
+            <div id="dropzone" class="file-dropzone" style="border: 2px dashed var(--navy); background: var(--paper); padding: 3rem; text-align: center; border-radius: var(--radius-md); cursor: pointer;">
+              <div style="margin-bottom: 0.75rem; color: var(--navy); display: flex; justify-content: center;">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
+              </div>
+              <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem;">Upload Tender Specification PDF</h3>
+              <p style="font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 1.25rem;">Tesseract OCR extraction enabled for PDF tender documents up to 25MB</p>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('file-input').click()" style="font-weight: 600;">Browse Tender Files</button>
+              <input type="file" id="file-input" style="display: none;" accept=".pdf,.docx,.txt" />
+            </div>
+
+            <div id="file-card-wrapper" style="margin-top: 1.5rem; display: none;">
+              <!-- Dynamically populated by setupFileUpload -->
+            </div>
+          </div>
+
+          <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+            <button id="start-analysis-btn" class="btn btn-primary btn-lg" style="font-weight: 600; background: var(--navy); padding: 0 2rem; height: 46px;">Start AI Semantic Search &rarr;</button>
+          </div>
+
+          <!-- Value Checklist Grid -->
+          <div style="margin-top: 2.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">WHAT PRAMAN WILL IDENTIFY FROM YOUR SPECIFICATION:</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.88rem; color: var(--text-secondary); font-weight: 600;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Product &amp; requirement category
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Applicable Indian Standards (IS codes)
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Related &amp; normative standards
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Active revisions &amp; gazette amendments
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Relevant certification guidelines
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Supporting evidence &amp; match reasoning
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Animated Loading Progress Modal -->
+  <div class="modal-overlay" id="loading-modal">
+    <div class="modal-container" style="max-width: 500px; padding: 2.25rem;">
+      <div class="loading-steps-container">
+        <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--primary-blue); margin-bottom: 0.5rem;">Finding applicable standards</h3>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">PRAMAN process execution in progress...</p>
+
+        <div class="loading-step-list" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; font-weight: 600;">
+          <div class="loading-step-item" id="ls-1" style="color: var(--primary-blue); font-weight: 700;">● Understanding requirement</div>
+          <div class="loading-step-item" id="ls-2" style="color: var(--text-muted);">○ Identifying technical parameters</div>
+          <div class="loading-step-item" id="ls-3" style="color: var(--text-muted);">○ Searching standards</div>
+          <div class="loading-step-item" id="ls-4" style="color: var(--text-muted);">○ Checking relationships</div>
+          <div class="loading-step-item" id="ls-5" style="color: var(--text-muted);">○ Preparing recommendations</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
+    import { setupFileUpload } from '/js/components/file-upload.js';
+
+    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('analyze');
+    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Analyze requirement');
+    initSidebarEvents();
+    initTopbarEvents();
+
+    setupFileUpload('dropzone', 'file-input', 'file-card-wrapper');
+
+    const tabDescribe = document.getElementById('tab-describe');
+    const tabSpec = document.getElementById('tab-spec');
+    const tabUpload = document.getElementById('tab-upload');
+
+    const secDescribe = document.getElementById('section-describe');
+    const secSpec = document.getElementById('section-spec');
+    const secUpload = document.getElementById('section-upload');
+
+    function setActiveTab(activeBtn, activeSec) {
+      [tabDescribe, tabSpec, tabUpload].forEach(b => { if (b) b.className = 'btn btn-secondary btn-sm'; });
+      [secDescribe, secSpec, secUpload].forEach(s => { if (s) s.style.display = 'none'; });
+      if (activeBtn) activeBtn.className = 'btn btn-primary btn-sm';
+      if (activeSec) activeSec.style.display = 'block';
+    }
+
+    if (tabDescribe) tabDescribe.addEventListener('click', () => setActiveTab(tabDescribe, secDescribe));
+    if (tabSpec) tabSpec.addEventListener('click', () => setActiveTab(tabSpec, secSpec));
+    if (tabUpload) tabUpload.addEventListener('click', () => setActiveTab(tabUpload, secUpload));
+
+    // Sequential top-to-bottom step animation (1 -> 2 -> 3 -> 4 -> 5)
+    document.getElementById('start-analysis-btn').addEventListener('click', () => {
+      const modal = document.getElementById('loading-modal');
+      modal.classList.add('active');
+
+      // Step 1 Complete -> Step 2 In-Progress
+      setTimeout(() => {
+        document.getElementById('ls-1').innerHTML = '✓ Understanding requirement';
+        document.getElementById('ls-1').style.color = 'var(--indian-green)';
+        document.getElementById('ls-2').innerHTML = '● Identifying technical parameters';
+        document.getElementById('ls-2').style.color = 'var(--primary-blue)';
+        document.getElementById('ls-2').style.fontWeight = '700';
+      }, 400);
+
+      // Step 2 Complete -> Step 3 In-Progress
+      setTimeout(() => {
+        document.getElementById('ls-2').innerHTML = '✓ Identifying technical parameters';
+        document.getElementById('ls-2').style.color = 'var(--indian-green)';
+        document.getElementById('ls-3').innerHTML = '● Searching standards';
+        document.getElementById('ls-3').style.color = 'var(--primary-blue)';
+        document.getElementById('ls-3').style.fontWeight = '700';
+      }, 900);
+
+      // Step 3 Complete -> Step 4 In-Progress
+      setTimeout(() => {
+        document.getElementById('ls-3').innerHTML = '✓ Searching standards';
+        document.getElementById('ls-3').style.color = 'var(--indian-green)';
+        document.getElementById('ls-4').innerHTML = '● Checking relationships';
+        document.getElementById('ls-4').style.color = 'var(--primary-blue)';
+        document.getElementById('ls-4').style.fontWeight = '700';
+      }, 1400);
+
+      // Step 4 Complete -> Step 5 In-Progress
+      setTimeout(() => {
+        document.getElementById('ls-4').innerHTML = '✓ Checking relationships';
+        document.getElementById('ls-4').style.color = 'var(--indian-green)';
+        document.getElementById('ls-5').innerHTML = '● Preparing recommendations';
+        document.getElementById('ls-5').style.color = 'var(--primary-blue)';
+        document.getElementById('ls-5').style.fontWeight = '700';
+      }, 1900);
+
+      // Step 5 Complete -> Redirect
+      setTimeout(() => {
+        document.getElementById('ls-5').innerHTML = '✓ Preparing recommendations';
+        document.getElementById('ls-5').style.color = 'var(--indian-green)';
+      }, 2300);
+
+      setTimeout(() => {
+        window.location.href = '/pages/review.html';
+      }, 2600);
+    });
+  </script>
+</body>
+</html>

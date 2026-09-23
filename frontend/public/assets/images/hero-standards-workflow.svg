@@ -1,0 +1,107 @@
+<svg width="580" height="460" viewBox="0 0 580 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer Card Frame -->
+  <rect x="10" y="10" width="560" height="440" rx="20" fill="white" stroke="#E2E8F0" stroke-width="2"/>
+  <rect x="10" y="10" width="560" height="440" rx="20" fill="url(#hero_bg_grad)"/>
+
+  <!-- Visual Header Bar -->
+  <rect x="10" y="10" width="560" height="44" rx="20" fill="#F7F9FC"/>
+  <circle cx="34" cy="32" r="5" fill="#FF5F56"/>
+  <circle cx="50" cy="32" r="5" fill="#FFBD2E"/>
+  <circle cx="66" cy="32" r="5" fill="#27C93F"/>
+  <rect x="420" y="22" width="130" height="20" rx="4" fill="#FFF4E5" stroke="#FF9933" stroke-width="0.5"/>
+  <text x="485" y="35" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#FF9933" text-anchor="middle">SIH26108 Prototype</text>
+
+  <!-- 1. Procurement Document Card (Top Left) -->
+  <g transform="translate(30, 70)">
+    <rect width="250" height="100" rx="12" fill="white" stroke="#E2E8F0" stroke-width="1.5" filter="url(#shadow_sm)"/>
+    <rect x="0" y="0" width="6" height="100" rx="3" fill="#0B5CAD"/>
+    <rect x="18" y="16" width="24" height="24" rx="6" fill="#EBF3FA"/>
+    <path d="M26 23H34M26 27H34M26 31H31" stroke="#0B5CAD" stroke-width="2" stroke-linecap="round"/>
+    <text x="50" y="27" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#5E6878" letter-spacing="0.5">PROCUREMENT SPECIFICATION</text>
+    <text x="50" y="44" font-family="Inter, sans-serif" font-size="13" font-weight="800" fill="#172033">Industrial Safety Helmet</text>
+    <text x="18" y="70" font-family="Inter, sans-serif" font-size="11" fill="#5E6878">App: Construction • Impact 50J • 1000V Ins</text>
+    <rect x="180" y="16" width="54" height="18" rx="9" fill="#EBF3FA"/>
+    <text x="207" y="28" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#0B5CAD" text-anchor="middle">Tender PDF</text>
+  </g>
+
+  <!-- Connecting Arrow 1 -->
+  <path d="M155 170 V195" stroke="#0B5CAD" stroke-width="2" stroke-dasharray="4 4"/>
+  <polygon points="155,200 151,192 159,192" fill="#0B5CAD"/>
+
+  <!-- 2. AI Understanding Card (Middle Left) -->
+  <g transform="translate(30, 205)">
+    <rect width="250" height="105" rx="12" fill="white" stroke="#E2E8F0" stroke-width="1.5" filter="url(#shadow_sm)"/>
+    <rect x="0" y="0" width="6" height="105" rx="3" fill="#FF9933"/>
+    <text x="18" y="25" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#FF9933" letter-spacing="0.5">AI PARAMETER EXTRACTION</text>
+    
+    <!-- Extraction Chips -->
+    <rect x="18" y="38" width="95" height="22" rx="4" fill="#EBF3FA"/>
+    <text x="24" y="53" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#0B5CAD">✓ Product Match</text>
+    <rect x="120" y="38" width="112" height="22" rx="4" fill="#EBF3FA"/>
+    <text x="126" y="53" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#0B5CAD">✓ App Environment</text>
+
+    <rect x="18" y="68" width="105" height="22" rx="4" fill="#EBF3FA"/>
+    <text x="24" y="83" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#0B5CAD">✓ Impact (50 Joules)</text>
+    <rect x="130" y="68" width="102" height="22" rx="4" fill="#EBF3FA"/>
+    <text x="136" y="83" font-family="Inter, sans-serif" font-size="10" font-weight="600" fill="#0B5CAD">✓ Electrical Shock</text>
+  </g>
+
+  <!-- Horizontal Connection Arrow 2 -->
+  <path d="M280 257 H305" stroke="#138808" stroke-width="2" stroke-dasharray="4 4"/>
+  <polygon points="310,257 302,253 302,261" fill="#138808"/>
+
+  <!-- 3. Recommended Standards Card (Right Top/Middle) -->
+  <g transform="translate(310, 70)">
+    <rect width="240" height="240" rx="14" fill="white" stroke="#138808" stroke-width="2" filter="url(#shadow_md)"/>
+    
+    <!-- Badge -->
+    <rect x="18" y="18" width="115" height="22" rx="11" fill="#E7F6E7"/>
+    <text x="75.5" y="33" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#138808" text-anchor="middle">Very High Match 95%</text>
+
+    <text x="18" y="62" font-family="Inter, sans-serif" font-size="16" font-weight="800" fill="#0B5CAD">IS DEMO-2925 : 2021</text>
+    <text x="18" y="80" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#172033">Industrial Safety Helmets</text>
+
+    <text x="18" y="102" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">Active standard covering physical impact &amp;</text>
+    <text x="18" y="116" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">shock resistance requirements.</text>
+
+    <!-- Score Breakdown -->
+    <line x1="18" y1="132" x2="222" y2="132" stroke="#E2E8F0" stroke-width="1"/>
+    
+    <text x="18" y="152" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">Product: <tspan font-weight="700" fill="#138808">High</tspan></text>
+    <text x="120" y="152" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">Safety: <tspan font-weight="700" fill="#138808">High</tspan></text>
+    <text x="18" y="172" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">Application: <tspan font-weight="700" fill="#138808">High</tspan></text>
+    <text x="120" y="172" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">Technical: <tspan font-weight="700" fill="#0B5CAD">Med</tspan></text>
+
+    <!-- Button -->
+    <rect x="18" y="190" width="204" height="34" rx="6" fill="#0B5CAD"/>
+    <text x="120" y="211" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="white" text-anchor="middle">Why Recommended &amp; Evidence →</text>
+  </g>
+
+  <!-- 4. Supporting Evidence Drawer Overlay (Bottom Center/Right) -->
+  <g transform="translate(80, 330)">
+    <rect width="470" height="100" rx="12" fill="#F7F9FC" stroke="#0B5CAD" stroke-width="1.5" filter="url(#shadow_sm)"/>
+    <rect x="0" y="0" width="470" height="28" rx="12" fill="#EBF3FA"/>
+    <text x="16" y="18" font-family="Inter, sans-serif" font-size="11" font-weight="800" fill="#0B5CAD">WHY RECOMMENDED? — SUPPORTING CLAUSE EVIDENCE</text>
+    
+    <text x="16" y="48" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#172033">Tender Spec Clause 4.2 → IS DEMO-2925 Section 5</text>
+    <text x="16" y="66" font-family="Inter, sans-serif" font-size="10" fill="#5E6878">"Helmets must withstand a drop impact energy of 50 Joules without structural cracking."</text>
+    
+    <rect x="390" y="38" width="64" height="20" rx="4" fill="#E7F6E7"/>
+    <text x="422" y="52" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#138808" text-anchor="middle">✓ Verified</text>
+  </g>
+
+  <defs>
+    <linearGradient id="hero_bg_grad" x1="290" y1="10" x2="290" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F4F7FC"/>
+    </linearGradient>
+
+    <filter id="shadow_sm" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0B5CAD" flood-opacity="0.06"/>
+    </filter>
+
+    <filter id="shadow_md" x="0" y="0" width="100%" height="100%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0B5CAD" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+</svg>

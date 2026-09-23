@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Reports — PRAMAN Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+    <div class="app-main-wrapper">
+      <div id="topbar-root"></div>
+
+      <main class="app-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+          <div>
+            <h1 class="page-title">Generated reports</h1>
+            <p class="page-subtitle">Review generated procurement standards reports for official documentation files.</p>
+          </div>
+          <a href="/pages/report-view.html" class="btn btn-primary" style="font-weight: 800;">+ Create new report</a>
+        </div>
+
+        <div class="data-table-wrapper" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Report Code</th>
+                <th>Requirement</th>
+                <th>Standards Included</th>
+                <th>Created Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="reports-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
+    import { Storage } from '/js/utils/storage.js';
+
+    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('reports');
+    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Generated reports');
+
+    const reports = Storage.getAnalyses();
+    document.getElementById('reports-table-body').innerHTML = reports.map(r => `
+      <tr>
+        <td style="font-weight:800; color:var(--primary-blue);">${r.id}</td>
+        <td style="font-weight:700;">${r.product || r.id}</td>
+        <td>${r.standardsCount || r.standards?.length || '0'} Standards</td>
+        <td style="color:var(--text-secondary);">${r.date || new Date().toLocaleDateString()}</td>
+        <td><span class="badge badge-success">Approved / Ready</span></td>
+        <td>
+          <a href="/pages/report-view.html?id=${r.id}" class="btn btn-secondary btn-sm" style="font-weight: 700;">View report</a>
+        </td>
+      </tr>
+    `).join('');
+  </script>
+</body>
+</html>

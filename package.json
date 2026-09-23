@@ -1,0 +1,27 @@
+{
+  "name": "sih26108-standards-ai",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite frontend --port 5173 --host",
+    "build": "vite build frontend",
+    "preview": "vite preview frontend"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^13.4.0",
+    "lucide-react": "^1.47.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
+    "tailwind-merge": "^3.7.0"
+  }
+}

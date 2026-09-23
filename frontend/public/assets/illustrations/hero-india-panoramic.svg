@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 650" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Base Sky Gradient -->
+    <linearGradient id="heroSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E8F1FC"/>
+      <stop offset="60%" stop-color="#F4F8FD"/>
+      <stop offset="100%" stop-color="#F7F9FC"/>
+    </linearGradient>
+
+    <!-- Warm Golden Sun Glow behind India Gate -->
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE8C2" stop-opacity="0.75"/>
+      <stop offset="60%" stop-color="#FFF4E3" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#F7F9FC" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- India Gate Solid Sandstone Gradients -->
+    <linearGradient id="gateMainStone" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E5AA62"/>
+      <stop offset="50%" stop-color="#D49448"/>
+      <stop offset="100%" stop-color="#B87733"/>
+    </linearGradient>
+
+    <linearGradient id="gatePillarLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F0BD7E"/>
+      <stop offset="100%" stop-color="#C9883F"/>
+    </linearGradient>
+
+    <linearGradient id="gateArchInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#543615"/>
+      <stop offset="100%" stop-color="#2D1B09"/>
+    </linearGradient>
+
+    <linearGradient id="corniceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F7CE99"/>
+      <stop offset="100%" stop-color="#C2843A"/>
+    </linearGradient>
+
+    <!-- Vande Bharat Solid Metallic Gradient -->
+    <linearGradient id="vandeBody" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#146ED1"/>
+      <stop offset="100%" stop-color="#073B75"/>
+    </linearGradient>
+
+    <!-- Left Text Readability Protection Fade -->
+    <linearGradient id="textFade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F7F9FC" stop-opacity="1.0"/>
+      <stop offset="35%" stop-color="#F7F9FC" stop-opacity="0.85"/>
+      <stop offset="55%" stop-color="#F7F9FC" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#F7F9FC" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Sky Base -->
+  <rect width="1600" height="650" fill="url(#heroSky)"/>
+
+  <!-- 2. Warm Sun Halo behind India Gate -->
+  <circle cx="1080" cy="240" r="320" fill="url(#sunGlow)"/>
+
+  <!-- 3. DOMED GOVERNMENT ARCHITECTURE (Background Silhouette - Right) -->
+  <g transform="translate(1300, 180)" opacity="0.25">
+    <rect x="0" y="140" width="280" height="80" rx="4" fill="#0B5CAD"/>
+    <path d="M 60 140 Q 140 40 220 140 Z" fill="#073B75"/>
+    <rect x="135" y="20" width="10" height="30" fill="#073B75"/>
+  </g>
+
+  <!-- 4. INDIA GATE - ICONIC MONUMENT (Center-Right Focal Point) -->
+  <g transform="translate(920, 110)">
+    <!-- Base Foundation Steps -->
+    <rect x="0" y="440" width="340" height="24" rx="2" fill="#996024"/>
+    <rect x="15" y="424" width="310" height="16" rx="2" fill="#AD712E"/>
+
+    <!-- Main Outer Arch Columns -->
+    <path d="M 30 424 L 30 110 L 310 110 L 310 424 L 245 424 L 245 220 Q 170 170 95 220 L 95 424 Z" fill="url(#gateMainStone)" stroke="#9E6325" stroke-width="2"/>
+
+    <!-- Left Pillar Highlight & Shadow -->
+    <rect x="30" y="110" width="65" height="314" fill="url(#gatePillarLight)"/>
+    <rect x="245" y="110" width="65" height="314" fill="#A86A28"/>
+
+    <!-- Inner Archway Opening Shadow -->
+    <path d="M 95 424 L 95 220 Q 170 170 245 220 L 245 424 L 225 424 L 225 232 Q 170 190 115 232 L 115 424 Z" fill="url(#gateArchInner)"/>
+
+    <!-- Archway Ceiling & Depth Shading -->
+    <path d="M 115 424 L 115 232 Q 170 190 225 232 L 225 424 Z" fill="#3D240B" opacity="0.6"/>
+
+    <!-- Cornices & Multi-Tiered Header -->
+    <rect x="20" y="90" width="300" height="20" rx="3" fill="url(#corniceGrad)" stroke="#8C551C" stroke-width="1.5"/>
+    <rect x="35" y="66" width="270" height="24" rx="2" fill="#D99B53" stroke="#8C551C" stroke-width="1.5"/>
+    <rect x="55" y="44" width="230" height="22" rx="2" fill="#F0BD7E" stroke="#8C551C" stroke-width="1.5"/>
+    <rect x="75" y="26" width="190" height="18" rx="2" fill="#C9883F"/>
+
+    <!-- Top Inscription Panel "INDIA" -->
+    <rect x="70" y="126" width="200" height="32" fill="#5E3812" opacity="0.25" rx="3"/>
+    <text x="170" y="148" font-size="16" font-weight="900" fill="#2E1906" text-anchor="middle" letter-spacing="4" font-family="Inter, sans-serif">INDIA</text>
+
+    <!-- Ashoka Chakra Circular Emblem -->
+    <circle cx="170" cy="184" r="16" fill="none" stroke="#073B75" stroke-width="2.5" opacity="0.75"/>
+    <circle cx="170" cy="184" r="3" fill="#073B75" opacity="0.8"/>
+  </g>
+
+  <!-- 5. MODERN ELEVATED RAILWAY & VANDE BHARAT TRAIN (Midground Infrastructure) -->
+  <g transform="translate(480, 420)">
+    <!-- Viaduct Pillars -->
+    <rect x="100" y="70" width="24" height="120" rx="3" fill="#0B5CAD" opacity="0.2"/>
+    <rect x="350" y="70" width="24" height="120" rx="3" fill="#0B5CAD" opacity="0.2"/>
+    <rect x="600" y="70" width="24" height="120" rx="3" fill="#0B5CAD" opacity="0.2"/>
+    <rect x="850" y="70" width="24" height="120" rx="3" fill="#0B5CAD" opacity="0.2"/>
+
+    <!-- Track Girder Beam -->
+    <rect x="0" y="55" width="1120" height="18" rx="4" fill="#073B75" opacity="0.3"/>
+    <line x1="0" y1="52" x2="1120" y2="52" stroke="#146ED1" stroke-width="4" opacity="0.7"/>
+
+    <!-- Vande Bharat Express Train -->
+    <g transform="translate(320, 0)">
+      <!-- Aerodynamic Coach & Nose -->
+      <path d="M 0 52 L 480 52 Q 540 52 580 32 C 600 22 610 10 590 10 L 0 10 Z" fill="url(#vandeBody)"/>
+      <!-- Windshield -->
+      <path d="M 530 12 Q 570 20 590 28 L 520 28 Z" fill="#041226"/>
+      <!-- Saffron Speed Accent Line -->
+      <rect x="0" y="44" width="560" height="5" fill="#FF9933"/>
+      <!-- Passenger Windows -->
+      <rect x="40" y="20" width="50" height="14" rx="2" fill="#E8F1FC"/>
+      <rect x="105" y="20" width="50" height="14" rx="2" fill="#E8F1FC"/>
+      <rect x="170" y="20" width="50" height="14" rx="2" fill="#E8F1FC"/>
+      <rect x="235" y="20" width="50" height="14" rx="2" fill="#E8F1FC"/>
+      <rect x="300" y="20" width="50" height="14" rx="2" fill="#E8F1FC"/>
+      <rect x="365" y="20" width="50" height="14" rx="2" fill="#E8F1FC"/>
+      <rect x="430" y="20" width="45" height="14" rx="2" fill="#E8F1FC"/>
+    </g>
+  </g>
+
+  <!-- 6. LEFT SIDE TEXT READABILITY PROTECTION FADE -->
+  <rect width="800" height="650" fill="url(#textFade)"/>
+
+  <!-- 7. ELEGANT BOTTOM TRICOLOR STROKE (2px Saffron-White-Green) -->
+  <g transform="translate(0, 646)">
+    <line x1="0" y1="0" x2="1600" y2="0" stroke="#FF9933" stroke-width="2" opacity="0.8"/>
+    <line x1="0" y1="2" x2="1600" y2="2" stroke="#FFFFFF" stroke-width="2" opacity="0.9"/>
+    <line x1="0" y1="4" x2="1600" y2="4" stroke="#138808" stroke-width="2" opacity="0.8"/>
+  </g>
+</svg>

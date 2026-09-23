@@ -1,0 +1,20 @@
+<svg width="210" height="40" viewBox="0 0 210 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="10" fill="url(#logo_grad)"/>
+  <path d="M12 10C12 8.89543 12.8954 8 14 8H22L28 14V30C28 31.1046 27.1046 32 26 32H14C12.8954 32 12 31.1046 12 30V10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22 8V14H28" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="24" r="6" fill="#138808"/>
+  <path d="M21.5 24L23.5 26L26.5 22" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="16" y1="15" x2="19" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="16" y1="19" x2="20" y2="19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Logo Text -->
+  <text x="52" y="25" font-family="Inter, -apple-system, sans-serif" font-weight="800" font-size="20" fill="#0B5CAD" letter-spacing="-0.5">Standards<tspan fill="#084B8A">AI</tspan></text>
+  <text x="52" y="35" font-family="Inter, -apple-system, sans-serif" font-weight="500" font-size="9" fill="#5E6878" letter-spacing="0.2">AI-POWERED STANDARDS ASSISTANT</text>
+  
+  <defs>
+    <linearGradient id="logo_grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B5CAD"/>
+      <stop offset="1" stop-color="#084B8A"/>
+    </linearGradient>
+  </defs>
+</svg>

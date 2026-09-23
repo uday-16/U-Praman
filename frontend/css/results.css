@@ -1,0 +1,142 @@
+/* Specification Check Widget */
+.spec-check-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.spec-progress-bar-container {
+  height: 10px;
+  background-color: var(--border-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin: 0.75rem 0 1.25rem 0;
+}
+
+.spec-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-blue), var(--secondary-blue));
+  border-radius: var(--radius-full);
+  transition: width 0.6s ease-out;
+}
+
+.spec-checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.spec-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+}
+
+/* Recommendation Cards */
+.recommendation-card {
+  background-color: var(--surface-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.recommendation-card:hover {
+  border-color: rgba(11, 92, 173, 0.3);
+  box-shadow: var(--shadow-md);
+}
+
+.recommendation-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.standard-is-number {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+.standard-title-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.match-criteria-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: var(--bg-main);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.match-criterion {
+  display: flex;
+  flex-direction: column;
+}
+
+.criterion-label {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.criterion-value {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Why Recommended Drawer / Panel */
+.why-drawer {
+  position: fixed;
+  top: 0;
+  right: -450px;
+  width: 450px;
+  height: 100vh;
+  background-color: var(--surface-white);
+  box-shadow: var(--shadow-lg);
+  z-index: 250;
+  transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.why-drawer.open {
+  right: 0;
+}
+
+.why-drawer-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.why-drawer-body {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.evidence-box {
+  background-color: var(--bg-main);
+  border-left: 3px solid var(--primary-blue);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.75rem;
+  font-size: var(--fs-sm);
+}

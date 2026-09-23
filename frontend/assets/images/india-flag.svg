@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 900 600" width="100%" height="100%">
+  <path fill="#FF9933" d="M0 0h900v200H0z"/>
+  <path fill="#FFFFFF" d="M0 200h900v200H0z"/>
+  <path fill="#138808" d="M0 400h900v200H0z"/>
+  <g transform="translate(450 300)">
+    <circle r="92.5" fill="#000080"/>
+    <circle r="80" fill="#FFFFFF"/>
+    <circle r="16" fill="#000080"/>
+    <g id="spoke_group">
+      <g id="spoke_pair">
+        <g id="single_spoke">
+          <polygon fill="#000080" points="0,-80 3.2,-16 0,-8 -3.2,-16"/>
+          <circle cx="0" cy="-77.5" r="4.2" fill="#000080"/>
+        </g>
+        <use xlink:href="#single_spoke" transform="rotate(15)"/>
+      </g>
+      <use xlink:href="#spoke_pair" transform="rotate(30)"/>
+      <use xlink:href="#spoke_pair" transform="rotate(60)"/>
+    </g>
+    <use xlink:href="#spoke_group" transform="rotate(90)"/>
+    <use xlink:href="#spoke_group" transform="rotate(180)"/>
+    <use xlink:href="#spoke_group" transform="rotate(270)"/>
+  </g>
+</svg>

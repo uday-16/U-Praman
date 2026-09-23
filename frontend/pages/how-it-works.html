@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How It Works — PRAMAN</title>
+  <meta name="description" content="Learn how PRAMAN analyzes procurement requirements, matches Indian Standards, and generates explainable reports.">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <div id="navbar-root"></div>
+
+  <section style="padding: 4rem 0 2.5rem 0; background: linear-gradient(180deg, #FFFFFF 0%, var(--bg-main) 100%); border-bottom: 1px solid var(--border-color);">
+    <div class="container" style="max-width: 900px; text-align: center;">
+      <span class="badge badge-primary mb-2" style="font-weight: 700;">WORKFLOW</span>
+      <h1 class="page-title" style="font-size: 2.25rem; font-weight: 900; margin-bottom: 1rem;">
+        How PRAMAN works
+      </h1>
+      <p class="page-subtitle" style="font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;">
+        A transparent, 4-step decision support workflow designed for government &amp; enterprise procurement specifications.
+      </p>
+    </div>
+  </section>
+
+  <!-- Detailed Step-by-Step Breakdown -->
+  <section style="padding: 4rem 0; background: white;">
+    <div class="container" style="max-width: 900px;">
+      
+      <!-- Step 1 -->
+      <div style="display: flex; gap: 2rem; margin-bottom: 3rem; align-items: flex-start;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-blue); color: white; font-weight: 900; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">01</div>
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Add procurement requirement</h2>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1rem;">
+            Upload a tender document in PDF, DOCX, or TXT format, or enter specifications manually into the structured requirement form.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="display: flex; gap: 2rem; margin-bottom: 3rem; align-items: flex-start;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-blue); color: white; font-weight: 900; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">02</div>
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Requirement extraction &amp; human review</h2>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1rem;">
+            PRAMAN extracts product categories, application domains, technical parameters, quantities, and quality requirements. Users can review, edit, confirm, or add missing items before matching.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="display: flex; gap: 2rem; margin-bottom: 3rem; align-items: flex-start;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--indian-green); color: white; font-weight: 900; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">03</div>
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Match &amp; rank standards</h2>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1rem;">
+            Relevant Indian Standards are matched and ranked based on requirement coverage, technical relevance, active version currency, and Quality Control Order (QCO) statutory compliance.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div style="display: flex; gap: 2rem; align-items: flex-start;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--saffron-accent); color: white; font-weight: 900; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">04</div>
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Review evidence &amp; generate report</h2>
+          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1rem;">
+            Inspect why each standard matched using the "Why this standard?" drawer, review evidence clause excerpts, check related standards, and print/export a 10-section Procurement Standards Report.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--surface-white); border-top: 1px solid var(--border-color); padding: 3rem 0 2rem 0;">
+    <div class="container" style="text-align: center; font-size: 0.875rem; color: var(--text-secondary);">
+      <img src="/assets/brand/praman-logo.svg" alt="PRAMAN" height="34" style="margin-bottom: 0.75rem;" /><br>
+      © PRAMAN — Indian Procurement Standards Platform
+    </div>
+  </footer>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderPublicNavbar } from '/js/components/navbar.js';
+    document.getElementById('navbar-root').innerHTML = renderPublicNavbar('/pages/how-it-works.html');
+  </script>
+</body>
+</html>

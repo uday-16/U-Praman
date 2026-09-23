@@ -1,0 +1,530 @@
+/* Visually Hidden Accessibility Skip to Main Content Link */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--gov-blue, #0B5CAD);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 0.5rem;
+}
+
+/* Top Governance Utility Bar (32–36px, Deep Indian Navy #082B4C) */
+.top-governance-bar {
+  background-color: #082B4C;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1001;
+  color: #FFFFFF;
+}
+
+.top-gov-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 34px;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 28px;
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+.top-gov-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-weight: 600;
+}
+
+.top-gov-right {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.accessibility-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.acc-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.acc-btn:hover, .acc-btn.active {
+  background: #FFFFFF;
+  color: #082B4C;
+  border-color: #FFFFFF;
+}
+
+.gov-lang-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.gov-lang-dropdown {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.gov-lang-dropdown option {
+  background: #082B4C;
+  color: #FFFFFF;
+}
+
+
+
+/* Fixed Top Navbar Container */
+#navbar-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #FFFFFF;
+}
+
+/* Subtle Indian Tricolor Accent Line */
+.tricolor-accent-line {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #138808 100%);
+  opacity: 0.95;
+}
+
+/* Fixed Main Header (70px Desktop Height) */
+.public-navbar {
+  position: relative;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
+  box-shadow: 0 2px 12px rgba(8, 43, 76, 0.04);
+  transition: all 0.2s ease;
+}
+
+.public-navbar.navbar-scrolled {
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(8, 43, 76, 0.06);
+  border-bottom-color: #CBD5E1;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 28px;
+  box-sizing: border-box;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 32px;
+}
+
+.brand-img {
+  height: 40px;
+  max-height: 40px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+  transition: height 0.2s ease, max-height 0.2s ease;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #102A43;
+  white-space: nowrap;
+  transition: color var(--transition-fast, 0.2s ease);
+  text-decoration: none;
+}
+
+.dropdown-caret {
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748B);
+  transition: transform 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #0B3558;
+  background-color: transparent;
+}
+
+.nav-link.active {
+  color: #0B3558;
+  font-weight: 700;
+  background-color: transparent;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #0B3558;
+  border-radius: 1px;
+}
+
+.nav-link:hover .dropdown-caret {
+  transform: translateY(1px);
+  color: #0B3558;
+}
+
+/* User Profile Menu Dropdown */
+.user-profile-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.user-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  color: #102A43;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.user-profile-btn:hover {
+  background: #FFFFFF;
+  border-color: #0B3558;
+  color: #0B3558;
+}
+
+.user-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem 0;
+  display: none;
+  z-index: 1100;
+}
+
+.user-profile-dropdown.show {
+  display: block;
+}
+
+/* Compact Enterprise Dropdown Menus */
+.nav-item-dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 240px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  padding: 0.45rem 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  z-index: 1100;
+  margin-top: 8px;
+}
+
+.nav-item-dropdown:hover .dropdown-menu,
+.nav-item-dropdown:focus-within .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+  white-space: nowrap;
+}
+
+.dropdown-icon {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dropdown-item:hover {
+  background: #F5F7FA;
+  color: var(--gov-blue);
+}
+
+.dropdown-item:hover .dropdown-icon {
+  color: var(--gov-blue);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.navbar-cta {
+  background-color: #073B75 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 0.88rem !important;
+  padding: 0.55rem 1.35rem !important;
+  border-radius: 6px !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 6px rgba(7, 59, 117, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.navbar-cta:hover {
+  background-color: #0B4A91 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(7, 59, 117, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+/* Location Selector Dropdown Styling */
+.navbar-location-wrapper {
+  display: flex;
+  align-items: center;
+  background: #F8FAFC;
+  padding: 0 8px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  flex-shrink: 0;
+}
+
+.navbar-location-select {
+  width: 175px;
+  max-width: 180px;
+  height: 38px;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #102A43;
+  cursor: pointer;
+  outline: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Global Search Input Button with Ctrl K */
+.navbar-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 120px;
+  height: 40px;
+  padding: 0 10px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #64748B;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.navbar-search-btn:hover {
+  border-color: #0B3558;
+  background: #FFFFFF;
+  color: #0B3558;
+}
+
+.search-kbd-badge {
+  background: #FFFFFF;
+  border: 1px solid var(--border-dark);
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* Search Modal Styles */
+.search-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 43, 76, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.search-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.search-modal-container {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 640px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.search-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-modal-header input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.search-modal-body {
+  padding: 1.25rem;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.search-chip-btn {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.search-chip-btn:hover {
+  background: var(--gov-blue);
+  color: #FFFFFF;
+  border-color: var(--gov-blue);
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.search-result-item:hover {
+  background: #FFFFFF;
+  border-color: var(--gov-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 900px) {
+  .navbar-links, .search-btn-text, .search-kbd-badge, .gov-motto {
+    display: none;
+  }
+  .top-gov-container {
+    font-size: 0.7rem;
+  }
+}
+
+/* Ensure anchor scrolls leave clear space below fixed navbar */
+#explore-standards {
+  scroll-margin-top: 120px;
+}
+

@@ -1,0 +1,89 @@
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background-color: var(--surface-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.step-item.active {
+  color: var(--primary-blue);
+  font-weight: 600;
+}
+
+.step-item.active .step-number {
+  background-color: var(--primary-blue);
+  color: var(--surface-white);
+  border-color: var(--primary-blue);
+}
+
+.step-item.completed .step-number {
+  background-color: var(--indian-green);
+  color: var(--surface-white);
+  border-color: var(--indian-green);
+}
+
+.step-divider {
+  flex: 1;
+  height: 2px;
+  background-color: var(--border-color);
+  margin: 0 1rem;
+}
+
+/* Simulation Loading Overlay */
+.loading-steps-container {
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-step-list {
+  max-width: 400px;
+  margin: 1.5rem auto;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.loading-step-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.loading-step-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

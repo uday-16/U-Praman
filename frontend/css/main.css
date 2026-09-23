@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Public Page Fixed Navbar Offset */
+body:has(#navbar-root),
+body.public-page {
+  padding-top: 104px;
+}
+
+/* Authenticated Workspace / App Layout — Starts at viewport top 0 */
+body:has(.app-layout),
+body.app-page,
+.app-layout {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Common Container */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+  box-sizing: border-box;
+}
+
+/* Page Titles & Headers */
+.page-title {
+  font-size: var(--fs-3xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  font-size: var(--fs-base);
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.section-title {
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Badge Component Base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.badge-primary {
+  background-color: var(--primary-blue-light);
+  color: var(--primary-blue);
+}
+
+.badge-success {
+  background-color: var(--indian-green-light);
+  color: var(--indian-green);
+}
+
+.badge-warning {
+  background-color: var(--warning-bg);
+  color: var(--warning);
+}
+
+.badge-error {
+  background-color: var(--error-bg);
+  color: var(--error);
+}
+
+.badge-neutral {
+  background-color: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.prototype-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.5rem;
+  background-color: var(--saffron-accent-light);
+  color: var(--saffron-accent);
+  border: 1px solid rgba(255, 153, 51, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Indian Tricolor Utility Classes */
+.tricolor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+  box-shadow: var(--shadow-xs);
+}
+
+.tricolor-flag-dots {
+  display: inline-flex;
+  width: 20px;
+  height: 12px;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.tricolor-flag-dots .saffron { background: #FF9933; flex: 1; }
+.tricolor-flag-dots .white { background: #FFFFFF; flex: 1; opacity: 0.95; }
+.tricolor-flag-dots .green { background: #138808; flex: 1; }
+
+.tricolor-gradient-border {
+  border-image: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%) 1;
+}
+
+/* Global Google Translate UI Overrides - Completely Hide Google Logo, Banners & Tooltips */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+iframe[class*="goog-te-banner-frame"],
+iframe[id*="goog-te-banner-frame"],
+iframe[src*="translate.google"],
+iframe[src*="translate.googleapis"],
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-ORHb-OEVmcd-tiAv2c,
+.VIpgJd-ZVi9od-a9145-aoyky2,
+.goog-te-gadget .goog-logo-link,
+.goog-te-gadget img,
+.goog-te-gadget-icon,
+.goog-logo-link,
+.goog-te-gadget span,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-gt-tt,
+.goog-te-spinner-pos,
+.goog-te-spinner,
+div[id*="goog-gt-"],
+.goog-text-highlight {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  clip: rect(0, 0, 0, 0) !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+.goog-te-gadget {
+  font-size: 0 !important;
+  color: transparent !important;
+  line-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+.goog-te-combo {
+  background: var(--bg-main, #F7F9FC) !important;
+  border: 1px solid var(--border-color, #E3E8EF) !important;
+  border-radius: var(--radius-md, 8px) !important;
+  padding: 0.35rem 0.6rem !important;
+  font-size: var(--fs-sm, 0.875rem) !important;
+  font-weight: 600 !important;
+  color: var(--text-primary, #16324F) !important;
+  cursor: pointer !important;
+  outline: none !important;
+  margin: 0 !important;
+  height: 38px !important;
+}
+html, body {
+  top: 0px !important;
+  position: static !important;
+  margin-top: 0px !important;
+}
+
+

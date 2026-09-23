@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Standards — PRAMAN Workspace</title>
+  <meta name="description" content="Side-by-side comparison matrix for Indian Standards specifications, testing requirements, and version currency.">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/navbar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+
+  <!-- Top App Navigation Container -->
+  <div id="topbar-root"></div>
+
+  <div class="app-layout">
+    <!-- Collapsible Enterprise Sidebar -->
+    <div id="sidebar-root"></div>
+
+    <!-- Main Workspace Content -->
+    <main class="main-content" style="padding: 2rem;">
+      <div class="container-fluid">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+          <div>
+            <span class="badge badge-primary mb-1">DECISION MATRIX</span>
+            <h1 class="page-title">Compare Indian Standards</h1>
+            <p class="page-subtitle">Analyze technical parameters, version statuses, and coverage differences side-by-side.</p>
+          </div>
+          <div>
+            <a href="/pages/standards.html" class="btn btn-secondary">+ Add Standard to Compare</a>
+          </div>
+        </div>
+
+        <!-- Matrix Table Card -->
+        <div class="card" style="background: white; padding: 0; overflow: hidden; border: 1px solid var(--border-color);">
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+              <thead>
+                <tr style="background: var(--bg-main); border-bottom: 2px solid var(--border-color);">
+                  <th style="padding: 1rem 1.25rem; width: 220px; color: var(--text-secondary); font-weight: 700;">SPECIFICATION FEATURE</th>
+                  <th style="padding: 1rem 1.25rem; width: 340px; color: var(--primary-blue); font-size: 1.05rem; font-weight: 800;">
+                    PRAMAN Demo Standard 001<br>
+                    <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Industrial Safety &amp; Helmets</span>
+                  </th>
+                  <th style="padding: 1rem 1.25rem; width: 340px; color: var(--primary-blue); font-size: 1.05rem; font-weight: 800;">
+                    PRAMAN Demo Standard 002<br>
+                    <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Reinforcement Steel Bars</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 1rem 1.25rem; font-weight: 700; background: var(--bg-main);">Match Score</td>
+                  <td style="padding: 1rem 1.25rem;"><span class="badge badge-success" style="font-weight: 800;">94% Match</span></td>
+                  <td style="padding: 1rem 1.25rem;"><span class="badge badge-primary" style="font-weight: 800;">88% Match</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 1rem 1.25rem; font-weight: 700; background: var(--bg-main);">Category / Domain</td>
+                  <td style="padding: 1rem 1.25rem;">Personal Protective Equipment (PPE)</td>
+                  <td style="padding: 1rem 1.25rem;">Civil Infrastructure &amp; Structural Steel</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 1rem 1.25rem; font-weight: 700; background: var(--bg-main);">Current Version Status</td>
+                  <td style="padding: 1rem 1.25rem;"><span style="color: var(--indian-green); font-weight: 700;">✓ Active (Revision 2021)</span></td>
+                  <td style="padding: 1rem 1.25rem;"><span style="color: var(--indian-green); font-weight: 700;">✓ Active (Amended 2024)</span></td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 1rem 1.25rem; font-weight: 700; background: var(--bg-main);">Technical Relevance</td>
+                  <td style="padding: 1rem 1.25rem;">Covers 50J Impact Energy &amp; Shock Absorption (Clause 5)</td>
+                  <td style="padding: 1rem 1.25rem;">Covers Yield Strength Fe 550D &amp; Elongation (Clause 7)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 1rem 1.25rem; font-weight: 700; background: var(--bg-main);">Quality Control Order (QCO)</td>
+                  <td style="padding: 1rem 1.25rem;"><span class="badge badge-warning">Mandatory ISI Mark</span></td>
+                  <td style="padding: 1rem 1.25rem;"><span class="badge badge-warning">Mandatory BIS Certification</span></td>
+                </tr>
+                <tr>
+                  <td style="padding: 1rem 1.25rem; font-weight: 700; background: var(--bg-main);">Action</td>
+                  <td style="padding: 1rem 1.25rem;">
+                    <a href="/pages/standard-details.html?id=STD-001" class="btn btn-primary btn-sm">View Full Details</a>
+                  </td>
+                  <td style="padding: 1rem 1.25rem;">
+                    <a href="/pages/standard-details.html?id=STD-002" class="btn btn-secondary btn-sm">View Full Details</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar } from '/js/components/sidebar.js';
+    renderAppSidebar('compare');
+  </script>
+</body>
+</html>

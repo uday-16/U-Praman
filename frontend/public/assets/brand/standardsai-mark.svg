@@ -1,0 +1,20 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="10" fill="url(#brand_grad)"/>
+  <!-- Document Shape -->
+  <path d="M12 10C12 8.89543 12.8954 8 14 8H22L28 14V30C28 31.1046 27.1046 32 26 32H14C12.8954 32 12 31.1046 12 30V10Z" fill="white" fill-opacity="0.2"/>
+  <path d="M12 10C12 8.89543 12.8954 8 14 8H22L28 14V30C28 31.1046 27.1046 32 26 32H14C12.8954 32 12 31.1046 12 30V10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Fold Corner -->
+  <path d="M22 8V14H28" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Checkmark + Verification Badge -->
+  <circle cx="25" cy="25" r="7" fill="#138808"/>
+  <path d="M22 25L24 27L28 23" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Subtle Standards Line -->
+  <line x1="16" y1="15" x2="19" y2="15" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="16" y1="19" x2="21" y2="19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="brand_grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B5CAD"/>
+      <stop offset="1" stop-color="#084B8A"/>
+    </linearGradient>
+  </defs>
+</svg>

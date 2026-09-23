@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Officer Profile &amp; Credentials — PRAMAN</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <div id="sidebar-root"></div>
+    <div class="app-main-wrapper">
+      <div id="topbar-root"></div>
+
+      <main class="app-content">
+        <!-- Page Header -->
+        <div style="margin-bottom: 2rem;">
+          <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(11, 92, 173, 0.08); color: var(--primary-navy); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Procurement Credentials
+          </div>
+          <h1 class="page-title" style="margin-bottom: 0.25rem;">Officer Profile &amp; Authority Settings</h1>
+          <p class="page-subtitle">Manage official procurement credentials, department affiliation, and GeM integration parameters.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 2rem; align-items: start;">
+          <!-- Left Column: Officer Identity Card -->
+          <div class="card" style="text-align: center; padding: 2.25rem 1.5rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-subtle);">
+            <div style="position: relative; width: 88px; height: 88px; margin: 0 auto 1.25rem auto;">
+              <div style="width: 100%; height: 100%; border-radius: 50%; background: #082B4C; color: #FFFFFF; font-weight: 800; font-size: 2.25rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(8, 43, 76, 0.15);" id="avatar-display">U</div>
+              <div style="position: absolute; bottom: 2px; right: 2px; width: 22px; height: 22px; background: var(--success); border: 2.5px solid white; border-radius: 50%;" title="Active Verification"></div>
+            </div>
+
+            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--primary-navy); margin-bottom: 0.25rem;" id="name-display">Uday Kiran</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 0.75rem;" id="role-display">Senior Procurement Officer</p>
+            
+            <div style="display: inline-flex; align-items: center; gap: 0.35rem; background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 1.5rem;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              GeM Verified Authority
+            </div>
+
+            <div style="text-align: left; background: #F8FAFC; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.5rem; font-size: 0.825rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.4rem;">
+                <span style="color: var(--text-secondary);">Cadre:</span>
+                <span style="font-weight: 700; color: var(--primary-navy);">Class I Executive</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.4rem;">
+                <span style="color: var(--text-secondary);">GeM Officer ID:</span>
+                <span style="font-family: monospace; font-weight: 700; color: var(--govt-blue);">GEM-IND-88421</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-secondary);">Portal Access:</span>
+                <span style="font-weight: 700; color: var(--success);">Full Admin</span>
+              </div>
+            </div>
+
+            <button id="logout-btn" class="btn btn-secondary btn-sm" style="width: 100%; color: var(--error); font-weight: 700; border-color: #FECDD3; background: #FFF1F2;">Sign Out Officer Session</button>
+          </div>
+
+          <!-- Right Column: Profile & Authority Form -->
+          <div class="card" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-subtle);">
+            <form id="profile-form">
+              <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-navy); margin-bottom: 0.25rem;">Officer Contact &amp; Designation Credentials</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Primary identity associated with official procurement compliance reports.</p>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Full Official Name</label>
+                  <input type="text" id="prof-name" class="form-input" value="Uday Kiran" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Official Govt Email Address</label>
+                  <input type="email" id="prof-email" class="form-input" value="uday.kiran@praman.in" required />
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Official Mobile / Contact</label>
+                  <input type="text" id="prof-phone" class="form-input" value="+91 98765 43210" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Designation Role</label>
+                  <input type="text" id="prof-role" class="form-input" value="Senior Procurement Officer" required />
+                </div>
+              </div>
+
+              <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-navy); margin-bottom: 0.25rem;">Department &amp; Procurement Authority</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Ministry and institutional division governing standards enforcement.</p>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Ministry / Public Authority</label>
+                  <input type="text" id="prof-org" class="form-input" value="Ministry of Housing and Urban Affairs" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Directorate / Department</label>
+                  <input type="text" id="prof-dept" class="form-input" value="Central Public Works Department (CPWD)" required />
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">GeM Procurement Officer ID</label>
+                  <input type="text" id="prof-gemid" class="form-input" value="GEM-IND-88421" style="font-family: monospace; font-weight: 700;" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 700; color: var(--primary-navy);">Primary State / UT Jurisdiction</label>
+                  <select id="prof-state" class="form-select">
+                    <option value="All India / Central">All India / Central Ministry</option>
+                    <option value="Delhi NCT" selected>Delhi NCT</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 0.75rem 1.75rem;">Save Profile &amp; Credentials</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+  <script type="module">
+    import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
+    import { Storage } from '/js/utils/storage.js';
+    import { showToast } from '/js/components/toast.js';
+
+    if (!Storage.isLoggedIn()) {
+      window.location.href = '/pages/login.html';
+    }
+
+    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('profile');
+    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / User Profile');
+    initSidebarEvents();
+    initTopbarEvents();
+
+    const user = Storage.getUser();
+    document.getElementById('prof-name').value = user.name || 'Uday Kiran';
+    document.getElementById('prof-email').value = user.email || 'uday.kiran@praman.in';
+    document.getElementById('prof-org').value = user.organization || 'Ministry of Housing and Urban Affairs';
+    document.getElementById('prof-role').value = user.role || 'Senior Procurement Officer';
+
+    document.getElementById('name-display').innerText = user.name || 'Uday Kiran';
+    document.getElementById('role-display').innerText = user.role || 'Senior Procurement Officer';
+    document.getElementById('avatar-display').innerText = (user.name || 'U').charAt(0);
+
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const updated = {
+        ...user,
+        name: document.getElementById('prof-name').value,
+        email: document.getElementById('prof-email').value,
+        organization: document.getElementById('prof-org').value,
+        role: document.getElementById('prof-role').value,
+      };
+      Storage.setUser(updated);
+      showToast('Officer profile & credentials updated successfully', 'success');
+      document.getElementById('name-display').innerText = updated.name;
+      document.getElementById('role-display').innerText = updated.role;
+      document.getElementById('avatar-display').innerText = updated.name.charAt(0);
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Storage.logout();
+      window.location.href = '/pages/login.html';
+    });
+  </script>
+</body>
+</html>
+

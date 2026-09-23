@@ -1,0 +1,24 @@
+<svg width="270" height="48" viewBox="0 0 270 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 0)">
+    <rect width="44" height="44" y="2" rx="10" fill="url(#praman_logo_bg)"/>
+    <path d="M10 6H34C36.2091 6 38 7.79086 38 10V11.5H6V10C6 7.79086 7.79086 6 10 6Z" fill="#FF9933"/>
+    <path d="M14 13C14 12.1046 14.7163 11.3807 15.6119 11.3807H25L30 16.3807V35C30 35.8954 29.2837 36.6193 28.3881 36.6193H15.6119C14.7163 36.6193 14 35.8954 14 35V13Z" fill="white"/>
+    <path d="M25 11.3807V16.3807H30" fill="#CBD5E1"/>
+    <line x1="17.5" y1="18" x2="22" y2="18" stroke="#0B5CAD" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="17.5" y1="22" x2="24" y2="22" stroke="#0B5CAD" stroke-width="1.8" stroke-linecap="round"/>
+    <line x1="17.5" y1="26" x2="21" y2="26" stroke="#0B5CAD" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="26.5" cy="29.5" r="6.5" fill="#138808" stroke="white" stroke-width="1.5"/>
+    <path d="M23.5 29.5L25.5 31.5L29.5 27" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(54, 0)">
+    <text x="0" y="25" font-family="Inter, -apple-system, sans-serif" font-weight="900" font-size="22" fill="#0B5CAD" letter-spacing="1.2">PRAMAN</text>
+    <text x="114" y="25" font-family="'Noto Sans Devanagari', 'Mukta', 'Kohinoor Devanagari', sans-serif" font-weight="700" font-size="19" fill="#FF9933" letter-spacing="0.5">प्रमाण</text>
+    <text x="0" y="39" font-family="Inter, -apple-system, sans-serif" font-weight="700" font-size="9" fill="#083B73" letter-spacing="0.6">INDIAN PROCUREMENT STANDARDS PLATFORM</text>
+  </g>
+  <defs>
+    <linearGradient id="praman_logo_bg" x1="0" y1="0" x2="44" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B5CAD"/>
+      <stop offset="1" stop-color="#083B73"/>
+    </linearGradient>
+  </defs>
+</svg>
