@@ -47,7 +47,7 @@
           <div id="section-spec" style="display: none;">
             <div class="form-group" style="margin-bottom: 1.25rem;">
               <label class="form-label" for="req-title-input" style="font-weight: 600; color: var(--ink);">Tender / Specification Title</label>
-              <input type="text" id="req-title-input" class="form-input" placeholder="e.g. Supply of Low Voltage 415V Switchgear for Power Substation" value="Industrial Electrical Switchgear Procurement" />
+              <input type="text" id="req-title-input" class="form-input" placeholder="e.g. Supply of Low Voltage 415V Switchgear for Power Substation" value="" />
             </div>
 
             <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -63,7 +63,7 @@
 
             <div class="form-group" style="margin-bottom: 1.25rem;">
               <label class="form-label" for="req-text-input" style="font-weight: 600; color: var(--ink);">Technical Specification Text</label>
-              <textarea id="req-text-input" class="form-textarea" rows="5" placeholder="Paste full technical specifications, material grades, performance parameters, and testing criteria...">Procurement of 1000 units low voltage 415V AC indoor switchgear with 50kA short circuit rating for industrial power plant distribution.</textarea>
+              <textarea id="req-text-input" class="form-textarea" rows="5" placeholder="Paste full technical specifications, material grades, performance parameters, and testing criteria..."></textarea>
             </div>
           </div>
 
@@ -139,6 +139,8 @@
   <script type="module">
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
     import { setupFileUpload } from '/js/components/file-upload.js';
+    import { showToast } from '/js/components/toast.js';
+    import { PRAMANStorage } from '/js/storage.js';
 
     document.getElementById('sidebar-root').innerHTML = renderAppSidebar('analyze');
     document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Analyze requirement');
@@ -155,21 +157,145 @@
     const secSpec = document.getElementById('section-spec');
     const secUpload = document.getElementById('section-upload');
 
-    function setActiveTab(activeBtn, activeSec) {
+    let currentMode = 'describe';
+
+    function setActiveTab(activeBtn, activeSec, mode) {
       [tabDescribe, tabSpec, tabUpload].forEach(b => { if (b) b.className = 'btn btn-secondary btn-sm'; });
       [secDescribe, secSpec, secUpload].forEach(s => { if (s) s.style.display = 'none'; });
       if (activeBtn) activeBtn.className = 'btn btn-primary btn-sm';
       if (activeSec) activeSec.style.display = 'block';
+      currentMode = mode;
+      clearFieldErrors();
     }
 
-    if (tabDescribe) tabDescribe.addEventListener('click', () => setActiveTab(tabDescribe, secDescribe));
-    if (tabSpec) tabSpec.addEventListener('click', () => setActiveTab(tabSpec, secSpec));
-    if (tabUpload) tabUpload.addEventListener('click', () => setActiveTab(tabUpload, secUpload));
+    if (tabDescribe) tabDescribe.addEventListener('click', () => setActiveTab(tabDescribe, secDescribe, 'describe'));
+    if (tabSpec) tabSpec.addEventListener('click', () => setActiveTab(tabSpec, secSpec, 'spec'));
+    if (tabUpload) tabUpload.addEventListener('click', () => setActiveTab(tabUpload, secUpload, 'upload'));
 
-    // Sequential top-to-bottom step animation (1 -> 2 -> 3 -> 4 -> 5)
+    function markFieldError(el) {
+      if (!el) return;
+      el.style.borderColor = '#DC2626';
+      el.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.15)';
+      el.focus();
+      const onInput = () => {
+        el.style.borderColor = '';
+        el.style.boxShadow = '';
+        el.removeEventListener('input', onInput);
+        el.removeEventListener('change', onInput);
+      };
+      el.addEventListener('input', onInput);
+      el.addEventListener('change', onInput);
+    }
+
+    function clearFieldErrors() {
+      ['desc-prompt', 'req-title-input', 'req-text-input', 'dropzone'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.borderColor = '';
+          el.style.boxShadow = '';
+        }
+      });
+    }
+
+    // Validation & Sequential top-to-bottom step animation (1 -> 2 -> 3 -> 4 -> 5)
     document.getElementById('start-analysis-btn').addEventListener('click', () => {
+      clearFieldErrors();
+
+      let requirementData = null;
+
+      if (currentMode === 'describe') {
+        const descEl = document.getElementById('desc-prompt');
+        const descVal = descEl ? descEl.value.trim() : '';
+        if (!descVal) {
+          showToast('Please describe the procurement requirement or product before starting AI analysis.', 'warning');
+          markFieldError(descEl);
+          return;
+        }
+        requirementData = {
+          title: descVal.slice(0, 60) + (descVal.length > 60 ? '...' : ''),
+          text: descVal,
+          category: 'General Procurement',
+          state: 'Central'
+        };
+      } else if (currentMode === 'spec') {
+        const titleEl = document.getElementById('req-title-input');
+        const textEl = document.getElementById('req-text-input');
+        const catEl = document.getElementById('req-category-select');
+
+        const titleVal = titleEl ? titleEl.value.trim() : '';
+        const textVal = textEl ? textEl.value.trim() : '';
+        const catVal = catEl ? catEl.value : 'Electrical Distribution';
+
+        if (!titleVal && !textVal) {
+          showToast('Please enter the tender title and technical specifications before analyzing.', 'warning');
+          markFieldError(titleEl);
+          markFieldError(textEl);
+          return;
+        }
+        if (!titleVal) {
+          showToast('Please enter the specification or tender title.', 'warning');
+          markFieldError(titleEl);
+          return;
+        }
+        if (!textVal) {
+          showToast('Please enter the technical specification details.', 'warning');
+          markFieldError(textEl);
+          return;
+        }
+
+        requirementData = {
+          title: titleVal,
+          text: textVal,
+          category: catVal,
+          state: 'Central'
+        };
+      } else if (currentMode === 'upload') {
+        const fileInput = document.getElementById('file-input');
+        const fileWrapper = document.getElementById('file-card-wrapper');
+        const hasFile = (fileInput && fileInput.files && fileInput.files.length > 0) || (fileWrapper && fileWrapper.children.length > 0);
+
+        if (!hasFile) {
+          showToast('Please select or upload a tender specification document (PDF, DOCX, TXT) first.', 'warning');
+          const dropzone = document.getElementById('dropzone');
+          if (dropzone) {
+            dropzone.style.borderColor = '#DC2626';
+            dropzone.style.backgroundColor = '#FEF2F2';
+            setTimeout(() => {
+              dropzone.style.borderColor = 'var(--navy)';
+              dropzone.style.backgroundColor = 'var(--paper)';
+            }, 3000);
+          }
+          return;
+        }
+
+        const fileName = (fileInput && fileInput.files && fileInput.files[0]) ? fileInput.files[0].name : 'Uploaded Tender Spec';
+        requirementData = {
+          title: fileName,
+          text: `Extracted text from ${fileName}`,
+          category: 'Tender Document Upload',
+          state: 'Central'
+        };
+      }
+
+      if (requirementData && typeof PRAMANStorage !== 'undefined' && PRAMANStorage.saveRequirement) {
+        PRAMANStorage.saveRequirement(requirementData);
+      }
+
       const modal = document.getElementById('loading-modal');
       modal.classList.add('active');
+
+      // Reset modal step items
+      document.getElementById('ls-1').innerHTML = '● Understanding requirement';
+      document.getElementById('ls-1').style.color = 'var(--primary-blue)';
+      document.getElementById('ls-1').style.fontWeight = '700';
+
+      for (let i = 2; i <= 5; i++) {
+        const item = document.getElementById(`ls-${i}`);
+        if (item) {
+          item.style.color = 'var(--text-muted)';
+          item.style.fontWeight = '600';
+        }
+      }
 
       // Step 1 Complete -> Step 2 In-Progress
       setTimeout(() => {

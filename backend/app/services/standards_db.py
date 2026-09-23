@@ -1,4 +1,5 @@
 from typing import List, Optional
+import re
 from app.schemas.standards import IndianStandard, ClauseInfo, VersionItem, CertificationItem, SourceEvidence, RelatedStandardItem, StandardGraph, GraphNode, GraphEdge
 
 STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
@@ -6,13 +7,13 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         id="is-2925-1984",
         is_number="IS 2925 : 1984",
         title="Industrial Safety Helmets",
-        category="Personal Protective Equipment",
+        category="Safety & Personal Protection",
         status="Active",
         year="1984",
         scope="Specifies physical, performance, and testing requirements for industrial safety helmets for construction, mining, and industrial personnel protection against impact and electrical shock.",
         key_requirements=[
-            "Shock absorption performance tests (max force transmission <= 5.0 kN)",
-            "Penetration resistance with 3kg drop weight",
+            "Shock absorption performance tests (max force transmission <= 5.0 kN under 50J drop)",
+            "Penetration resistance with 3kg conical drop striker",
             "Flame resistance and lateral rigidity",
             "Electrical insulation up to 1.2 kV for electrical hazards",
             "Adjustable chin strap retaining system (release force 150N - 250N)"
@@ -20,14 +21,12 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         clauses=[
             ClauseInfo(number="Clause 4.1", title="Materials & Construction", summary="Shell must be smooth, impact resistant HDPE, ABS or fiberglass with non-irritating harness.", is_mandatory=True),
             ClauseInfo(number="Clause 5.2", title="Shock Absorption Test", summary="Deceleration of headform shall not exceed 50g acceleration equivalent.", is_mandatory=True),
-            ClauseInfo(number="Clause 6.1", title="Electrical Insulation", summary="Leaking current shall not exceed 3mA under 1200V AC test.", is_mandatory=True),
+            ClauseInfo(number="Clause 6.1", title="Electrical Insulation", summary="Leakage current shall not exceed 3mA under 1200V AC test.", is_mandatory=True),
             ClauseInfo(number="Clause 7.4", title="Marking & BIS Logo", summary="Must carry IS number, Manufacturer trademark, Year of manufacture and ISI mark.", is_mandatory=True),
         ],
         related_standards=[
-            RelatedStandardItem(id="is-4681-1981", is_number="IS 4681 : 1981", title="Method of Testing Safety Helmets", relationship="testing", description="Detailed laboratory impact and penetration test protocols."),
-            RelatedStandardItem(id="is-4707-2020", is_number="IS 4707 : 2020", title="Safety Standards for Personal Protective Clothing", relationship="safety", description="Guidelines on integrated safety gear and high-visibility apparel."),
-            RelatedStandardItem(id="is-2062-2011", is_number="IS 2062 : 2011", title="Hot Rolled Medium and High Tensile Structural Steel", relationship="normative-reference", description="Reference for structural scaffolding and head impact hazard environments."),
-            RelatedStandardItem(id="is-14489-1998", is_number="IS 14489 : 1998", title="Code of Practice for Occupational Safety Audits", relationship="installation", description="Audit protocols for personal protective equipment deployment.")
+            RelatedStandardItem(id="is-15298-2-2011", is_number="IS 15298 (Part 2) : 2011", title="Personal Protective Equipment — Safety Footwear", relationship="safety", description="Coordinated personal protective equipment standard for hazardous work sites."),
+            RelatedStandardItem(id="is-2062-2011", is_number="IS 2062 : 2011", title="Hot Rolled Medium and High Tensile Structural Steel", relationship="normative-reference", description="Reference for structural scaffolding and head impact hazard environments.")
         ],
         versions=[
             VersionItem(year="1964", title="First Publication", type="original", description="Initial specification for head protection in industrial sites."),
@@ -49,14 +48,14 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         id="is-2062-2011",
         is_number="IS 2062 : 2011",
         title="Hot Rolled Medium and High Tensile Structural Steel",
-        category="Civil & Structural Materials",
+        category="Steel & Construction",
         status="Active",
         year="2011",
         scope="Covers requirements for structural steel sections, plates, flats, and bars suitable for welded, bolted, and riveted structural fabrication.",
         key_requirements=[
-            "Minimum Yield Strength E250 / E350 / E450 grade classifications",
-            "Tensile strength testing range 410 - 630 MPa",
-            "Charpy V-notch impact toughness test at 0°C and -20°C",
+            "Minimum Yield Strength E250 / E350 / E450 / E550 / E650 grade classifications",
+            "Tensile strength testing range 410 - 630 MPa with elongation >= 20%",
+            "Charpy V-notch impact toughness test at 0°C and -20°C (Sub-qualities A, BR, BO, C)",
             "Carbon Equivalent (CE) limitation <= 0.42% for weldability",
             "Bend test without fracture on inner bend radius"
         ],
@@ -66,14 +65,14 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 12.1", title="Tolerance on Dimensions", summary="Dimensions shall conform to IS 1852 standards.", is_mandatory=True)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-1608-2018", is_number="IS 1608 : 2018", title="Metallic Materials Tensile Testing", relationship="testing", description="Test procedure for yield and tensile strength."),
-            RelatedStandardItem(id="is-800-2007", is_number="IS 800 : 2007", title="Code of Practice for General Construction in Steel", relationship="installation", description="Design and installation standards for structural steelwork.")
+            RelatedStandardItem(id="is-1489-1-2015", is_number="IS 1489 (Part 1) : 2015", title="Portland Pozzolana Cement", relationship="normative-reference", description="Civil structural composite materials."),
+            RelatedStandardItem(id="is-15328-2003", is_number="IS 15328 : 2003", title="Plastics Piping for Underground Drainage", relationship="installation", description="Civil utility infrastructure coordination.")
         ],
         versions=[
             VersionItem(year="1999", title="Fifth Revision", type="original", description="Consolidated grade specifications."),
             VersionItem(year="2011", title="Seventh Revision (Current)", type="revision", description="Introduced sub-quality classifications (A, BR, BO, C) based on impact energy."),
             VersionItem(year="2019", title="Amendment 2", type="amendment", description="Revised carbon equivalent calculation formulas for ultra-high strength grades."),
-            VersionItem(year="2025", title="Latest Available", type="latest", description="Reaffirmed active standard by Bureau of Indian Standards.")
+            VersionItem(year="2024", title="Reaffirmed 2024 (Latest)", type="latest", description="Reaffirmed active standard by Bureau of Indian Standards.")
         ],
         certifications=[
             CertificationItem(scheme="BIS ISI Mark Scheme", status="Information Available", details="Mandatory certification for steel plates and structural shapes under Steel and Steel Products QCO.", is_mandatory=True)
@@ -83,74 +82,10 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         ]
     ),
     IndianStandard(
-        id="is-15652-2006",
-        is_number="IS 15652 : 2006",
-        title="Insulating Mats for Electrical Purposes",
-        category="Electrical Safety Equipment",
-        status="Active",
-        year="2006",
-        scope="Specifies characteristics for elastomer insulating mats used as floor covering for personal protection of workers on AC and DC high voltage electrical installations.",
-        key_requirements=[
-            "Class 0 (up to 3.3 kV), Class 1 (11 kV), Class 2 (33 kV) rating insulation",
-            "Dielectric strength testing with 50 kV proof voltage",
-            "Flame retardancy and self-extinguishing properties",
-            "Acid, alkali, oil, and low-temperature resistant elastomeric compound",
-            "Anti-skid texture surface with minimum thickness 2.0 mm to 3.5 mm"
-        ],
-        clauses=[
-            ClauseInfo(number="Clause 5.1", title="Dielectric Proof Test", summary="No electrical puncture or breakdown at specified proof voltage for 1 minute.", is_mandatory=True),
-            ClauseInfo(number="Clause 6.3", title="Tensile Strength & Elongation", summary="Tensile strength >= 15 N/mm2, elongation at break >= 250%.", is_mandatory=True)
-        ],
-        related_standards=[
-            RelatedStandardItem(id="is-2071-2014", is_number="IS 2071 : 2014", title="High Voltage Test Techniques", relationship="testing", description="High voltage breakdown test procedures."),
-            RelatedStandardItem(id="is-5216-1982", is_number="IS 5216 : 1982", title="Recommendations on Safety Procedures in Electrical Work", relationship="safety", description="Safety guidelines for electrical switchgear rooms.")
-        ],
-        versions=[
-            VersionItem(year="2006", title="First Edition", type="revision", description="Replaced legacy rubber mat standard IS 5424 with synthetic elastomeric specifications."),
-            VersionItem(year="2023", title="Reaffirmed (Latest)", type="latest", description="Reaffirmed active standard.")
-        ],
-        certifications=[
-            CertificationItem(scheme="BIS ISI Mark Scheme", status="Information Available", details="Mandatory certification for electrical safety mats under Electrical Equipment QCO.", is_mandatory=True)
-        ],
-        sources=[
-            SourceEvidence(section="Section 5 - Electrical Requirements", clause="Clause 5.1", text="Insulating mats shall withstand specified withstand voltage without flashover.", confidence=0.99, verified=True)
-        ]
-    ),
-    IndianStandard(
-        id="is-302-2-3-2007",
-        is_number="IS 302 (Part 2/Sec 3) : 2007",
-        title="Safety of Household and Similar Electrical Appliances - Electric Irons",
-        category="Electrical & Electronics",
-        status="Active",
-        year="2007",
-        scope="Deals with safety of electric dry irons and steam irons for household and commercial procurement.",
-        key_requirements=[
-            "Protection against access to live parts",
-            "Heating element insulation resistance > 2 Mohm under humid conditions",
-            "Thermostatic cutoff temperature limit compliance",
-            "Mechanical strength drop test from 400mm height"
-        ],
-        clauses=[
-            ClauseInfo(number="Clause 8", title="Protection against Electric Shock", summary="Live parts shall not be accessible with standard test finger.", is_mandatory=True)
-        ],
-        related_standards=[
-            RelatedStandardItem(id="is-302-1-2008", is_number="IS 302 (Part 1) : 2008", title="General Safety Requirements for Electrical Appliances", relationship="normative-reference", description="General appliance safety code.")
-        ],
-        versions=[
-            VersionItem(year="2007", title="Current Revision", type="latest", description="Active published standard.")
-        ],
-        certifications=[
-            CertificationItem(scheme="BIS Product Certification", status="Information Available", details="Mandatory ISI marking required under Household Electrical Appliances Quality Order.", is_mandatory=True)
-        ],
-        sources=[
-            SourceEvidence(section="Section 8 - Insulation", clause="Clause 8.1", text="Electric irons shall provide double or reinforced insulation for safety.", confidence=0.94, verified=True)
-        ]
-    ),
-    IndianStandard(
         id="is-10500-2012",
         is_number="IS 10500 : 2012",
         title="Drinking Water — Specification",
-        category="Civil, Public Health & Environment",
+        category="Water & Environmental",
         status="Active",
         year="2012",
         scope="Prescribes the quality limits for physical, chemical, and bacteriological parameters of drinking water supplied for public consumption and institutional procurement.",
@@ -160,7 +95,7 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             "Total Dissolved Solids (TDS) acceptable limit 500 mg/l (max permissible 2000 mg/l)",
             "Total Hardness (as CaCO3) acceptable limit 200 mg/l (max 600 mg/l)",
             "E. coli or thermotolerant coliform bacteria: Shall not be detectable in any 100 ml sample",
-            "Toxic heavy metals limits: Arsenic <= 0.01 mg/l, Lead <= 0.01 mg/l, Chromium <= 0.05 mg/l"
+            "Toxic heavy metals limits: Arsenic <= 0.01 mg/l, Lead <= 0.01 mg/l, Cadmium <= 0.003 mg/l"
         ],
         clauses=[
             ClauseInfo(number="Clause 3", title="Sampling Procedures", summary="Samples shall be taken as per IS 1622 and IS 3025 guidelines.", is_mandatory=True),
@@ -168,13 +103,12 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 4.2", title="Bacteriological Quality", summary="Water must be free from coliform organisms and microbial pathogens.", is_mandatory=True)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-3025-methods", is_number="IS 3025", title="Methods of Sampling and Test for Water and Wastewater", relationship="testing", description="Testing methods for physical and chemical parameters."),
-            RelatedStandardItem(id="is-1622-1981", is_number="IS 1622 : 1981", title="Methods of Sampling and Microbiological Examination of Water", relationship="testing", description="Bacteriological testing protocols.")
+            RelatedStandardItem(id="is-15328-2003", is_number="IS 15328 : 2003", title="Plastics Piping for Underground Drainage", relationship="installation", description="Potable and municipal sanitation separation.")
         ],
         versions=[
             VersionItem(year="1991", title="First Revision", type="original", description="Established baseline chemical limits for drinking water."),
             VersionItem(year="2012", title="Second Revision (Current)", type="revision", description="Aligned heavy metal limits with WHO international guidelines."),
-            VersionItem(year="2021", title="Amendment 1", type="amendment", description="Updated pesticide residue testing methods and limits.")
+            VersionItem(year="2021", title="Amendment 3", type="amendment", description="Updated pesticide residue testing methods and limits.")
         ],
         certifications=[
             CertificationItem(scheme="BIS Product Certification (ISI Mark)", status="Information Available", details="Mandatory ISI Mark certification required for packaged and bottled drinking water under FSSAI / BIS regulations.", is_mandatory=True)
@@ -186,17 +120,17 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
     IndianStandard(
         id="is-694-2010",
         is_number="IS 694 : 2010",
-        title="PVC Insulated Cables for Working Voltages up to and including 1100 V",
-        category="Electrical Safety & Distribution",
+        title="PVC Insulated Cables for Working Voltages up to and Including 1100 V",
+        category="Electrical Distribution",
         status="Active",
         year="2010",
         scope="Covers requirements for single core, twin core, and multicore PVC insulated unsheathed and sheathed electric cables for fixed wiring and flexible cords.",
         key_requirements=[
             "Working voltage rating up to and including 1100 V AC / DC",
             "High conductivity annealed bare or tinned copper / aluminium conductors",
-            "Insulation resistance at 70°C conforming to Class 1 / Class 2 limits",
+            "Type A PVC insulation compound conforming to IS 5831",
             "Spark test and high voltage AC immersion test (3 kV for 5 minutes)",
-            "Flame retardant low smoke (FRLS) insulation jacket options"
+            "Flame retardant low smoke (FRLS) insulation options"
         ],
         clauses=[
             ClauseInfo(number="Clause 5", title="Conductor Materials", summary="Conductors shall conform to IS 8130 requirements for purity and electrical resistance.", is_mandatory=True),
@@ -204,8 +138,8 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 14", title="High Voltage Test", summary="Completed cable must withstand 3000V AC without insulation puncture.", is_mandatory=True)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-8130-2013", is_number="IS 8130 : 2013", title="Conductors for Insulated Electric Cables and Flexible Cords", relationship="normative-reference", description="Conductor specifications."),
-            RelatedStandardItem(id="is-5831-1984", is_number="IS 5831 : 1984", title="PVC Insulation and Sheath of Electric Cables", relationship="testing", description="Compound physical and thermal test specifications.")
+            RelatedStandardItem(id="is-1293-2019", is_number="IS 1293 : 2019", title="Plugs and Socket-Outlets up to 250V", relationship="normative-reference", description="Terminal connection compatibility."),
+            RelatedStandardItem(id="is-15652-2006", is_number="IS 15652 : 2006", title="Insulating Mats for Electrical Purposes", relationship="safety", description="Coordinated substation and distribution room electrical safety.")
         ],
         versions=[
             VersionItem(year="1990", title="Third Revision", type="original", description="Standard PVC cable specifications."),
@@ -223,12 +157,12 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         id="is-1489-1-2015",
         is_number="IS 1489 (Part 1) : 2015",
         title="Portland Pozzolana Cement — Specification (Part 1: Flyash based)",
-        category="Civil & Structural Materials",
+        category="Civil & Construction",
         status="Active",
         year="2015",
         scope="Covers manufacture and chemical and physical requirements of flyash-based Portland Pozzolana Cement for structural concrete and civil works.",
         key_requirements=[
-            "Compressive strength: 72h >= 16 MPa, 168h >= 22 MPa, 672h >= 33 MPa",
+            "Compressive strength: 72h >= 16 MPa, 168h >= 22 MPa, 672h (28 days) >= 33 MPa",
             "Initial setting time not less than 30 minutes; Final setting time not more than 600 minutes",
             "Soundness: Le-Chatelier expansion <= 10 mm; Autoclave expansion <= 0.8%",
             "Fineness: Specific surface not less than 300 m2/kg (Blaine method)",
@@ -239,12 +173,13 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 7", title="Physical Requirements", summary="Compressive strength, setting time, fineness, and soundness compliance.", is_mandatory=True)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-4031-tests", is_number="IS 4031", title="Methods of Physical Tests for Hydraulic Cement", relationship="testing", description="Physical testing procedures for strength and setting."),
-            RelatedStandardItem(id="is-3812-flyash", is_number="IS 3812", title="Pulverized Fuel Ash for Use in Cement Concrete", relationship="normative-reference", description="Quality criteria for pozzolanic flyash constituent.")
+            RelatedStandardItem(id="is-2062-2011", is_number="IS 2062 : 2011", title="Hot Rolled Structural Steel", relationship="normative-reference", description="Structural reinforced concrete fabrication."),
+            RelatedStandardItem(id="is-15328-2003", is_number="IS 15328 : 2003", title="Plastics Piping for Underground Drainage", relationship="installation", description="Civil groundwork alignment.")
         ],
         versions=[
             VersionItem(year="1991", title="Third Revision", type="original", description="Separated flyash based (Part 1) from calcined clay (Part 2)."),
-            VersionItem(year="2015", title="Fourth Revision (Current)", type="revision", description="Raised flyash upper limit to 35% with enhanced strength benchmarks.")
+            VersionItem(year="2015", title="Fourth Revision (Current)", type="revision", description="Raised flyash upper limit to 35% with enhanced strength benchmarks."),
+            VersionItem(year="2018", title="Amendment 1", type="amendment", description="Updated flyash uniformity criteria.")
         ],
         certifications=[
             CertificationItem(scheme="BIS Mandatory ISI Mark", status="Information Available", details="Mandatory certification under Cement Quality Control Order.", is_mandatory=True)
@@ -257,7 +192,7 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         id="is-15298-2-2011",
         is_number="IS 15298 (Part 2) : 2011",
         title="Personal Protective Equipment — Safety Footwear",
-        category="Personal Protective Equipment",
+        category="Safety & Personal Protection",
         status="Active",
         year="2011",
         scope="Specifies basic and additional requirements for safety footwear used in industrial, construction, and mining applications.",
@@ -273,12 +208,13 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 6", title="Additional Requirements", summary="Slip resistance, electrical properties, thermal insulation.", is_mandatory=False)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-15298-1-2011", is_number="IS 15298 (Part 1) : 2011", title="PPE Footwear Test Methods", relationship="testing", description="Testing procedures for safety shoes."),
-            RelatedStandardItem(id="is-2925-1984", is_number="IS 2925 : 1984", title="Industrial Safety Helmets", relationship="safety", description="Coordinated PPE site safety standard.")
+            RelatedStandardItem(id="is-2925-1984", is_number="IS 2925 : 1984", title="Industrial Safety Helmets", relationship="safety", description="Coordinated PPE site safety standard."),
+            RelatedStandardItem(id="is-12-2005", is_number="IS 12 : 2005", title="Methods of Test for Rubber", relationship="testing", description="Sole compound testing protocols.")
         ],
         versions=[
             VersionItem(year="2002", title="First Publication", type="original", description="Aligned Indian safety shoe standard with ISO 20345."),
-            VersionItem(year="2011", title="Second Revision (Current)", type="revision", description="Updated slip resistance and antistatic footwear test criteria.")
+            VersionItem(year="2011", title="Second Revision (Current)", type="revision", description="Updated slip resistance and antistatic footwear test criteria."),
+            VersionItem(year="2024", title="Reaffirmed 2024 (Latest)", type="latest", description="Reaffirmed active standard by BIS.")
         ],
         certifications=[
             CertificationItem(scheme="BIS ISI Mark Scheme", status="Information Available", details="Mandatory ISI Mark certification under Footwear Quality Control Order.", is_mandatory=True)
@@ -307,10 +243,11 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 7", title="Mechanical Characteristics", summary="Ring stiffness, impact resistance, and elongation tests.", is_mandatory=True)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-4985-2000", is_number="IS 4985 : 2000", title="Unplasticized PVC Pipes for Potable Water Supplies", relationship="normative-reference", description="PVC pipe pressure rating standards.")
+            RelatedStandardItem(id="is-10500-2012", is_number="IS 10500 : 2012", title="Drinking Water Specification", relationship="normative-reference", description="Water supply and drainage separation norms.")
         ],
         versions=[
             VersionItem(year="2003", title="First Publication", type="original", description="Initial specification for non-pressure underground PVC pipes."),
+            VersionItem(year="2017", title="Amendment 6", type="amendment", description="Updated ring flexibility parameters."),
             VersionItem(year="2021", title="Amendment 7", type="amendment", description="Updated joint testing protocols and stiffness classification.")
         ],
         certifications=[
@@ -324,7 +261,7 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         id="is-1293-2019",
         is_number="IS 1293 : 2019",
         title="Plugs and Socket-Outlets for Household and Similar Purposes of Rated Voltage up to 250V",
-        category="Electrical Safety & Distribution",
+        category="Electrical Distribution",
         status="Active",
         year="2019",
         scope="Applies to plugs and fixed or portable socket-outlets for AC only, with or without earthing contact, with a rated voltage greater than 50 V but not exceeding 250 V.",
@@ -340,7 +277,8 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
             ClauseInfo(number="Clause 19", title="Temperature Rise Test", summary="Terminals shall not exceed 45 K temperature rise at rated current.", is_mandatory=True)
         ],
         related_standards=[
-            RelatedStandardItem(id="is-302-1-2008", is_number="IS 302 (Part 1) : 2008", title="Appliance Safety Code", relationship="normative-reference", description="General electrical safety code.")
+            RelatedStandardItem(id="is-694-2010", is_number="IS 694 : 2010", title="PVC Insulated Cables", relationship="normative-reference", description="Cable and cord conductor ratings."),
+            RelatedStandardItem(id="is-302-1-2008", is_number="IS 302 (Part 1) : 2008", title="Appliance Safety Code", relationship="safety", description="General electrical safety code.")
         ],
         versions=[
             VersionItem(year="2005", title="Third Revision", type="original", description="Established 6A and 16A configurations."),
@@ -353,13 +291,110 @@ STANDARDS_KNOWLEDGE_BASE: List[IndianStandard] = [
         sources=[
             SourceEvidence(section="Section 9 - Shock Protection", clause="Clause 9.1", text="Plugs and socket-outlets shall be constructed to prevent accidental contact with live parts.", confidence=0.98, verified=True)
         ]
+    ),
+    IndianStandard(
+        id="is-15652-2006",
+        is_number="IS 15652 : 2006",
+        title="Insulating Mats for Electrical Purposes",
+        category="Electrical Safety",
+        status="Active",
+        year="2006",
+        scope="Specifies characteristics for elastomer insulating mats used as floor covering for personal protection of workers on AC and DC high voltage electrical installations.",
+        key_requirements=[
+            "Class 0 (up to 3.3 kV), Class 1 (11 kV), Class 2 (33 kV) rating insulation",
+            "Dielectric strength testing with 50 kV proof voltage",
+            "Flame retardancy and self-extinguishing properties",
+            "Acid, alkali, oil, and low-temperature resistant elastomeric compound",
+            "Anti-skid texture surface with minimum thickness 2.0 mm to 3.5 mm"
+        ],
+        clauses=[
+            ClauseInfo(number="Clause 5.1", title="Dielectric Proof Test", summary="No electrical puncture or breakdown at specified proof voltage for 1 minute.", is_mandatory=True),
+            ClauseInfo(number="Clause 6.3", title="Tensile Strength & Elongation", summary="Tensile strength >= 15 N/mm2, elongation at break >= 250%.", is_mandatory=True)
+        ],
+        related_standards=[
+            RelatedStandardItem(id="is-694-2010", is_number="IS 694 : 2010", title="PVC Insulated Cables", relationship="safety", description="High voltage switchgear safety coordination.")
+        ],
+        versions=[
+            VersionItem(year="2006", title="First Edition", type="revision", description="Replaced legacy rubber mat standard IS 5424 with synthetic elastomeric specifications."),
+            VersionItem(year="2023", title="Reaffirmed (Latest)", type="latest", description="Reaffirmed active standard.")
+        ],
+        certifications=[
+            CertificationItem(scheme="BIS ISI Mark Scheme", status="Information Available", details="Mandatory certification for electrical safety mats under Electrical Equipment QCO.", is_mandatory=True)
+        ],
+        sources=[
+            SourceEvidence(section="Section 5 - Electrical Requirements", clause="Clause 5.1", text="Insulating mats shall withstand specified withstand voltage without flashover.", confidence=0.99, verified=True)
+        ]
+    ),
+    IndianStandard(
+        id="is-302-1-2008",
+        is_number="IS 302 (Part 1) : 2008",
+        title="Safety of Household and Similar Electrical Appliances — General Requirements",
+        category="Electrical & Consumer Safety",
+        status="Active",
+        year="2008",
+        scope="Deals with the general safety requirements for electrical appliances for household, commercial, and institutional procurement.",
+        key_requirements=[
+            "Protection against electric shock via probe test",
+            "Insulation resistance and heating limits under continuous load",
+            "Dielectric voltage test 1500V AC",
+            "Mechanical drop hammer impact resistance",
+            "Moisture and flame resistance"
+        ],
+        clauses=[
+            ClauseInfo(number="Clause 8.1", title="Protection against Electric Shock", summary="Live parts shall not be accessible with standard test finger.", is_mandatory=True),
+            ClauseInfo(number="Clause 11.1", title="Heating Test", summary="Appliance shall not reach excessive temperatures during operation.", is_mandatory=True)
+        ],
+        related_standards=[
+            RelatedStandardItem(id="is-1293-2019", is_number="IS 1293 : 2019", title="Plugs and Socket-Outlets", relationship="normative-reference", description="Power cord terminal connections.")
+        ],
+        versions=[
+            VersionItem(year="2008", title="Sixth Revision", type="revision", description="General appliance safety code."),
+            VersionItem(year="2014", title="Amendment 3", type="amendment", description="Updated insulation and creepage distance requirements."),
+            VersionItem(year="2015", title="Amendment 4", type="amendment", description="Abnormal operation test parameters.")
+        ],
+        certifications=[
+            CertificationItem(scheme="BIS Product Certification", status="Information Available", details="Mandatory ISI marking required under Household Electrical Appliances Quality Order.", is_mandatory=True)
+        ],
+        sources=[
+            SourceEvidence(section="Section 8 - Insulation", clause="Clause 8.1", text="Electric appliances shall provide double or reinforced insulation for safety.", confidence=0.95, verified=True)
+        ]
+    ),
+    IndianStandard(
+        id="is-12-2005",
+        is_number="IS 12 : 2005 (Amd 1:2014)",
+        title="Guide on Methods of Test for Rubber and Rubber Products",
+        category="Manufacturing & Materials",
+        status="Active",
+        year="2005",
+        scope="Provides guidelines and protocols for physical, chemical, tensile, and aging tests for vulcanized, synthetic, and thermoplastic rubber materials.",
+        key_requirements=[
+            "Tensile stress-strain and elongation test methods",
+            "Accelerated air oven aging test protocols",
+            "Compression set and hardness (IRHD/Shore A) determinations",
+            "Chemical and oil immersion resistance"
+        ],
+        clauses=[
+            ClauseInfo(number="Clause 3.1", title="Tensile Test Protocols", summary="Standard dumbbell specimen tensile and elongation procedures.", is_mandatory=False),
+            ClauseInfo(number="Clause 4.2", title="Aging Procedures", summary="Thermal degradation test in ventilated air ovens.", is_mandatory=False)
+        ],
+        related_standards=[
+            RelatedStandardItem(id="is-15652-2006", is_number="IS 15652 : 2006", title="Insulating Mats for Electrical Purposes", relationship="testing", description="Elastomeric compound test reference.")
+        ],
+        versions=[
+            VersionItem(year="2005", title="Third Revision", type="revision", description="Comprehensive testing guide for rubber components."),
+            VersionItem(year="2014", title="Amendment 1", type="amendment", description="Updated calibration and test apparatus guidelines.")
+        ],
+        certifications=[
+            CertificationItem(scheme="BIS Testing Guide", status="Information Available", details="Normative laboratory test standard.", is_mandatory=False)
+        ],
+        sources=[
+            SourceEvidence(section="Section 3 - Physical Testing", clause="Clause 3.1", text="Methods for determining tensile properties of vulcanized rubbers.", confidence=0.92, verified=True)
+        ]
     )
 ]
 
 def get_all_standards() -> List[IndianStandard]:
     return STANDARDS_KNOWLEDGE_BASE
-
-import re
 
 def get_standard_by_id(std_id: str) -> Optional[IndianStandard]:
     clean_target = re.sub(r'[^a-zA-Z0-9]', '', std_id).lower()
@@ -368,7 +403,6 @@ def get_standard_by_id(std_id: str) -> Optional[IndianStandard]:
         clean_num = re.sub(r'[^a-zA-Z0-9]', '', std.is_number).lower()
         if clean_target == clean_id or clean_target == clean_num:
             return std
-    # Partial prefix match fallback (e.g. is10500 matches is-10500-2012)
     for std in STANDARDS_KNOWLEDGE_BASE:
         clean_id = re.sub(r'[^a-zA-Z0-9]', '', std.id).lower()
         clean_num = re.sub(r'[^a-zA-Z0-9]', '', std.is_number).lower()
@@ -379,7 +413,6 @@ def get_standard_by_id(std_id: str) -> Optional[IndianStandard]:
 def get_standard_graph(std_id: str) -> StandardGraph:
     std = get_standard_by_id(std_id)
     if not std:
-        # Fallback default graph for industrial head protection / standard
         std = STANDARDS_KNOWLEDGE_BASE[0]
         
     nodes: List[GraphNode] = [

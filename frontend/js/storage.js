@@ -17,18 +17,40 @@ export const PRAMANStorage = {
   saveRequirement(requirement) {
     const requirements = this.getRequirements();
     const newReq = {
-      id: 'REQ-' + Date.now().toString().slice(-6),
+      id: requirement.id || ('REQ-' + Date.now().toString().slice(-6)),
       title: requirement.title || 'Procurement Requirement',
       text: requirement.text || '',
       category: requirement.category || 'General Procurement',
       state: requirement.state || 'All India',
-      date: new Date().toISOString().split('T')[0],
+      date: requirement.date || new Date().toISOString().split('T')[0],
       parameters: requirement.parameters || [],
       matchedStandards: requirement.matchedStandards || []
     };
     requirements.unshift(newReq);
     localStorage.setItem('praman_requirements', JSON.stringify(requirements));
     localStorage.setItem('praman_current_analysis', JSON.stringify(newReq));
+
+    // Keep praman_analyses in sync
+    try {
+      const analyses = JSON.parse(localStorage.getItem('praman_analyses') || '[]');
+      analyses.unshift({
+        id: newReq.id,
+        product: newReq.title,
+        requirement: newReq.text,
+        category: newReq.category,
+        status: 'Ready',
+        standardsCount: (newReq.matchedStandards && newReq.matchedStandards.length) || 0,
+        date: 'Today',
+        updated: 'Today',
+        extracted: {
+          product: newReq.title,
+          application: newReq.category,
+          keyRequirements: newReq.parameters
+        }
+      });
+      localStorage.setItem('praman_analyses', JSON.stringify(analyses));
+    } catch (e) {}
+
     return newReq;
   },
 
@@ -58,6 +80,7 @@ export const PRAMANStorage = {
       saved.push(standardId);
     }
     localStorage.setItem('praman_saved_standards', JSON.stringify(saved));
+    localStorage.setItem('praman_saved', JSON.stringify(saved));
     return saved.includes(standardId);
   },
 
@@ -76,11 +99,12 @@ export const PRAMANStorage = {
 
   // Language Preference
   getLanguage() {
-    return localStorage.getItem('praman_lang') || 'en';
+    return localStorage.getItem('praman_lang') || localStorage.getItem('standardsai_lang') || 'en';
   },
 
   setLanguage(langCode) {
     localStorage.setItem('praman_lang', langCode);
+    localStorage.setItem('standardsai_lang', langCode);
   },
 
   // Font Size Preference

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/responsive.css">
 </head>
+
 <body>
 
   <div class="app-layout">
@@ -27,116 +29,148 @@
 
       <!-- Main Content -->
       <main class="app-content">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
           <div>
             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.35rem;">
               <h1 class="page-title" style="margin-bottom: 0;">Good morning, Officer</h1>
-              <span id="user-role-badge" class="badge" style="background: #EBF3FC; color: var(--navy); border: 1px solid rgba(11, 31, 58, 0.2); font-weight: 700;">Procurement Officer</span>
+              <span id="user-role-badge" class="badge"
+                style="background: #EBF3FC; color: var(--navy); border: 1px solid rgba(11, 31, 58, 0.2); font-weight: 700;">Procurement
+                Officer</span>
             </div>
             <p class="page-subtitle" style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">
-              Procurement Intelligence Workspace • Indian Standards Decision Support System (SIH26108)
+              Procurement Intelligence Workspace • Indian Standards Decision Support System
             </p>
           </div>
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
             <div id="admin-action-btn" style="display: none;">
-              <a href="/pages/admin.html" class="btn btn-secondary" style="font-weight: 700; padding: 0.65rem 1.25rem; border-color: var(--navy); color: var(--navy);">
+              <a href="/pages/admin.html" class="btn btn-secondary"
+                style="font-weight: 700; padding: 0.65rem 1.25rem; border-color: var(--navy); color: var(--navy);">
                 Administrator Console &rarr;
               </a>
             </div>
-            <a href="/pages/analyze.html" class="btn btn-primary" style="font-weight: 700; padding: 0.65rem 1.25rem; background: var(--navy); border: none; border-radius: 8px;">
+            <a href="/pages/analyze.html" class="btn btn-primary"
+              style="font-weight: 700; padding: 0.65rem 1.25rem; background: var(--navy); border: none; border-radius: 8px;">
               + Analyze Requirement
             </a>
           </div>
         </div>
 
-        <!-- KPI Summary Cards (Restrained Enterprise Bounds) -->
+        <!-- KPI Summary Cards (Dynamically Computed from Active Repository Data) -->
         <div class="kpi-grid" style="margin-bottom: 2rem;">
-          <div class="kpi-card" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
+          <div class="kpi-card"
+            style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
             <div class="kpi-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
             </div>
             <div>
-              <div class="kpi-value" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">24</div>
-              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Requirements analyzed</div>
+              <div class="kpi-value" id="kpi-req-count" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">0</div>
+              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">
+                Requirements analyzed</div>
             </div>
           </div>
 
-          <div class="kpi-card" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
+          <div class="kpi-card"
+            style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
             <div class="kpi-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
             </div>
             <div>
-              <div class="kpi-value" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">18</div>
-              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Standards matched</div>
+              <div class="kpi-value" id="kpi-matched-count" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">0</div>
+              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">
+                Standards matched</div>
             </div>
           </div>
 
-          <div class="kpi-card" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
+          <div class="kpi-card"
+            style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
             <div class="kpi-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
             </div>
             <div>
-              <div class="kpi-value" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">03</div>
-              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Reviews pending</div>
+              <div class="kpi-value" id="kpi-pending-count" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">0</div>
+              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Reviews
+                pending</div>
             </div>
           </div>
 
-          <div class="kpi-card" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
+          <div class="kpi-card"
+            style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
             <div class="kpi-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
             </div>
             <div>
-              <div class="kpi-value" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">12</div>
-              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Saved standards</div>
+              <div class="kpi-value" id="kpi-saved-count" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">0</div>
+              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Saved
+                standards</div>
             </div>
           </div>
         </div>
 
-        <!-- Continue Where You Left Off Card -->
-        <div class="card" style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
-          <div>
-            <div style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">CONTINUE WHERE YOU LEFT OFF</div>
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">Industrial Safety Helmet Procurement Specification</h3>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-              <span>Category: <strong>Safety &amp; Personal Protection</strong></span> •
-              <span>Matches: <strong style="color: var(--indian-green);">6 Applicable Standards</strong></span> •
-              <span>Relevance: <strong style="color: var(--gov-blue);">94% Match Score</strong></span> •
-              <span>Last analyzed today</span>
-            </div>
-          </div>
-          <a href="/pages/results.html" class="btn btn-secondary btn-sm" style="font-weight: 800; padding: 0.5rem 1.25rem; border-color: var(--gov-blue); color: var(--gov-blue);">
-            Review Analysis →
-          </a>
-        </div>
+        <!-- Dynamic Continue Where You Left Off Container -->
+        <div id="continue-section" style="margin-bottom: 2rem;"></div>
 
         <!-- Quick Actions -->
-        <h2 class="section-title" style="font-size:1.15rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-primary);">Quick Actions</h2>
+        <h2 class="section-title"
+          style="font-size:1.15rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-primary);">Quick Actions
+        </h2>
         <div class="quick-actions-grid" style="margin-bottom: 2rem;">
-          <div class="quick-action-card" onclick="window.location.href='/pages/analyze.html'" style="border-left: 4px solid var(--primary-blue);">
+          <div class="quick-action-card" onclick="window.location.href='/pages/analyze.html'"
+            style="border-left: 4px solid var(--primary-blue); cursor: pointer;">
             <div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" stroke-width="2" style="margin-bottom:0.75rem;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" stroke-width="2"
+                style="margin-bottom:0.75rem;">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
               <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:0.25rem;">Analyze requirement</h3>
               <p style="font-size:0.85rem; color:var(--text-secondary);">Upload or enter procurement specifications.</p>
             </div>
-            <div style="font-size:0.85rem; font-weight:700; color:var(--primary-blue); margin-top:1rem; display:flex; align-items:center; gap:0.25rem;">Start →</div>
+            <div
+              style="font-size:0.85rem; font-weight:700; color:var(--primary-blue); margin-top:1rem; display:flex; align-items:center; gap:0.25rem;">
+              Start →</div>
           </div>
 
-          <div class="quick-action-card" onclick="window.location.href='/pages/standards.html'">
+          <div class="quick-action-card" onclick="window.location.href='/pages/standards.html'"
+            style="border-left: 4px solid var(--deep-blue); cursor: pointer;">
             <div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--deep-blue)" stroke-width="2" style="margin-bottom:0.75rem;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--deep-blue)" stroke-width="2"
+                style="margin-bottom:0.75rem;">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
               <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:0.25rem;">Explore standards</h3>
-              <p style="font-size:0.85rem; color:var(--text-secondary);">Search and compare available standards.</p>
+              <p style="font-size:0.85rem; color:var(--text-secondary);">Search and compare Indian Standards from datab store.</p>
             </div>
-            <div style="font-size:0.85rem; font-weight:700; color:var(--deep-blue); margin-top:1rem; display:flex; align-items:center; gap:0.25rem;">Explore →</div>
+            <div
+              style="font-size:0.85rem; font-weight:700; color:var(--deep-blue); margin-top:1rem; display:flex; align-items:center; gap:0.25rem;">
+              Explore →</div>
           </div>
 
-          <div class="quick-action-card" onclick="window.location.href='/pages/reports.html'">
+          <div class="quick-action-card" onclick="window.location.href='/pages/reports.html'"
+            style="border-left: 4px solid var(--indian-green); cursor: pointer;">
             <div>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--indian-green)" stroke-width="2" style="margin-bottom:0.75rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--indian-green)" stroke-width="2"
+                style="margin-bottom:0.75rem;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
               <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:0.25rem;">View reports</h3>
               <p style="font-size:0.85rem; color:var(--text-secondary);">Review generated procurement reports.</p>
             </div>
-            <div style="font-size:0.85rem; font-weight:700; color:var(--indian-green); margin-top:1rem; display:flex; align-items:center; gap:0.25rem;">View reports →</div>
+            <div
+              style="font-size:0.85rem; font-weight:700; color:var(--indian-green); margin-top:1rem; display:flex; align-items:center; gap:0.25rem;">
+              View reports →</div>
           </div>
         </div>
 
@@ -166,6 +200,8 @@
   <script type="module" src="/js/main.js"></script>
   <script type="module">
     import { Storage } from '/js/utils/storage.js';
+    import { PRAMANStorage } from '/js/storage.js';
+    import { mockStandards } from '/js/data/standards.js';
     import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
 
     if (!Storage.isLoggedIn()) {
@@ -197,20 +233,126 @@
     document.getElementById('sidebar-root').innerHTML = renderAppSidebar('dashboard');
     document.getElementById('topbar-root').innerHTML = renderAppTopbar('Dashboard Workspace / Dashboard');
 
+    // Retrieve active dynamic analyses and saved standards
     const analyses = Storage.getAnalyses();
+    const savedStandards = Storage.getSavedStandards();
+
+    // Compute dynamic KPIs
+    const reqCount = analyses.length;
+    const matchedCount = analyses.reduce((sum, a) => {
+      const cnt = parseInt(a.standardsCount, 10);
+      return sum + (!isNaN(cnt) ? cnt : (a.matchedStandards ? a.matchedStandards.length : 0));
+    }, 0);
+    const pendingCount = analyses.filter(a => {
+      const s = (a.status || '').toLowerCase();
+      return s.includes('review') || s.includes('pending') || s.includes('need');
+    }).length;
+    const savedCount = savedStandards.length;
+
+    // Update KPI card elements
+    const kpiReqEl = document.getElementById('kpi-req-count');
+    const kpiMatchedEl = document.getElementById('kpi-matched-count');
+    const kpiPendingEl = document.getElementById('kpi-pending-count');
+    const kpiSavedEl = document.getElementById('kpi-saved-count');
+
+    if (kpiReqEl) kpiReqEl.innerText = String(reqCount).padStart(2, '0');
+    if (kpiMatchedEl) kpiMatchedEl.innerText = String(matchedCount).padStart(2, '0');
+    if (kpiPendingEl) kpiPendingEl.innerText = String(pendingCount).padStart(2, '0');
+    if (kpiSavedEl) kpiSavedEl.innerText = String(savedCount).padStart(2, '0');
+
+    // Render Continue Section Dynamically
+    const continueSection = document.getElementById('continue-section');
+    if (continueSection) {
+      if (analyses.length > 0) {
+        const latest = analyses[0];
+        const matchCount = latest.standardsCount || (latest.matchedStandards ? latest.matchedStandards.length : 0);
+        continueSection.innerHTML = `
+          <div class="card"
+            style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
+            <div>
+              <div
+                style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">
+                CONTINUE WHERE YOU LEFT OFF</div>
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">
+                ${escapeHtml(latest.product || latest.title || 'Procurement Specification')}</h3>
+              <div
+                style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <span>Category: <strong>${escapeHtml(latest.category || 'General Procurement')}</strong></span> •
+                <span>Matches: <strong style="color: var(--indian-green);">${matchCount} Applicable Standards</strong></span> •
+                <span>Status: <strong style="color: var(--gov-blue);">${escapeHtml(latest.status || 'Ready')}</strong></span> •
+                <span>Date: <strong>${escapeHtml(latest.date || 'Recent')}</strong></span>
+              </div>
+            </div>
+            <a href="/pages/results.html?id=${encodeURIComponent(latest.id || '')}" class="btn btn-secondary btn-sm"
+              style="font-weight: 800; padding: 0.5rem 1.25rem; border-color: var(--gov-blue); color: var(--gov-blue);">
+              Review Analysis →
+            </a>
+          </div>
+        `;
+      } else {
+        continueSection.innerHTML = `
+          <div class="card"
+            style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
+            <div>
+              <div
+                style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">
+                INDIAN STANDARDS INTELLIGENCE ACTIVE</div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">
+                No Active Procurement Analysis Session</h3>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; max-width: 650px; line-height: 1.5;">
+                Ingested 32 Indian Standards &amp; Gazette amendments from the BIS datastore. Start an AI semantic analysis to match tender specifications against applicable IS codes, test protocols, and mandatory certification schemes.
+              </p>
+            </div>
+            <a href="/pages/analyze.html" class="btn btn-primary"
+              style="font-weight: 700; padding: 0.65rem 1.25rem; background: var(--navy); border: none; border-radius: 8px;">
+              + Start Analysis →
+            </a>
+          </div>
+        `;
+      }
+    }
+
+    // Render Recent Analyses Table Dynamically
     const tbody = document.getElementById('analyses-table-body');
     if (tbody) {
-      tbody.innerHTML = analyses.map(a => `
-        <tr>
-          <td style="font-weight:600;">${a.product}</td>
-          <td>${a.category || 'General Safety'}</td>
-          <td>${a.standardsCount} Standards</td>
-          <td><span class="badge ${a.status === 'Completed' || a.status === 'Ready' ? 'badge-success' : 'badge-warning'}">${a.status || 'Ready'}</span></td>
-          <td style="color:var(--text-secondary);">${a.date}</td>
-          <td><a href="/pages/results.html?id=${a.id}" class="btn btn-secondary btn-sm">Open</a></td>
-        </tr>
-      `).join('');
+      if (analyses.length > 0) {
+        tbody.innerHTML = analyses.map(a => {
+          const matchCount = a.standardsCount || (a.matchedStandards ? a.matchedStandards.length : 0);
+          const isSuccess = (a.status === 'Completed' || a.status === 'Ready');
+          return `
+            <tr>
+              <td style="font-weight:700; color: var(--text-primary);">${escapeHtml(a.product || a.title || 'Procurement Requirement')}</td>
+              <td><span class="badge" style="background: #F1F5F9; color: var(--text-primary); font-weight: 600;">${escapeHtml(a.category || 'General Procurement')}</span></td>
+              <td style="font-weight: 600;">${matchCount} Standards</td>
+              <td><span class="badge ${isSuccess ? 'badge-success' : 'badge-warning'}">${escapeHtml(a.status || 'Ready')}</span></td>
+              <td style="color:var(--text-secondary); font-size: 0.85rem;">${escapeHtml(a.date || 'Today')}</td>
+              <td><a href="/pages/results.html?id=${encodeURIComponent(a.id || '')}" class="btn btn-secondary btn-sm" style="font-weight: 700;">Open →</a></td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); background: white;">
+              <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.35rem;">No procurement requirements analyzed yet</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Start an AI semantic search with your product specifications to see compliance logs here.</div>
+              <a href="/pages/analyze.html" class="btn btn-primary btn-sm" style="font-weight: 700; background: var(--navy); border-radius: 6px; padding: 0.5rem 1.25rem;">+ Analyze Requirement</a>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
   </script>
 </body>
+
 </html>

@@ -41,9 +41,6 @@
             <span class="filter-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Category:</span>
             <select id="filter-category" class="form-select" style="padding: 0.35rem 0.75rem;">
               <option value="All">All Categories</option>
-              <option value="Personal Protective Equipment (PPE)">Personal Protective Equipment</option>
-              <option value="Civil Infrastructure & Steel">Civil Infrastructure</option>
-              <option value="Electrical Equipment">Electrical Equipment</option>
             </select>
           </div>
 
@@ -108,6 +105,15 @@
     const tbody = document.getElementById('standards-tbody');
     const countEl = document.getElementById('results-count');
     const emptyState = document.getElementById('empty-state');
+
+    // Dynamically populate category dropdown from ingested standards
+    const uniqueCategories = [...new Set(mockStandards.map(s => s.category).filter(Boolean))].sort();
+    uniqueCategories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.innerText = cat;
+      filterCat.appendChild(opt);
+    });
 
     function renderTable() {
       const q = searchInput.value.toLowerCase().trim();

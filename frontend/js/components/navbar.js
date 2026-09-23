@@ -1,4 +1,5 @@
 import { Storage } from '../utils/storage.js';
+import { changeLanguage, getSavedLanguage } from '../utils/translator.js';
 
 export function renderPublicNavbar(activePath = '/') {
   const isLoggedIn = Storage.isLoggedIn();
@@ -35,16 +36,19 @@ export function renderPublicNavbar(activePath = '/') {
           <div class="gov-lang-picker" title="Select Language">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: rgba(255,255,255,0.85);"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
             <select id="gov-lang-select" class="gov-lang-dropdown" aria-label="Select Language">
-              <option value="en">Select Language</option>
               <option value="en">English</option>
               <option value="hi">हिन्दी (Hindi)</option>
               <option value="te">తెలుగు (Telugu)</option>
               <option value="ta">தமிழ் (Tamil)</option>
               <option value="bn">বাংলা (Bengali)</option>
-              <option value="mr">మరాఠీ (Marathi)</option>
+              <option value="mr">मराठी (Marathi)</option>
               <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
               <option value="gu">ગુજરાતી (Gujarati)</option>
-              <option value="kn">కన్నడ (Kannada)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+              <option value="or">ଓଡ଼ିଆ (Odia)</option>
+              <option value="ur">اردو (Urdu)</option>
+              <option value="as">অসমীয়া (Assamese)</option>
             </select>
             <div id="google_translate_element" style="display:none;"></div>
           </div>
@@ -64,7 +68,7 @@ export function renderPublicNavbar(activePath = '/') {
       <div class="container navbar-container">
         <!-- PRAMAN Brand Identity Logo -->
         <a href="/" class="brand-logo" title="PRAMAN — Indian Standards Decision Support">
-          <img src="/assets/brand/praman-logo-light.svg" alt="PRAMAN / प्रमाण — Indian Standards Decision Support" height="40" class="brand-img" />
+          <img src="/assets/brand/praman-logo.svg" alt="PRAMAN / प्रमाण — Indian Standards Decision Support" height="40" class="brand-img" />
         </a>
 
         <!-- Center Navigation Links (Clean Direct Links) -->
@@ -119,6 +123,19 @@ export function initNavbarEvents() {
     return h && h.includes('explore-standards');
   });
 
+  function setHomeActive() {
+    if (homeLink) homeLink.classList.add('active');
+    if (standardsLink) standardsLink.classList.remove('active');
+    if (window.location.hash === '#explore-standards') {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+
+  function setStandardsActive() {
+    if (standardsLink) standardsLink.classList.add('active');
+    if (homeLink) homeLink.classList.remove('active');
+  }
+
   function updateActiveNavOnHash() {
     const currentHash = window.location.hash;
     const isStandardsHash = currentHash === '#explore-standards';
@@ -126,11 +143,9 @@ export function initNavbarEvents() {
 
     if (homeLink && standardsLink && isHomePage) {
       if (isStandardsHash) {
-        standardsLink.classList.add('active');
-        homeLink.classList.remove('active');
+        setStandardsActive();
       } else if (!currentHash || currentHash === '#') {
-        homeLink.classList.add('active');
-        standardsLink.classList.remove('active');
+        setHomeActive();
       }
     }
   }
@@ -138,13 +153,20 @@ export function initNavbarEvents() {
   updateActiveNavOnHash();
   window.addEventListener('hashchange', updateActiveNavOnHash);
 
+  let isAutoScrolling = false;
+
   function scrollToExploreStandards() {
     const el = document.getElementById('explore-standards');
     if (el) {
+      isAutoScrolling = true;
       const navEl = document.getElementById('navbar-root');
       const navHeight = navEl ? navEl.offsetHeight : 108;
       const targetY = el.getBoundingClientRect().top + window.pageYOffset - (navHeight + 20);
       window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+      setStandardsActive();
+      setTimeout(() => {
+        isAutoScrolling = false;
+      }, 800);
     }
   }
 
@@ -160,7 +182,7 @@ export function initNavbarEvents() {
         e.preventDefault();
         scrollToExploreStandards();
         history.pushState(null, '', '/#explore-standards');
-        updateActiveNavOnHash();
+        setStandardsActive();
       }
     });
   }
@@ -174,7 +196,7 @@ export function initNavbarEvents() {
           e.preventDefault();
           scrollToExploreStandards();
           history.pushState(null, '', '/#explore-standards');
-          updateActiveNavOnHash();
+          setStandardsActive();
         }
       });
     }
@@ -183,33 +205,64 @@ export function initNavbarEvents() {
   if (homeLink) {
     homeLink.addEventListener('click', (e) => {
       const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
-      if (isHomePage && window.location.hash) {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        history.pushState(null, '', '/');
-        updateActiveNavOnHash();
+      if (isHomePage) {
+        if (window.location.hash || window.scrollY > 0) {
+          e.preventDefault();
+          isAutoScrolling = true;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          history.pushState(null, '', '/');
+          setHomeActive();
+          setTimeout(() => {
+            isAutoScrolling = false;
+          }, 800);
+        }
       }
     });
   }
 
   if (window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '') {
     const exploreSection = document.getElementById('explore-standards');
-    if (exploreSection) {
+
+    // Real-time scroll listener to ensure active state moves back to Home when scrolling up to Hero section
+    let scrollTicking = false;
+    window.addEventListener('scroll', () => {
+      if (isAutoScrolling) return;
+      if (!scrollTicking) {
+        window.requestAnimationFrame(() => {
+          if (exploreSection) {
+            const navEl = document.getElementById('navbar-root');
+            const navHeight = navEl ? navEl.offsetHeight : 100;
+            const exploreRect = exploreSection.getBoundingClientRect();
+
+            // When user scrolls back up into or towards the hero section
+            if (window.scrollY < 250 || exploreRect.top > navHeight + 200) {
+              setHomeActive();
+            } else if (exploreRect.top <= navHeight + 200 && exploreRect.bottom >= navHeight + 80) {
+              setStandardsActive();
+            }
+          }
+          scrollTicking = false;
+        });
+        scrollTicking = true;
+      }
+    }, { passive: true });
+
+    if (exploreSection && window.IntersectionObserver) {
       const observer = new IntersectionObserver((entries) => {
+        if (isAutoScrolling) return;
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            if (standardsLink && homeLink) {
-              standardsLink.classList.add('active');
-              homeLink.classList.remove('active');
-            }
-          } else if (window.scrollY < (exploreSection.offsetTop - 300)) {
-            if (standardsLink && homeLink && window.location.hash !== '#explore-standards') {
-              homeLink.classList.add('active');
-              standardsLink.classList.remove('active');
+            setStandardsActive();
+          } else {
+            const navEl = document.getElementById('navbar-root');
+            const navHeight = navEl ? navEl.offsetHeight : 100;
+            const exploreRect = exploreSection.getBoundingClientRect();
+            if (exploreRect.top > navHeight || window.scrollY < 250) {
+              setHomeActive();
             }
           }
         });
-      }, { rootMargin: '-20% 0px -50% 0px', threshold: 0.1 });
+      }, { rootMargin: '-10% 0px -40% 0px', threshold: 0.1 });
       observer.observe(exploreSection);
     }
   }
@@ -298,36 +351,12 @@ export function initNavbarEvents() {
   }
 
   if (langSelect) {
-    const savedLang = localStorage.getItem('praman_lang') || localStorage.getItem('standardsai_lang') || 'en';
+    const savedLang = getSavedLanguage();
     langSelect.value = savedLang;
-    applyTranslation(savedLang);
 
     langSelect.addEventListener('change', (e) => {
       const selected = e.target.value;
-      localStorage.setItem('praman_lang', selected);
-      localStorage.setItem('standardsai_lang', selected);
-
-      // Set Google Translate cookie
-      const cookieVal = `/en/${selected}`;
-      document.cookie = `googtrans=${cookieVal}; path=/;`;
-      if (window.location.hostname) {
-        document.cookie = `googtrans=${cookieVal}; domain=${window.location.hostname}; path=/;`;
-      }
-
-      applyTranslation(selected);
-
-      // Sync sidebar select if present
-      const sideSel = document.getElementById('gov-sidebar-lang-select');
-      if (sideSel) sideSel.value = selected;
-
-      // Programmatically trigger Google Translate combo change
-      const googCombo = document.querySelector('.goog-te-combo');
-      if (googCombo) {
-        googCombo.value = selected;
-        googCombo.dispatchEvent(new Event('change'));
-      } else {
-        window.location.reload();
-      }
+      changeLanguage(selected);
     });
   }
 }

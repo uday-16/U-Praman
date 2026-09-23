@@ -40,26 +40,29 @@ export function initStandardsExplorer() {
       const desc = item.description || item.scope || '';
       const ver = item.version || item.year || '2022';
       return `
-        <div class="card standard-explorer-card" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="card standard-explorer-card" style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-xs);">
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-              <span class="badge badge-primary" style="font-weight: 800; font-size: 0.85rem;">${item.code || item.id}</span>
-              <span class="badge ${item.status === 'Current' ? 'badge-success' : 'badge-neutral'}" style="font-weight: 700;">${item.status}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <span style="background: #F8FAFC; color: #102A43; border: 1px solid #E2E8F0; font-weight: 700; font-size: 0.8rem; padding: 0.25rem 0.55rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                ${item.code || item.id}
+              </span>
+              <span class="badge ${item.status === 'Current' ? 'badge-success' : (item.status === 'Amended' ? 'badge-warning' : 'badge-neutral')}" style="font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem;">${item.status}</span>
             </div>
 
-            <h4 style="font-size: 1.1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.5rem; line-height: 1.35;">${item.title}</h4>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">${desc}</p>
+            <h4 style="font-size: 1.05rem; font-weight: 800; color: #102A43; margin-bottom: 0.5rem; line-height: 1.35;">${item.title}</h4>
+            <p style="font-size: 0.85rem; color: #64748B; line-height: 1.5; margin-bottom: 1.25rem;">${desc}</p>
           </div>
 
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-bottom: 1rem;">
-              <span>Category: <strong style="color: var(--text-primary);">${item.category}</strong></span>
-              <span>Version: <strong style="color: var(--text-primary);">${ver}</strong></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #64748B; border-top: 1px solid #E2E8F0; padding-top: 0.75rem; margin-bottom: 1rem;">
+              <span>Category: <strong style="color: #102A43;">${item.category}</strong></span>
+              <span>Version: <strong style="color: #102A43;">${ver}</strong></span>
             </div>
 
             <div style="display: flex; gap: 0.5rem;">
-              <a href="/pages/standard-details.html?id=${item.id}" class="btn btn-primary btn-sm" style="flex: 1; font-weight: 800; text-align: center;">View Standard</a>
-              <a href="/pages/compare.html?ids=${item.id}" class="btn btn-secondary btn-sm" style="font-weight: 700;">Compare</a>
+              <a href="/pages/standard-details.html?id=${item.id}" class="btn btn-primary btn-sm" style="flex: 1; font-weight: 700; text-align: center; border-radius: 6px; padding: 0.5rem 0.85rem;">View Standard</a>
+              <a href="/pages/compare.html?ids=${item.id}" class="btn btn-secondary btn-sm" style="font-weight: 700; border-radius: 6px; padding: 0.5rem 0.85rem;">Compare</a>
             </div>
           </div>
         </div>

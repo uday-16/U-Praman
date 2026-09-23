@@ -31,14 +31,24 @@
           <!-- Language Preference -->
           <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
             <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 0.5rem;">Language</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Select default interface language for procurement workflows.</p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Select default interface language for procurement workflows across the entire portal.</p>
             
-            <div class="form-group" style="max-width: 300px;">
-              <label class="form-label" style="font-weight: 700;">Interface language</label>
+            <div class="form-group" style="max-width: 320px;">
+              <label class="form-label" for="lang-select" style="font-weight: 700;">Interface language</label>
               <select id="lang-select" class="form-select">
                 <option value="en">English (EN)</option>
-                <option value="hi">हिन्दी (HI)</option>
-                <option value="te">తెలుగు (TE)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="ml">മലയാളം (Malayalam)</option>
+                <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                <option value="ur">اردو (Urdu)</option>
+                <option value="as">অসমীয়া (Assamese)</option>
               </select>
             </div>
           </div>
@@ -82,16 +92,23 @@
   <script type="module">
     import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
     import { showToast } from '/js/components/toast.js';
+    import { changeLanguage, getSavedLanguage } from '/js/utils/translator.js';
 
     document.getElementById('sidebar-root').innerHTML = renderAppSidebar('settings');
     document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Settings');
 
-    const savedLang = localStorage.getItem('praman_lang') || 'en';
-    document.getElementById('lang-select').value = savedLang;
+    const langDropdown = document.getElementById('lang-select');
+    const savedLang = getSavedLanguage();
+    if (langDropdown) {
+      langDropdown.value = savedLang;
+      langDropdown.addEventListener('change', (e) => {
+        changeLanguage(e.target.value);
+      });
+    }
 
     document.getElementById('save-settings-btn').addEventListener('click', () => {
-      const selected = document.getElementById('lang-select').value;
-      localStorage.setItem('praman_lang', selected);
+      const selected = langDropdown ? langDropdown.value : 'en';
+      changeLanguage(selected);
       showToast('Workspace settings saved successfully', 'success');
     });
   </script>

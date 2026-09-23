@@ -1,7 +1,3 @@
-import { mockStandards } from '../data/standards.js';
-import { mockAnalyses } from '../data/analyses.js';
-import { mockReports } from '../data/reports.js';
-
 const API_HOST = (typeof window !== 'undefined' && window.location.port !== '8000') 
   ? 'http://127.0.0.1:8000' 
   : '';
@@ -21,7 +17,6 @@ async function callAuthApi(endpoint, body, method = 'POST') {
     const data = await res.json().catch(() => ({}));
     return { ok: res.ok, status: res.status, data };
   } catch (err) {
-    // Try relative URL fallback
     try {
       const fallbackUrl = `/api/v1/auth${endpoint}`;
       const res = await fetch(fallbackUrl, options);
@@ -170,8 +165,6 @@ export const Storage = {
     }
   },
 
-
-
   async loginUser({ fullName, email, role, password }) {
     const identifier = (fullName || email || '').trim();
     try {
@@ -264,9 +257,16 @@ export const Storage = {
   },
 
   getSavedStandards() {
-    const data = localStorage.getItem(KEYS.SAVED_STANDARDS);
-    return data ? JSON.parse(data) : mockStandards.map(s => s.id);
+    const data = localStorage.getItem(KEYS.SAVED_STANDARDS) || localStorage.getItem('praman_saved_standards');
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
   },
+
   toggleSaveStandard(id) {
     const saved = this.getSavedStandards();
     const index = saved.indexOf(id);
@@ -276,27 +276,69 @@ export const Storage = {
       saved.push(id);
     }
     localStorage.setItem(KEYS.SAVED_STANDARDS, JSON.stringify(saved));
+    localStorage.setItem('praman_saved_standards', JSON.stringify(saved));
     return saved.includes(id);
   },
+
   isStandardSaved(id) {
     return this.getSavedStandards().includes(id);
   },
+
   getAnalyses() {
     const data = localStorage.getItem(KEYS.ANALYSES_HISTORY);
-    return data ? JSON.parse(data) : mockAnalyses;
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    const pramanReqs = localStorage.getItem('praman_requirements');
+    if (pramanReqs) {
+      try {
+        const reqs = JSON.parse(pramanReqs);
+        if (Array.isArray(reqs) && reqs.length > 0) {
+          return reqs.map(r => ({
+            id: r.id || ('REQ-' + Date.now().toString().slice(-6)),
+            product: r.title || 'Procurement Requirement',
+            requirement: r.text || '',
+            category: r.category || 'General Procurement',
+            status: 'Ready',
+            standardsCount: (r.matchedStandards && r.matchedStandards.length) || (r.standardsCount || 0),
+            date: r.date || 'Today',
+            updated: r.date || 'Today',
+            extracted: {
+              product: r.title,
+              application: r.category,
+              keyRequirements: r.parameters || []
+            }
+          }));
+        }
+      } catch (e) {}
+    }
+    return [];
   },
+
   addAnalysis(analysis) {
     const list = this.getAnalyses();
     list.unshift(analysis);
     localStorage.setItem(KEYS.ANALYSES_HISTORY, JSON.stringify(list));
   },
+
   getReports() {
     const data = localStorage.getItem(KEYS.REPORTS);
-    return data ? JSON.parse(data) : mockReports;
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {}
+    }
+    return [];
   },
+
   isSidebarCollapsed() {
     return localStorage.getItem(KEYS.SIDEBAR_COLLAPSED) === 'true';
   },
+
   setSidebarCollapsed(collapsed) {
     localStorage.setItem(KEYS.SIDEBAR_COLLAPSED, collapsed ? 'true' : 'false');
   }

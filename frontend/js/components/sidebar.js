@@ -1,4 +1,5 @@
 import { Storage } from '../utils/storage.js';
+import { changeLanguage, getSavedLanguage } from '../utils/translator.js';
 
 export function renderAppSidebar(activePage = 'dashboard') {
   const isCollapsed = localStorage.getItem('praman_sidebar_collapsed') === 'true';
@@ -90,16 +91,19 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = Stor
         <div style="margin-right: 1rem; display: flex; align-items: center; gap: 0.35rem;" title="Select Language">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-secondary);"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
           <select id="gov-sidebar-lang-select" class="gov-lang-dropdown" style="background: var(--surface-white); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;" aria-label="Select Language">
-            <option value="en">Select Language</option>
             <option value="en">English</option>
             <option value="hi">हिन्दी (Hindi)</option>
             <option value="te">తెలుగు (Telugu)</option>
             <option value="ta">தமிழ் (Tamil)</option>
             <option value="bn">বাংলা (Bengali)</option>
-            <option value="mr">మరాఠీ (Marathi)</option>
+            <option value="mr">मराठी (Marathi)</option>
             <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
             <option value="gu">ગુજરાતી (Gujarati)</option>
-            <option value="kn">కన్నడ (Kannada)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+            <option value="ml">മലയാളം (Malayalam)</option>
+            <option value="or">ଓଡ଼ିଆ (Odia)</option>
+            <option value="ur">اردو (Urdu)</option>
+            <option value="as">অসমীয়া (Assamese)</option>
           </select>
         </div>
 
@@ -147,20 +151,11 @@ export function initSidebarEvents() {
 
   const sidebarLangSelect = document.getElementById('gov-sidebar-lang-select');
   if (sidebarLangSelect) {
-    const savedLang = localStorage.getItem('praman_lang') || 'en';
+    const savedLang = getSavedLanguage();
     sidebarLangSelect.value = savedLang;
     sidebarLangSelect.addEventListener('change', (e) => {
       const selected = e.target.value;
-      localStorage.setItem('praman_lang', selected);
-      
-      const mainSelect = document.getElementById('gov-lang-select');
-      if (mainSelect) mainSelect.value = selected;
-
-      const googCombo = document.querySelector('.goog-te-combo');
-      if (googCombo) {
-        googCombo.value = selected;
-        googCombo.dispatchEvent(new Event('change'));
-      }
+      changeLanguage(selected);
     });
   }
 }
