@@ -2,11 +2,11 @@ const API_HOST = (typeof window !== 'undefined' && window.location.port !== '800
   ? 'http://127.0.0.1:8000' 
   : '';
 
-async function callAuthApi(endpoint, body, method = 'POST') {
+async function callAuthApi(endpoint, body, method = 'POST', token = '') {
   const primaryUrl = `${API_HOST}/api/v1/auth${endpoint}`;
   const options = {
     method,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }
   };
   if (body) {
     options.body = JSON.stringify(body);
@@ -43,7 +43,7 @@ const KEYS = {
 export const Storage = {
   getUser() {
     const data = localStorage.getItem(KEYS.AUTH_USER);
-    return data ? JSON.parse(data) : null;
+    try { return data ? JSON.parse(data) : null; } catch { return null; }
   },
   setUser(user) {
     if (user) {
@@ -63,7 +63,8 @@ export const Storage = {
     }
   },
   isLoggedIn() {
-    return !!localStorage.getItem(KEYS.AUTH_USER);
+    const user = this.getUser();
+    return !!(user && user.id && this.getToken());
   },
   isAdmin() {
     const user = this.getUser();
@@ -153,9 +154,7 @@ export const Storage = {
       if (!ok) {
         return { success: false, error: data.detail || 'Account registration failed.' };
       }
-      if (data.user) {
-        this.setUser(data.user);
-        this.setToken(data.access_token);
+      if (data.user && data.access_token) {
         return { success: true, user: data.user, token: data.access_token };
       }
       return { success: false, error: 'Unexpected response from server.' };
@@ -177,7 +176,7 @@ export const Storage = {
       if (!ok) {
         return { success: false, error: data.detail || 'Invalid login credentials.' };
       }
-      if (data.user) {
+      if (data.user && data.access_token) {
         this.setUser(data.user);
         this.setToken(data.access_token);
         return { success: true, user: data.user, token: data.access_token };
@@ -201,7 +200,7 @@ export const Storage = {
       if (!ok) {
         return { success: false, error: data.detail || 'Google sign in failed.' };
       }
-      if (data.user) {
+      if (data.user && data.access_token) {
         this.setUser(data.user);
         this.setToken(data.access_token);
         return { success: true, user: data.user, token: data.access_token };
@@ -209,19 +208,7 @@ export const Storage = {
       return { success: false, error: 'Google authentication error.' };
     } catch (err) {
       console.error('Backend Google auth error:', err);
-      const googleUser = {
-        id: 'usr-g-' + Date.now().toString(36),
-        name: name || 'Google Officer',
-        email: email || 'officer@google.com',
-        mobile_number: 'Google Auth',
-        role: role || 'Procurement Officer',
-        organization: 'Central Procurement Cell',
-        department: 'Central Procurement Cell',
-        authProvider: 'google',
-        status: 'active'
-      };
-      this.setUser(googleUser);
-      return { success: true, user: googleUser };
+      return { success: false, error: 'Unable to authenticate. Please try signing in again.' };
     }
   },
 
@@ -251,7 +238,25 @@ export const Storage = {
     return { success: false };
   },
 
+  async validateSession() {
+    if (!this.isLoggedIn()) return false;
+    try {
+      const { ok, data } = await callAuthApi('/me', null, 'GET', this.getToken());
+      if (ok && data.id) {
+        this.setUser(data);
+        return true;
+      }
+    } catch (error) {
+      console.warn('Session validation failed:', error);
+    }
+    this.setUser(null);
+    this.setToken(null);
+    return false;
+  },
+
   logout() {
+    const token = this.getToken();
+    if (token) callAuthApi('/logout', null, 'POST', token).catch(() => {});
     localStorage.removeItem(KEYS.AUTH_USER);
     localStorage.removeItem(KEYS.AUTH_TOKEN);
   },

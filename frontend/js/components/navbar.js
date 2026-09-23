@@ -1,5 +1,5 @@
 import { Storage } from '../utils/storage.js';
-import { changeLanguage, getSavedLanguage } from '../utils/translator.js';
+import { bindLanguageSelects } from '../utils/translator.js';
 
 export function renderPublicNavbar(activePath = '/') {
   const isLoggedIn = Storage.isLoggedIn();
@@ -50,7 +50,6 @@ export function renderPublicNavbar(activePath = '/') {
               <option value="ur">اردو (Urdu)</option>
               <option value="as">অসমীয়া (Assamese)</option>
             </select>
-            <div id="google_translate_element" style="display:none;"></div>
           </div>
 
           <!-- Prominent India Flag Accent -->
@@ -302,62 +301,5 @@ export function initNavbarEvents() {
     });
   }
 
-  // Language selector dictionary translation
-  const langSelect = document.getElementById('gov-lang-select');
-  const translations = {
-    en: {
-      analyzeBtn: 'Analyze Requirement →',
-      exploreBtn: 'Explore Standards',
-      heroTitle: 'Find the Right <span class="hero-highlight">Indian Standard</span> for Every Procurement Requirement.'
-    },
-    hi: {
-      analyzeBtn: 'आवश्यकता का विश्लेषण करें →',
-      exploreBtn: 'मानक खोजें',
-      heroTitle: 'प्रत्येक खरीद आवश्यकता के लिए सही <span class="hero-highlight">भारतीय मानक</span> खोजें।'
-    },
-    bn: {
-      analyzeBtn: 'প্রয়োজনীয়তা বিশ্লেষণ করুন →',
-      exploreBtn: 'মানকসমূহ খুঁজুন',
-      heroTitle: 'প্রতিটি ক্রয়ের জন্য সঠিক <span class="hero-highlight">ভারতীয় মানক</span> খুঁজুন।'
-    },
-    ta: {
-      analyzeBtn: 'தேவையை ஆராயுங்கள் →',
-      exploreBtn: 'தரநிலைகளை ஆராயுங்கள்',
-      heroTitle: 'ஒவ்வொரு கொள்முதல் தேவைக்கும் சரியான <span class="hero-highlight">இந்திய தரநிலையை</span> கண்டறியவும்.'
-    },
-    te: {
-      analyzeBtn: 'అవసరాన్ని విశ్లేషించండి →',
-      exploreBtn: 'ప్రమాణాలను అన్వేషించండి',
-      heroTitle: 'ప్రతి కొనుగోలు అవసరానికి సరైన <span class="hero-highlight">భారతీయ ప్రమాణాన్ని</span> కనుగొనండి.'
-    },
-    mr: {
-      analyzeBtn: 'गरजेचे विश्लेषण करा →',
-      exploreBtn: 'मानके शोधा',
-      heroTitle: 'प्रत्येक खरेदी गरजेसाठी योग्य <span class="hero-highlight">भारतीय मानक</span> शोधा.'
-    },
-    pa: {
-      analyzeBtn: 'ਲੋੜ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰੋ →',
-      exploreBtn: 'ਮਿਆਰਾਂ ਦੀ ਖੋਜ ਕਰੋ',
-      heroTitle: 'ਹਰ ਖਰੀਦ ਦੀ ਲੋੜ ਲਈ ਸਹੀ <span class="hero-highlight">ਭਾਰਤੀ ਮਿਆਰ</span> ਲੱਭੋ।'
-    }
-  };
-
-  function applyTranslation(lang) {
-    const dict = translations[lang] || translations.en;
-    const s1Title = document.querySelector('#hero-slide-1 .hero-title');
-    if (s1Title) s1Title.innerHTML = dict.heroTitle;
-    document.querySelectorAll('#hero-slide-1 .btn-hero-primary').forEach(el => { el.innerText = dict.analyzeBtn; });
-    document.querySelectorAll('#hero-slide-1 .btn-hero-secondary').forEach(el => { el.innerText = dict.exploreBtn; });
-  }
-
-  if (langSelect) {
-    const savedLang = getSavedLanguage();
-    langSelect.value = savedLang;
-
-    langSelect.addEventListener('change', (e) => {
-      const selected = e.target.value;
-      changeLanguage(selected);
-    });
-  }
+  bindLanguageSelects();
 }
-

@@ -52,6 +52,8 @@
       display: flex;
     }
   </style>
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body style="background: var(--paper);">
   <div class="app-layout">
@@ -169,7 +171,7 @@
           <h3 style="font-family: var(--font-serif); font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 1.25rem;">System Search &amp; Category Analytics</h3>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-            
+
             <div style="background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 1.25rem;">
               <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--ink); margin-bottom: 1rem;">Most-Searched Procurement Categories</h4>
               <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -297,151 +299,156 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { Storage } from '/js/utils/storage.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
     import { mockStandards } from '/js/data/standards.js';
     import { showToast } from '/js/components/toast.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    // Route Protection: Admin role check
-    if (!Storage.isLoggedIn()) {
-      window.location.href = '/pages/login.html';
-    } else if (!Storage.isAdmin()) {
-      alert('Access Denied: The Administrator Console is restricted to Admin users.');
-      window.location.href = '/pages/dashboard.html';
-    }
-
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('admin');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Admin Console / Database & User Management');
-    initSidebarEvents();
-    initTopbarEvents();
-
-    // Tab Navigation Logic
-    const tabStds = document.getElementById('admin-tab-standards');
-    const tabUsers = document.getElementById('admin-tab-users');
-    const tabAnalytics = document.getElementById('admin-tab-analytics');
-
-    const panelStds = document.getElementById('admin-panel-standards');
-    const panelUsers = document.getElementById('admin-panel-users');
-    const panelAnalytics = document.getElementById('admin-panel-analytics');
-
-    function setActiveAdminTab(activeTab, activePanel) {
-      [tabStds, tabUsers, tabAnalytics].forEach(t => t.classList.remove('active'));
-      [panelStds, panelUsers, panelAnalytics].forEach(p => p.style.display = 'none');
-      activeTab.classList.add('active');
-      activePanel.style.display = 'block';
-    }
-
-    tabStds.addEventListener('click', () => setActiveAdminTab(tabStds, panelStds));
-    tabUsers.addEventListener('click', () => {
-      setActiveAdminTab(tabUsers, panelUsers);
-      renderUsersTable();
-    });
-    tabAnalytics.addEventListener('click', () => setActiveAdminTab(tabAnalytics, panelAnalytics));
-
-    // Render Standards Table
-    let localStandards = [...mockStandards];
-    function renderStandardsTable() {
-      const searchVal = document.getElementById('admin-search-standards').value.toLowerCase();
-      const filtered = localStandards.filter(s => 
-        (s.isNumber || s.code || '').toLowerCase().includes(searchVal) ||
-        (s.title || '').toLowerCase().includes(searchVal) ||
-        (s.category || '').toLowerCase().includes(searchVal)
-      );
-
-      document.getElementById('admin-standards-count').innerText = `Showing ${filtered.length} standards`;
-      const tbody = document.getElementById('admin-standards-tbody');
-      tbody.innerHTML = filtered.map(s => `
-        <tr>
-          <td style="font-weight: 700; color: var(--navy);">${s.isNumber || s.code}</td>
-          <td style="font-weight: 500;">${s.title}</td>
-          <td><span class="badge" style="background: var(--paper); border: 1px solid var(--line);">${s.category || 'General'}</span></td>
-          <td>${s.year || '2011'}</td>
-          <td><span class="badge ${s.status === 'Current' ? 'badge-success' : 'badge-warning'}">${s.status || 'Active'}</span></td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="toggleStandardStatus('${s.id}')" style="font-weight: 600;">Toggle Status</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    window.toggleStandardStatus = function(id) {
-      const std = localStandards.find(s => s.id === id);
-      if (std) {
-        std.status = std.status === 'Deactivated' ? 'Current' : 'Deactivated';
-        renderStandardsTable();
-        showToast(`Standard status updated for ${std.isNumber || std.code}`, 'info');
+      // Route Protection: Admin role check
+      if (!Storage.isLoggedIn()) {
+        window.location.href = '/pages/login.html';
+      } else if (!Storage.isAdmin()) {
+        alert('Access Denied: The Administrator Console is restricted to Admin users.');
+        window.location.href = '/pages/dashboard.html';
       }
-    };
 
-    document.getElementById('admin-search-standards').addEventListener('input', renderStandardsTable);
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('admin');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Admin Console / Database & User Management');
+      initSidebarEvents();
+      initTopbarEvents();
 
-    // Render Users RBAC Table
-    async function renderUsersTable() {
-      const users = await Storage.getRegisteredUsers();
-      document.getElementById('admin-user-count').innerText = `${users.length} Registered Accounts`;
-      document.getElementById('stat-total-users').innerText = users.length;
+      // Tab Navigation Logic
+      const tabStds = document.getElementById('admin-tab-standards');
+      const tabUsers = document.getElementById('admin-tab-users');
+      const tabAnalytics = document.getElementById('admin-tab-analytics');
 
-      const tbody = document.getElementById('admin-users-tbody');
-      tbody.innerHTML = users.map(u => `
-        <tr>
-          <td>
-            <div style="font-weight: 700; color: var(--ink);">${u.name}</div>
-            <div style="font-size: 0.78rem; color: var(--ink-soft);">${u.email}</div>
-          </td>
-          <td>${u.organization || 'Government Department'}</td>
-          <td>
-            <span class="badge" style="background: ${u.role === 'Administrator' ? '#FFF4E5' : '#EBF3FC'}; color: ${u.role === 'Administrator' ? '#D97706' : 'var(--navy)'}; font-weight: 700;">
-              ${u.role || 'Procurement Officer'}
-            </span>
-          </td>
-          <td><span class="badge ${u.status === 'deactivated' ? 'badge-error' : 'badge-success'}">${u.status || 'active'}</span></td>
-          <td style="color: var(--ink-soft); font-size: 0.8rem;">${new Date(u.registeredAt || Date.now()).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-secondary btn-sm" onclick="toggleUserStatus('${u.id}')" style="font-weight: 600; color: #DC2626;">Toggle Status</button>
-          </td>
-        </tr>
-      `).join('');
-    }
+      const panelStds = document.getElementById('admin-panel-standards');
+      const panelUsers = document.getElementById('admin-panel-users');
+      const panelAnalytics = document.getElementById('admin-panel-analytics');
 
-    window.toggleUserStatus = async function(id) {
-      await Storage.toggleUserStatus(id);
-      await renderUsersTable();
-      showToast('User status updated in database', 'info');
-    };
+      function setActiveAdminTab(activeTab, activePanel) {
+        [tabStds, tabUsers, tabAnalytics].forEach(t => t.classList.remove('active'));
+        [panelStds, panelUsers, panelAnalytics].forEach(p => p.style.display = 'none');
+        activeTab.classList.add('active');
+        activePanel.style.display = 'block';
+      }
 
-    // Add Standard Modal Handlers
-    const modal = document.getElementById('add-standard-modal');
-    document.getElementById('btn-add-standard').addEventListener('click', () => modal.classList.add('active'));
-    document.getElementById('close-modal-btn').addEventListener('click', () => modal.classList.remove('active'));
-    document.getElementById('btn-cancel-modal').addEventListener('click', () => modal.classList.remove('active'));
+      tabStds.addEventListener('click', () => setActiveAdminTab(tabStds, panelStds));
+      tabUsers.addEventListener('click', () => {
+        setActiveAdminTab(tabUsers, panelUsers);
+        renderUsersTable();
+      });
+      tabAnalytics.addEventListener('click', () => setActiveAdminTab(tabAnalytics, panelAnalytics));
 
-    document.getElementById('add-standard-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const isNum = document.getElementById('std-is-number').value.trim();
-      const title = document.getElementById('std-title').value.trim();
-      const cat = document.getElementById('std-category').value;
-      const rev = document.getElementById('std-revision').value.trim();
-      const cert = document.getElementById('std-cert').value;
+      // Render Standards Table
+      let localStandards = [...mockStandards];
+      function renderStandardsTable() {
+        const searchVal = document.getElementById('admin-search-standards').value.toLowerCase();
+        const filtered = localStandards.filter(s =>
+          (s.isNumber || s.code || '').toLowerCase().includes(searchVal) ||
+          (s.title || '').toLowerCase().includes(searchVal) ||
+          (s.category || '').toLowerCase().includes(searchVal)
+        );
 
-      const newStd = {
-        id: 'is-' + Date.now().toString(36),
-        isNumber: isNum,
-        code: isNum,
-        title: title,
-        category: cat,
-        year: rev,
-        status: 'Current',
-        certification: cert
+        document.getElementById('admin-standards-count').innerText = `Showing ${filtered.length} standards`;
+        const tbody = document.getElementById('admin-standards-tbody');
+        tbody.innerHTML = filtered.map(s => `
+          <tr>
+            <td style="font-weight: 700; color: var(--navy);">${s.isNumber || s.code}</td>
+            <td style="font-weight: 500;">${s.title}</td>
+            <td><span class="badge" style="background: var(--paper); border: 1px solid var(--line);">${s.category || 'General'}</span></td>
+            <td>${s.year || '2011'}</td>
+            <td><span class="badge ${s.status === 'Current' ? 'badge-success' : 'badge-warning'}">${s.status || 'Active'}</span></td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="toggleStandardStatus('${s.id}')" style="font-weight: 600;">Toggle Status</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      window.toggleStandardStatus = function(id) {
+        const std = localStandards.find(s => s.id === id);
+        if (std) {
+          std.status = std.status === 'Deactivated' ? 'Current' : 'Deactivated';
+          renderStandardsTable();
+          showToast(`Standard status updated for ${std.isNumber || std.code}`, 'info');
+        }
       };
 
-      localStandards.unshift(newStd);
-      renderStandardsTable();
-      modal.classList.remove('active');
-      showToast(`Added standard ${isNum} to database`, 'success');
-    });
+      document.getElementById('admin-search-standards').addEventListener('input', renderStandardsTable);
 
-    // Initial render
-    renderStandardsTable();
+      // Render Users RBAC Table
+      async function renderUsersTable() {
+        const users = await Storage.getRegisteredUsers();
+        document.getElementById('admin-user-count').innerText = `${users.length} Registered Accounts`;
+        document.getElementById('stat-total-users').innerText = users.length;
+
+        const tbody = document.getElementById('admin-users-tbody');
+        tbody.innerHTML = users.map(u => `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--ink);">${u.name}</div>
+              <div style="font-size: 0.78rem; color: var(--ink-soft);">${u.email}</div>
+            </td>
+            <td>${u.organization || 'Government Department'}</td>
+            <td>
+              <span class="badge" style="background: ${u.role === 'Administrator' ? '#FFF4E5' : '#EBF3FC'}; color: ${u.role === 'Administrator' ? '#D97706' : 'var(--navy)'}; font-weight: 700;">
+                ${u.role || 'Procurement Officer'}
+              </span>
+            </td>
+            <td><span class="badge ${u.status === 'deactivated' ? 'badge-error' : 'badge-success'}">${u.status || 'active'}</span></td>
+            <td style="color: var(--ink-soft); font-size: 0.8rem;">${new Date(u.registeredAt || Date.now()).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="toggleUserStatus('${u.id}')" style="font-weight: 600; color: #DC2626;">Toggle Status</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      window.toggleUserStatus = async function(id) {
+        await Storage.toggleUserStatus(id);
+        await renderUsersTable();
+        showToast('User status updated in database', 'info');
+      };
+
+      // Add Standard Modal Handlers
+      const modal = document.getElementById('add-standard-modal');
+      document.getElementById('btn-add-standard').addEventListener('click', () => modal.classList.add('active'));
+      document.getElementById('close-modal-btn').addEventListener('click', () => modal.classList.remove('active'));
+      document.getElementById('btn-cancel-modal').addEventListener('click', () => modal.classList.remove('active'));
+
+      document.getElementById('add-standard-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const isNum = document.getElementById('std-is-number').value.trim();
+        const title = document.getElementById('std-title').value.trim();
+        const cat = document.getElementById('std-category').value;
+        const rev = document.getElementById('std-revision').value.trim();
+        const cert = document.getElementById('std-cert').value;
+
+        const newStd = {
+          id: 'is-' + Date.now().toString(36),
+          isNumber: isNum,
+          code: isNum,
+          title: title,
+          category: cat,
+          year: rev,
+          status: 'Current',
+          certification: cert
+        };
+
+        localStandards.unshift(newStd);
+        renderStandardsTable();
+        modal.classList.remove('active');
+        showToast(`Added standard ${isNum} to database`, 'success');
+      });
+
+      // Initial render
+      renderStandardsTable();
+
+    });
   </script>
 </body>
 </html>

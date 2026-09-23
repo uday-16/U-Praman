@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/results.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body style="background: var(--bg-main);">
   <div class="app-layout">
@@ -151,132 +153,137 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
     import { mockStandards } from '/js/data/standards.js';
     import { renderRecommendationCard } from '/js/components/recommendation-card.js';
     import { PRAMANStorage } from '/js/storage.js';
     import { showToast } from '/js/components/toast.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('analyze');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Recommended standards');
-    initSidebarEvents();
-    initTopbarEvents();
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('analyze');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Recommended standards');
+      initSidebarEvents();
+      initTopbarEvents();
 
-    const list = document.getElementById('recommendations-list');
-    const subtitle = document.getElementById('results-subtitle');
-    const sortSelect = document.getElementById('sort-select');
-    const filterTabs = document.querySelectorAll('.filter-tab');
+      const list = document.getElementById('recommendations-list');
+      const subtitle = document.getElementById('results-subtitle');
+      const sortSelect = document.getElementById('sort-select');
+      const filterTabs = document.querySelectorAll('.filter-tab');
 
-    let currentFilter = 'all';
+      let currentFilter = 'all';
 
-    function renderCards() {
-      let filtered = mockStandards.filter(s => {
-        if (currentFilter === 'strong') return s.relevance === 'Strong Match';
-        if (currentFilter === 'related') return s.relevance === 'Related';
-        if (currentFilter === 'review') return s.relevance === 'Needs Review';
-        return true;
-      });
-
-      const sortVal = sortSelect ? sortSelect.value : 'match';
-      if (sortVal === 'match') {
-        filtered.sort((a, b) => b.matchScore - a.matchScore);
-      } else if (sortVal === 'technical') {
-        filtered.sort((a, b) => b.technicalScore - a.technicalScore);
-      } else if (sortVal === 'year') {
-        filtered.sort((a, b) => parseInt(b.year) - parseInt(a.year));
-      }
-
-      if (subtitle) {
-        subtitle.textContent = `${filtered.length} standards shown (${mockStandards.length} total reviewed for your requirement).`;
-      }
-
-      list.innerHTML = filtered.map(s => renderRecommendationCard(s)).join('');
-    }
-
-    // Filter tab click handlers
-    filterTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        filterTabs.forEach(t => {
-          t.classList.remove('active', 'btn-primary');
-          t.classList.add('btn-secondary');
+      function renderCards() {
+        let filtered = mockStandards.filter(s => {
+          if (currentFilter === 'strong') return s.relevance === 'Strong Match';
+          if (currentFilter === 'related') return s.relevance === 'Related';
+          if (currentFilter === 'review') return s.relevance === 'Needs Review';
+          return true;
         });
-        tab.classList.add('active', 'btn-primary');
-        tab.classList.remove('btn-secondary');
 
-        currentFilter = tab.dataset.filter;
-        renderCards();
+        const sortVal = sortSelect ? sortSelect.value : 'match';
+        if (sortVal === 'match') {
+          filtered.sort((a, b) => b.matchScore - a.matchScore);
+        } else if (sortVal === 'technical') {
+          filtered.sort((a, b) => b.technicalScore - a.technicalScore);
+        } else if (sortVal === 'year') {
+          filtered.sort((a, b) => parseInt(b.year) - parseInt(a.year));
+        }
+
+        if (subtitle) {
+          subtitle.textContent = `${filtered.length} standards shown (${mockStandards.length} total reviewed for your requirement).`;
+        }
+
+        list.innerHTML = filtered.map(s => renderRecommendationCard(s)).join('');
+      }
+
+      // Filter tab click handlers
+      filterTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          filterTabs.forEach(t => {
+            t.classList.remove('active', 'btn-primary');
+            t.classList.add('btn-secondary');
+          });
+          tab.classList.add('active', 'btn-primary');
+          tab.classList.remove('btn-secondary');
+
+          currentFilter = tab.dataset.filter;
+          renderCards();
+        });
       });
-    });
 
-    // Sort select change handler
-    if (sortSelect) {
-      sortSelect.addEventListener('change', renderCards);
-    }
+      // Sort select change handler
+      if (sortSelect) {
+        sortSelect.addEventListener('change', renderCards);
+      }
 
-    // Initial render
-    renderCards();
+      // Initial render
+      renderCards();
 
-    // Attach Why Recommended drawer triggers and Save triggers
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('.why-btn')) {
-        const id = e.target.closest('.why-btn').dataset.id;
-        const std = mockStandards.find(s => s.id === id);
-        if (std) {
-          document.getElementById('drawer-title').innerText = `Why this match? — ${std.isNumber}`;
-          document.getElementById('drawer-body').innerHTML = `
-            <div style="margin-bottom: 1.5rem;">
-              <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Match Rationale</h4>
-              <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">${std.whyRecommended.summary}</p>
-            </div>
+      // Attach Why Recommended drawer triggers and Save triggers
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.why-btn')) {
+          const id = e.target.closest('.why-btn').dataset.id;
+          const std = mockStandards.find(s => s.id === id);
+          if (std) {
+            document.getElementById('drawer-title').innerText = `Why this match? — ${std.isNumber}`;
+            document.getElementById('drawer-body').innerHTML = `
+              <div style="margin-bottom: 1.5rem;">
+                <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">Match Rationale</h4>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">${std.whyRecommended.summary}</p>
+              </div>
 
-            <div style="margin-bottom: 1.5rem;">
-              <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem;">Requirement Criteria Alignment</h4>
-              <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; font-weight: 600;">
-                <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
-                  <span>Product category</span> <span style="color: var(--indian-green);">✓ Matched (${std.category})</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
-                  <span>Match Score</span> <span style="color: var(--primary-blue); font-weight: 800;">${std.matchScore}% Score</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
-                  <span>Technical Relevance</span> <span style="color: var(--indian-green);">✓ ${std.technicalScore}%</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
-                  <span>Revision Status</span> <span style="color: var(--indian-green);">✓ Current (${std.year})</span>
+              <div style="margin-bottom: 1.5rem;">
+                <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem;">Requirement Criteria Alignment</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; font-weight: 600;">
+                  <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+                    <span>Product category</span> <span style="color: var(--indian-green);">✓ Matched (${std.category})</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+                    <span>Match Score</span> <span style="color: var(--primary-blue); font-weight: 800;">${std.matchScore}% Score</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+                    <span>Technical Relevance</span> <span style="color: var(--indian-green);">✓ ${std.technicalScore}%</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; background: var(--bg-main); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+                    <span>Revision Status</span> <span style="color: var(--indian-green);">✓ Current (${std.year})</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div>
-              <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem;">Supporting Evidence Clauses</h4>
-              ${std.whyRecommended.evidence.map(ev => `
-                <div class="evidence-box" style="background: var(--bg-main); padding: 0.875rem; border-radius: var(--radius-md); border-left: 3px solid var(--primary-blue); margin-bottom: 0.75rem;">
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                    <span style="font-weight: 800; color: var(--primary-blue); font-size: 0.8rem;">${ev.source}</span>
-                    <span class="badge ${ev.status.includes('Verified') ? 'badge-success' : 'badge-neutral'}">${ev.status}</span>
+              <div>
+                <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.75rem;">Supporting Evidence Clauses</h4>
+                ${std.whyRecommended.evidence.map(ev => `
+                  <div class="evidence-box" style="background: var(--bg-main); padding: 0.875rem; border-radius: var(--radius-md); border-left: 3px solid var(--primary-blue); margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                      <span style="font-weight: 800; color: var(--primary-blue); font-size: 0.8rem;">${ev.source}</span>
+                      <span class="badge ${ev.status.includes('Verified') ? 'badge-success' : 'badge-neutral'}">${ev.status}</span>
+                    </div>
+                    <div style="font-weight: 700; font-size: 0.85rem;">Section: ${ev.section}</div>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">"${ev.text}"</p>
                   </div>
-                  <div style="font-weight: 700; font-size: 0.85rem;">Section: ${ev.section}</div>
-                  <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5;">"${ev.text}"</p>
-                </div>
-              `).join('')}
-            </div>
-          `;
-          const drawer = document.getElementById('why-drawer');
-          drawer.style.right = '0px';
+                `).join('')}
+              </div>
+            `;
+            const drawer = document.getElementById('why-drawer');
+            drawer.style.right = '0px';
+          }
         }
-      }
 
-      if (e.target.closest('.save-btn')) {
-        const btn = e.target.closest('.save-btn');
-        const id = btn.dataset.id;
-        const saved = PRAMANStorage.toggleSaveStandard(id);
-        btn.querySelector('span').innerText = saved ? 'Saved' : 'Save';
-        showToast(saved ? 'Standard saved to bookmarks' : 'Standard removed from bookmarks', saved ? 'success' : 'info');
-      }
-    });
+        if (e.target.closest('.save-btn')) {
+          const btn = e.target.closest('.save-btn');
+          const id = btn.dataset.id;
+          const saved = PRAMANStorage.toggleSaveStandard(id);
+          btn.querySelector('span').innerText = saved ? 'Saved' : 'Save';
+          showToast(saved ? 'Standard saved to bookmarks' : 'Standard removed from bookmarks', saved ? 'success' : 'info');
+        }
+      });
 
-    document.getElementById('close-drawer-btn').addEventListener('click', () => {
-      document.getElementById('why-drawer').style.right = '-450px';
+      document.getElementById('close-drawer-btn').addEventListener('click', () => {
+        document.getElementById('why-drawer').style.right = '-450px';
+      });
+
     });
   </script>
 </body>

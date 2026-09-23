@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/forms.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body>
 
@@ -105,8 +107,13 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar } from '/js/components/sidebar.js';
-    renderAppSidebar('compare');
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
+      renderAppSidebar('compare');
+
+    });
   </script>
 </body>
 </html>

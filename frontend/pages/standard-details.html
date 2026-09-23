@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/standards.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -146,189 +148,194 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
     import { mockStandards } from '/js/data/standards.js';
     import { renderRelationshipGraph } from '/js/components/relationship-graph.js';
     import { PRAMANStorage } from '/js/storage.js';
     import { showToast } from '/js/components/toast.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('standards');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Standard details');
-    initSidebarEvents();
-    initTopbarEvents();
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('standards');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Standard details');
+      initSidebarEvents();
+      initTopbarEvents();
 
-    // Parse URL ID Parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const stdId = urlParams.get('id');
-    const std = mockStandards.find(s => s.id === stdId) || mockStandards[0];
+      // Parse URL ID Parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const stdId = urlParams.get('id');
+      const std = mockStandards.find(s => s.id === stdId) || mockStandards[0];
 
-    // Populate Page Header
-    document.getElementById('std-is-number').innerText = std.isNumber || std.code;
-    document.getElementById('std-title').innerText = std.title;
+      // Populate Page Header
+      document.getElementById('std-is-number').innerText = std.isNumber || std.code;
+      document.getElementById('std-title').innerText = std.title;
 
-    // Populate Tab 1: Overview
-    const overviewPane = document.getElementById('tab-overview');
-    if (overviewPane) {
-      const department = std.department || 'Civil Engineering Department (CED)';
-      const committee = std.committee || 'CED 7 (Structural Engineering)';
-      const ministry = std.ministry || 'Ministry of Steel / MoRTH';
-      const certification = std.certification || 'Mandatory Certification';
-      const isMandatory = certification.toLowerCase().includes('mandatory');
-      const revision = std.revision || 'Seventh Revision';
-      const amendmentsCount = std.amendments ? std.amendments.length : 0;
+      // Populate Tab 1: Overview
+      const overviewPane = document.getElementById('tab-overview');
+      if (overviewPane) {
+        const department = std.department || 'Civil Engineering Department (CED)';
+        const committee = std.committee || 'CED 7 (Structural Engineering)';
+        const ministry = std.ministry || 'Ministry of Steel / MoRTH';
+        const certification = std.certification || 'Mandatory Certification';
+        const isMandatory = certification.toLowerCase().includes('mandatory');
+        const revision = std.revision || 'Seventh Revision';
+        const amendmentsCount = std.amendments ? std.amendments.length : 0;
 
-      overviewPane.innerHTML = `
-        <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 0.75rem;">Scope &amp; Purpose</h3>
-          <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1.5rem;">
-            ${std.scope}
-          </p>
-          
-          <h4 style="font-size: 0.9rem; font-weight: 800; color: #073B75; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.04em;">Official BIS Catalogue Metadata</h4>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; background: #F4F8FD; padding: 1.25rem; border-radius: 8px; border: 1px solid #D5E4F5; font-size: 0.85rem;">
-            <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Technical Department</span><br><strong style="color: #073B75; font-size: 0.9rem;">${department}</strong></div>
-            <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Technical Committee</span><br><strong style="color: #073B75; font-size: 0.9rem;">${committee}</strong></div>
-            <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Current Status</span><br><strong style="color: #138808; font-size: 0.9rem;">${std.status} (${revision})</strong></div>
-            <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Relevant Ministry</span><br><strong style="color: #073B75; font-size: 0.9rem;">${ministry}</strong></div>
-            <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Certification Scheme</span><br><strong style="color: #073B75; font-size: 0.9rem;">${certification}</strong></div>
-            <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Reviewed / Amendments</span><br><strong style="color: #073B75; font-size: 0.9rem;">Reviewed ${std.reviewedYear || std.year} (${amendmentsCount} Amendments)</strong></div>
-          </div>
-        </div>
-      `;
-    }
-
-    // Populate Tab 2: Requirements
-    const reqPane = document.getElementById('tab-requirements');
-    if (reqPane) {
-      const reqList = (std.keyRequirements && std.keyRequirements.length > 0)
-        ? std.keyRequirements.map((req, idx) => `
-            <div style="padding: 1.25rem; background: #F4F8FD; border-radius: 8px; border-left: 4px solid #146ED1;">
-              <div style="font-weight: 800; color: #073B75; font-size: 0.95rem;">${idx + 1}. Technical Specification Requirement</div>
-              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.6;">${req}</p>
-            </div>
-          `).join('')
-        : (std.clauses || []).map(c => `
-            <div style="padding: 1.25rem; background: #F4F8FD; border-radius: 8px; border-left: 4px solid #146ED1;">
-              <div style="font-weight: 800; color: #073B75; font-size: 0.95rem;">${c.number} — ${c.title}</div>
-              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.6;">${c.summary}</p>
-            </div>
-          `).join('');
-
-      reqPane.innerHTML = `
-        <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Normative Technical Requirements for ${std.isNumber}</h3>
-          <div style="display: flex; flex-direction: column; gap: 1rem;">
-            ${reqList}
-          </div>
-        </div>
-      `;
-    }
-
-    // Populate Tab 3: Evidence
-    const evPane = document.getElementById('tab-evidence');
-    if (evPane && std.whyRecommended?.evidence) {
-      evPane.innerHTML = `
-        <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Supporting Reference Evidence Clauses</h3>
-          ${std.whyRecommended.evidence.map(ev => `
-            <div style="background: #F4F8FD; padding: 1.25rem; border-radius: 8px; border-left: 4px solid #146ED1; margin-bottom: 1rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
-                <span style="font-weight: 800; color: #073B75;">${ev.source} — ${ev.section}</span>
-                <span class="badge badge-success" style="font-weight: 800;">${ev.status}</span>
-              </div>
-              <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">"${ev.text}"</p>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    // Populate Tab 5: Timeline
-    const timelinePane = document.getElementById('tab-timeline');
-    if (timelinePane) {
-      const amendmentsList = std.amendments && std.amendments.length > 0
-        ? std.amendments.map(a => `<div style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">• Amendment ${a.number} published in ${a.year}</div>`).join('')
-        : '<div style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">No pending amendments for current active edition.</div>';
-
-      timelinePane.innerHTML = `
-        <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Standard Lifecycle &amp; Amendment History</h3>
-          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-            
-            <div style="padding: 1rem; background: #F4F8FD; border-radius: 8px; border-left: 4px solid #138808;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-                <span class="badge badge-success" style="font-weight: 800;">CURRENT RECORD (${std.year})</span>
-                <span style="font-size: 0.75rem; font-weight: 700; color: #138808;">Reviewed ${std.reviewedYear || std.year}</span>
-              </div>
-              <strong style="color: #073B75; font-size: 1rem;">${std.isNumber} (${std.revision || 'Active Edition'})</strong>
-              <div style="margin-top: 0.5rem; border-top: 1px solid #D5E4F5; padding-top: 0.5rem;">
-                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Amendments Lifecycle:</div>
-                ${amendmentsList}
-              </div>
-            </div>
-
-            <div style="padding: 1rem; background: var(--bg-main); border-radius: 8px; border-left: 4px solid var(--border-color);">
-              <span class="badge badge-neutral" style="margin-bottom: 0.35rem;">Legacy Revision</span>
-              <div>
-                <strong style="color: var(--text-primary);">${std.code.split(':')[0]} : Prior Revision</strong>
-                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Previous standard revision superseded by the current published edition.</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      `;
-    }
-
-    // Populate Tab 6: Certification
-    const certPane = document.getElementById('tab-certification');
-    if (certPane) {
-      certPane.innerHTML = `
-        <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Certification &amp; Quality Control Order (QCO) Guidance</h3>
-          <div style="background: #F0FDF4; border: 1px solid #138808; padding: 1.25rem; border-radius: 8px;">
-            <span class="badge ${isMandatory ? 'badge-error' : 'badge-success'} mb-2" style="font-weight: 800;">${std.certification || 'Mandatory Certification'}</span>
-            <h4 style="font-size: 1rem; font-weight: 800; color: #138808; margin-top: 0.25rem;">Quality Control Order (QCO) Compliance</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.6;">
-              Procurement specifications for <strong>${std.title}</strong> must mandate a valid Bureau of Indian Standards (BIS) license and standard ISI marking under Scheme-I of BIS Conformity Assessment Regulations.
+        overviewPane.innerHTML = `
+          <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 0.75rem;">Scope &amp; Purpose</h3>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 1.5rem;">
+              ${std.scope}
             </p>
-            <div style="margin-top: 0.875rem; font-size: 0.8rem; font-weight: 700; color: #073B75;">
-              Governing Ministry: ${std.ministry || 'Ministry of Commerce & Industry / BIS'}
+
+            <h4 style="font-size: 0.9rem; font-weight: 800; color: #073B75; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.04em;">Official BIS Catalogue Metadata</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; background: #F4F8FD; padding: 1.25rem; border-radius: 8px; border: 1px solid #D5E4F5; font-size: 0.85rem;">
+              <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Technical Department</span><br><strong style="color: #073B75; font-size: 0.9rem;">${department}</strong></div>
+              <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Technical Committee</span><br><strong style="color: #073B75; font-size: 0.9rem;">${committee}</strong></div>
+              <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Current Status</span><br><strong style="color: #138808; font-size: 0.9rem;">${std.status} (${revision})</strong></div>
+              <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Relevant Ministry</span><br><strong style="color: #073B75; font-size: 0.9rem;">${ministry}</strong></div>
+              <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Certification Scheme</span><br><strong style="color: #073B75; font-size: 0.9rem;">${certification}</strong></div>
+              <div><span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Reviewed / Amendments</span><br><strong style="color: #073B75; font-size: 0.9rem;">Reviewed ${std.reviewedYear || std.year} (${amendmentsCount} Amendments)</strong></div>
             </div>
           </div>
-        </div>
-      `;
-    }
+        `;
+      }
 
-    // Tab switcher
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabs.forEach(t => t.className = 'btn btn-secondary btn-sm tab-btn');
-        btn.className = 'btn btn-primary btn-sm tab-btn active';
-        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        document.getElementById(btn.dataset.tab).style.display = 'block';
+      // Populate Tab 2: Requirements
+      const reqPane = document.getElementById('tab-requirements');
+      if (reqPane) {
+        const reqList = (std.keyRequirements && std.keyRequirements.length > 0)
+          ? std.keyRequirements.map((req, idx) => `
+              <div style="padding: 1.25rem; background: #F4F8FD; border-radius: 8px; border-left: 4px solid #146ED1;">
+                <div style="font-weight: 800; color: #073B75; font-size: 0.95rem;">${idx + 1}. Technical Specification Requirement</div>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.6;">${req}</p>
+              </div>
+            `).join('')
+          : (std.clauses || []).map(c => `
+              <div style="padding: 1.25rem; background: #F4F8FD; border-radius: 8px; border-left: 4px solid #146ED1;">
+                <div style="font-weight: 800; color: #073B75; font-size: 0.95rem;">${c.number} — ${c.title}</div>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.6;">${c.summary}</p>
+              </div>
+            `).join('');
 
-        if (btn.dataset.tab === 'tab-graph') {
-          renderRelationshipGraph('relationship-canvas', std);
-        }
+        reqPane.innerHTML = `
+          <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Normative Technical Requirements for ${std.isNumber}</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              ${reqList}
+            </div>
+          </div>
+        `;
+      }
+
+      // Populate Tab 3: Evidence
+      const evPane = document.getElementById('tab-evidence');
+      if (evPane && std.whyRecommended?.evidence) {
+        evPane.innerHTML = `
+          <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Supporting Reference Evidence Clauses</h3>
+            ${std.whyRecommended.evidence.map(ev => `
+              <div style="background: #F4F8FD; padding: 1.25rem; border-radius: 8px; border-left: 4px solid #146ED1; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <span style="font-weight: 800; color: #073B75;">${ev.source} — ${ev.section}</span>
+                  <span class="badge badge-success" style="font-weight: 800;">${ev.status}</span>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">"${ev.text}"</p>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      // Populate Tab 5: Timeline
+      const timelinePane = document.getElementById('tab-timeline');
+      if (timelinePane) {
+        const amendmentsList = std.amendments && std.amendments.length > 0
+          ? std.amendments.map(a => `<div style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">• Amendment ${a.number} published in ${a.year}</div>`).join('')
+          : '<div style="font-size: 0.825rem; color: var(--text-secondary); margin-top: 0.2rem;">No pending amendments for current active edition.</div>';
+
+        timelinePane.innerHTML = `
+          <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Standard Lifecycle &amp; Amendment History</h3>
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+              <div style="padding: 1rem; background: #F4F8FD; border-radius: 8px; border-left: 4px solid #138808;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                  <span class="badge badge-success" style="font-weight: 800;">CURRENT RECORD (${std.year})</span>
+                  <span style="font-size: 0.75rem; font-weight: 700; color: #138808;">Reviewed ${std.reviewedYear || std.year}</span>
+                </div>
+                <strong style="color: #073B75; font-size: 1rem;">${std.isNumber} (${std.revision || 'Active Edition'})</strong>
+                <div style="margin-top: 0.5rem; border-top: 1px solid #D5E4F5; padding-top: 0.5rem;">
+                  <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Amendments Lifecycle:</div>
+                  ${amendmentsList}
+                </div>
+              </div>
+
+              <div style="padding: 1rem; background: var(--bg-main); border-radius: 8px; border-left: 4px solid var(--border-color);">
+                <span class="badge badge-neutral" style="margin-bottom: 0.35rem;">Legacy Revision</span>
+                <div>
+                  <strong style="color: var(--text-primary);">${std.code.split(':')[0]} : Prior Revision</strong>
+                  <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Previous standard revision superseded by the current published edition.</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        `;
+      }
+
+      // Populate Tab 6: Certification
+      const certPane = document.getElementById('tab-certification');
+      if (certPane) {
+        certPane.innerHTML = `
+          <div class="card mb-4" style="background: white; padding: 1.75rem; border: 1px solid var(--border-color); border-radius: 12px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #073B75; margin-bottom: 1rem;">Certification &amp; Quality Control Order (QCO) Guidance</h3>
+            <div style="background: #F0FDF4; border: 1px solid #138808; padding: 1.25rem; border-radius: 8px;">
+              <span class="badge ${isMandatory ? 'badge-error' : 'badge-success'} mb-2" style="font-weight: 800;">${std.certification || 'Mandatory Certification'}</span>
+              <h4 style="font-size: 1rem; font-weight: 800; color: #138808; margin-top: 0.25rem;">Quality Control Order (QCO) Compliance</h4>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.35rem; line-height: 1.6;">
+                Procurement specifications for <strong>${std.title}</strong> must mandate a valid Bureau of Indian Standards (BIS) license and standard ISI marking under Scheme-I of BIS Conformity Assessment Regulations.
+              </p>
+              <div style="margin-top: 0.875rem; font-size: 0.8rem; font-weight: 700; color: #073B75;">
+                Governing Ministry: ${std.ministry || 'Ministry of Commerce & Industry / BIS'}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Tab switcher
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabs.forEach(t => t.className = 'btn btn-secondary btn-sm tab-btn');
+          btn.className = 'btn btn-primary btn-sm tab-btn active';
+          document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+          document.getElementById(btn.dataset.tab).style.display = 'block';
+
+          if (btn.dataset.tab === 'tab-graph') {
+            renderRelationshipGraph('relationship-canvas', std);
+          }
+        });
       });
+
+      // Initial render of graph if active tab
+      renderRelationshipGraph('relationship-canvas', std);
+
+      // Save button binding
+      const saveBtn = document.getElementById('save-std-btn');
+      if (saveBtn) {
+        const isSaved = PRAMANStorage.isStandardSaved(std.id);
+        saveBtn.innerText = isSaved ? 'Saved' : 'Save standard';
+        saveBtn.addEventListener('click', () => {
+          const saved = PRAMANStorage.toggleSaveStandard(std.id);
+          saveBtn.innerText = saved ? 'Saved' : 'Save standard';
+          showToast(saved ? 'Standard saved to bookmarks' : 'Standard removed from bookmarks', saved ? 'success' : 'info');
+        });
+      }
+
     });
-
-    // Initial render of graph if active tab
-    renderRelationshipGraph('relationship-canvas', std);
-
-    // Save button binding
-    const saveBtn = document.getElementById('save-std-btn');
-    if (saveBtn) {
-      const isSaved = PRAMANStorage.isStandardSaved(std.id);
-      saveBtn.innerText = isSaved ? 'Saved' : 'Save standard';
-      saveBtn.addEventListener('click', () => {
-        const saved = PRAMANStorage.toggleSaveStandard(std.id);
-        saveBtn.innerText = saved ? 'Saved' : 'Save standard';
-        showToast(saved ? 'Standard saved to bookmarks' : 'Standard removed from bookmarks', saved ? 'success' : 'info');
-      });
-    }
   </script>
 </body>
 </html>

@@ -2,12 +2,25 @@
    PRAMAN — HERO SECTION (CINEMATIC INDIAN GOVERNANCE SLIDER)
    ============================================================ */
 
+/* Reserve one initial viewport for the fixed navbar, Hero, and steps. */
+.home-page {
+  --home-navbar-height: 108px;
+  padding-top: var(--home-navbar-height);
+}
+
+.home-first-screen {
+  height: calc(100vh - var(--home-navbar-height));
+  height: calc(100svh - var(--home-navbar-height));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 /* Full-bleed edge-to-edge section connecting directly under navbar */
 .hero-section {
   position: relative;
   width: 100%;
-  min-height: calc(640px - 1cm);
-  height: calc(680px - 1cm);
+  min-height: 0;
+  height: 100%;
   background: #071E3D;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
@@ -88,6 +101,20 @@
   pointer-events: none;
 }
 
+/* Persistent content stays centered while the background slides change. */
+.hero-content-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.hero-content-layer .hero-container {
+  pointer-events: auto;
+}
+
 /* Hero Content Container (Left Aligned Column) */
 .hero-container {
   position: relative;
@@ -156,20 +183,20 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Staggered entrance animations for active slide text */
-.hero-slide.active .hero-eyebrow-wrapper {
+/* Play the content entrance once, independently of background slides. */
+.hero-content-layer .hero-eyebrow-wrapper {
   animation: heroSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.hero-slide.active .hero-title {
+.hero-content-layer .hero-title {
   animation: heroSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
-.hero-slide.active .hero-subtitle {
+.hero-content-layer .hero-subtitle {
   animation: heroSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
-.hero-slide.active .hero-actions {
+.hero-content-layer .hero-actions {
   animation: heroSlideUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
 
@@ -287,21 +314,9 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
   transition: all 0.25s ease;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
-}
-
-.trust-item:hover, .trust-item.active-trust {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.trust-item.active-trust .trust-number {
-  color: #FF9933;
-  transform: scale(1.15);
-  text-shadow: 0 0 10px rgba(255, 153, 51, 0.6);
 }
 
 .trust-number {
@@ -318,10 +333,6 @@
 }
 
 @media (max-width: 1024px) {
-  .hero-section {
-    height: auto;
-    min-height: calc(620px - 1cm);
-  }
   .hero-title {
     font-size: 2.75rem;
   }

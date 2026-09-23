@@ -13,8 +13,15 @@ import { initStandardsExplorer } from './standards.js';
 import { initAnalyzer } from './analyzer.js';
 import { initChatbot } from './components/chatbot.js';
 import { initGoogleTranslate } from './utils/translator.js';
+import { initAuthNavigation } from './utils/auth-navigation.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+import { workspaceReady } from './utils/workspace-guard.js';
+
+const canInitializePage = initAuthNavigation();
+
+function initializePage() {
+  if (!canInitializePage) return;
+  initGoogleTranslate();
   initAccessibility();
   initNavigation();
   initHeroSlider();
@@ -23,5 +30,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initStandardsExplorer();
   initAnalyzer();
   initChatbot();
-  initGoogleTranslate();
+
+}
+
+workspaceReady.then(allowed => {
+  if (!allowed) return;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializePage, { once: true });
+  } else {
+    initializePage();
+  }
 });

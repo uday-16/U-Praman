@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 
 <body>
@@ -58,35 +60,6 @@
 
         <!-- KPI Summary Cards (Dynamically Computed from Active Repository Data) -->
         <div class="kpi-grid" style="margin-bottom: 2rem;">
-          <div class="kpi-card"
-            style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
-            <div class="kpi-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </div>
-            <div>
-              <div class="kpi-value" id="kpi-req-count" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">0</div>
-              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">
-                Requirements analyzed</div>
-            </div>
-          </div>
-
-          <div class="kpi-card"
-            style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
-            <div class="kpi-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <div>
-              <div class="kpi-value" id="kpi-matched-count" style="font-size: 1.75rem; font-weight: 800; color: var(--text-primary);">0</div>
-              <div class="kpi-label" style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">
-                Standards matched</div>
-            </div>
-          </div>
-
           <div class="kpi-card"
             style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 1.25rem;">
             <div class="kpi-icon">
@@ -199,159 +172,155 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { Storage } from '/js/utils/storage.js';
     import { PRAMANStorage } from '/js/storage.js';
     import { mockStandards } from '/js/data/standards.js';
     import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    if (!Storage.isLoggedIn()) {
-      window.location.href = '/pages/login.html';
-    }
-
-    const user = Storage.getUser();
-    const titleEl = document.querySelector('.page-title');
-    const roleBadge = document.getElementById('user-role-badge');
-    const adminBtn = document.getElementById('admin-action-btn');
-
-    if (user) {
-      if (titleEl) {
-        titleEl.innerText = `Good morning, ${user.name ? user.name.split(' ')[0] : 'Officer'}`;
+      if (!Storage.isLoggedIn()) {
+        window.location.href = '/pages/login.html';
       }
-      if (roleBadge) {
-        roleBadge.innerText = user.role || 'Procurement Officer';
-        if (Storage.isAdmin()) {
-          roleBadge.style.background = '#FFF4E5';
-          roleBadge.style.color = '#D97706';
-          roleBadge.style.borderColor = '#FCD34D';
+
+      const user = Storage.getUser();
+      const titleEl = document.querySelector('.page-title');
+      const roleBadge = document.getElementById('user-role-badge');
+      const adminBtn = document.getElementById('admin-action-btn');
+
+      if (user) {
+        if (titleEl) {
+          titleEl.innerText = `Good morning, ${user.name ? user.name.split(' ')[0] : 'Officer'}`;
+        }
+        if (roleBadge) {
+          roleBadge.innerText = user.role || 'Procurement Officer';
+          if (Storage.isAdmin()) {
+            roleBadge.style.background = '#FFF4E5';
+            roleBadge.style.color = '#D97706';
+            roleBadge.style.borderColor = '#FCD34D';
+          }
+        }
+        if (adminBtn && Storage.isAdmin()) {
+          adminBtn.style.display = 'block';
         }
       }
-      if (adminBtn && Storage.isAdmin()) {
-        adminBtn.style.display = 'block';
-      }
-    }
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('dashboard');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Dashboard Workspace / Dashboard');
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('dashboard');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Dashboard Workspace / Dashboard');
 
-    // Retrieve active dynamic analyses and saved standards
-    const analyses = Storage.getAnalyses();
-    const savedStandards = Storage.getSavedStandards();
+      // Retrieve active dynamic analyses and saved standards
+      const analyses = Storage.getAnalyses();
+      const savedStandards = Storage.getSavedStandards();
 
-    // Compute dynamic KPIs
-    const reqCount = analyses.length;
-    const matchedCount = analyses.reduce((sum, a) => {
-      const cnt = parseInt(a.standardsCount, 10);
-      return sum + (!isNaN(cnt) ? cnt : (a.matchedStandards ? a.matchedStandards.length : 0));
-    }, 0);
-    const pendingCount = analyses.filter(a => {
-      const s = (a.status || '').toLowerCase();
-      return s.includes('review') || s.includes('pending') || s.includes('need');
-    }).length;
-    const savedCount = savedStandards.length;
+      // Compute dynamic KPIs
+      const pendingCount = analyses.filter(a => {
+        const s = (a.status || '').toLowerCase();
+        return s.includes('review') || s.includes('pending') || s.includes('need');
+      }).length;
+      const savedCount = savedStandards.length;
 
-    // Update KPI card elements
-    const kpiReqEl = document.getElementById('kpi-req-count');
-    const kpiMatchedEl = document.getElementById('kpi-matched-count');
-    const kpiPendingEl = document.getElementById('kpi-pending-count');
-    const kpiSavedEl = document.getElementById('kpi-saved-count');
+      // Update KPI card elements
+      const kpiPendingEl = document.getElementById('kpi-pending-count');
+      const kpiSavedEl = document.getElementById('kpi-saved-count');
 
-    if (kpiReqEl) kpiReqEl.innerText = String(reqCount).padStart(2, '0');
-    if (kpiMatchedEl) kpiMatchedEl.innerText = String(matchedCount).padStart(2, '0');
-    if (kpiPendingEl) kpiPendingEl.innerText = String(pendingCount).padStart(2, '0');
-    if (kpiSavedEl) kpiSavedEl.innerText = String(savedCount).padStart(2, '0');
+      if (kpiPendingEl) kpiPendingEl.innerText = String(pendingCount).padStart(2, '0');
+      if (kpiSavedEl) kpiSavedEl.innerText = String(savedCount).padStart(2, '0');
 
-    // Render Continue Section Dynamically
-    const continueSection = document.getElementById('continue-section');
-    if (continueSection) {
-      if (analyses.length > 0) {
-        const latest = analyses[0];
-        const matchCount = latest.standardsCount || (latest.matchedStandards ? latest.matchedStandards.length : 0);
-        continueSection.innerHTML = `
-          <div class="card"
-            style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
-            <div>
-              <div
-                style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">
-                CONTINUE WHERE YOU LEFT OFF</div>
-              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">
-                ${escapeHtml(latest.product || latest.title || 'Procurement Specification')}</h3>
-              <div
-                style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                <span>Category: <strong>${escapeHtml(latest.category || 'General Procurement')}</strong></span> •
-                <span>Matches: <strong style="color: var(--indian-green);">${matchCount} Applicable Standards</strong></span> •
-                <span>Status: <strong style="color: var(--gov-blue);">${escapeHtml(latest.status || 'Ready')}</strong></span> •
-                <span>Date: <strong>${escapeHtml(latest.date || 'Recent')}</strong></span>
+      // Render Continue Section Dynamically
+      const continueSection = document.getElementById('continue-section');
+      if (continueSection) {
+        if (analyses.length > 0) {
+          const latest = analyses[0];
+          const matchCount = latest.standardsCount || (latest.matchedStandards ? latest.matchedStandards.length : 0);
+          continueSection.innerHTML = `
+            <div class="card"
+              style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
+              <div>
+                <div
+                  style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">
+                  CONTINUE WHERE YOU LEFT OFF</div>
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">
+                  ${escapeHtml(latest.product || latest.title || 'Procurement Specification')}</h3>
+                <div
+                  style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                  <span>Category: <strong>${escapeHtml(latest.category || 'General Procurement')}</strong></span> •
+                  <span>Matches: <strong style="color: var(--indian-green);">${matchCount} Applicable Standards</strong></span> •
+                  <span>Status: <strong style="color: var(--gov-blue);">${escapeHtml(latest.status || 'Ready')}</strong></span> •
+                  <span>Date: <strong>${escapeHtml(latest.date || 'Recent')}</strong></span>
+                </div>
               </div>
+              <a href="/pages/results.html?id=${encodeURIComponent(latest.id || '')}" class="btn btn-secondary btn-sm"
+                style="font-weight: 800; padding: 0.5rem 1.25rem; border-color: var(--gov-blue); color: var(--gov-blue);">
+                Review Analysis →
+              </a>
             </div>
-            <a href="/pages/results.html?id=${encodeURIComponent(latest.id || '')}" class="btn btn-secondary btn-sm"
-              style="font-weight: 800; padding: 0.5rem 1.25rem; border-color: var(--gov-blue); color: var(--gov-blue);">
-              Review Analysis →
-            </a>
-          </div>
-        `;
-      } else {
-        continueSection.innerHTML = `
-          <div class="card"
-            style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
-            <div>
-              <div
-                style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">
-                INDIAN STANDARDS INTELLIGENCE ACTIVE</div>
-              <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">
-                No Active Procurement Analysis Session</h3>
-              <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; max-width: 650px; line-height: 1.5;">
-                Ingested 32 Indian Standards &amp; Gazette amendments from the BIS datastore. Start an AI semantic analysis to match tender specifications against applicable IS codes, test protocols, and mandatory certification schemes.
-              </p>
+          `;
+        } else {
+          continueSection.innerHTML = `
+            <div class="card"
+              style="background: #FFFFFF; border: 1px solid var(--border-color); border-left: 4px solid var(--gov-blue); border-radius: var(--radius-card); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem; box-shadow: var(--shadow-subtle);">
+              <div>
+                <div
+                  style="font-size: 0.75rem; font-weight: 800; color: var(--gov-blue); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.25rem;">
+                  INDIAN STANDARDS INTELLIGENCE ACTIVE</div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.35rem 0;">
+                  No Active Procurement Analysis Session</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; max-width: 650px; line-height: 1.5;">
+                  Ingested 32 Indian Standards &amp; Gazette amendments from the BIS datastore. Start an AI semantic analysis to match tender specifications against applicable IS codes, test protocols, and mandatory certification schemes.
+                </p>
+              </div>
+              <a href="/pages/analyze.html" class="btn btn-primary"
+                style="font-weight: 700; padding: 0.65rem 1.25rem; background: var(--navy); border: none; border-radius: 8px;">
+                + Start Analysis →
+              </a>
             </div>
-            <a href="/pages/analyze.html" class="btn btn-primary"
-              style="font-weight: 700; padding: 0.65rem 1.25rem; background: var(--navy); border: none; border-radius: 8px;">
-              + Start Analysis →
-            </a>
-          </div>
-        `;
+          `;
+        }
       }
-    }
 
-    // Render Recent Analyses Table Dynamically
-    const tbody = document.getElementById('analyses-table-body');
-    if (tbody) {
-      if (analyses.length > 0) {
-        tbody.innerHTML = analyses.map(a => {
-          const matchCount = a.standardsCount || (a.matchedStandards ? a.matchedStandards.length : 0);
-          const isSuccess = (a.status === 'Completed' || a.status === 'Ready');
-          return `
+      // Render Recent Analyses Table Dynamically
+      const tbody = document.getElementById('analyses-table-body');
+      if (tbody) {
+        if (analyses.length > 0) {
+          tbody.innerHTML = analyses.map(a => {
+            const matchCount = a.standardsCount || (a.matchedStandards ? a.matchedStandards.length : 0);
+            const isSuccess = (a.status === 'Completed' || a.status === 'Ready');
+            return `
+              <tr>
+                <td style="font-weight:700; color: var(--text-primary);">${escapeHtml(a.product || a.title || 'Procurement Requirement')}</td>
+                <td><span class="badge" style="background: #F1F5F9; color: var(--text-primary); font-weight: 600;">${escapeHtml(a.category || 'General Procurement')}</span></td>
+                <td style="font-weight: 600;">${matchCount} Standards</td>
+                <td><span class="badge ${isSuccess ? 'badge-success' : 'badge-warning'}">${escapeHtml(a.status || 'Ready')}</span></td>
+                <td style="color:var(--text-secondary); font-size: 0.85rem;">${escapeHtml(a.date || 'Today')}</td>
+                <td><a href="/pages/results.html?id=${encodeURIComponent(a.id || '')}" class="btn btn-secondary btn-sm" style="font-weight: 700;">Open →</a></td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `
             <tr>
-              <td style="font-weight:700; color: var(--text-primary);">${escapeHtml(a.product || a.title || 'Procurement Requirement')}</td>
-              <td><span class="badge" style="background: #F1F5F9; color: var(--text-primary); font-weight: 600;">${escapeHtml(a.category || 'General Procurement')}</span></td>
-              <td style="font-weight: 600;">${matchCount} Standards</td>
-              <td><span class="badge ${isSuccess ? 'badge-success' : 'badge-warning'}">${escapeHtml(a.status || 'Ready')}</span></td>
-              <td style="color:var(--text-secondary); font-size: 0.85rem;">${escapeHtml(a.date || 'Today')}</td>
-              <td><a href="/pages/results.html?id=${encodeURIComponent(a.id || '')}" class="btn btn-secondary btn-sm" style="font-weight: 700;">Open →</a></td>
+              <td colspan="6" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); background: white;">
+                <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.35rem;">No procurement requirements analyzed yet</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Start an AI semantic search with your product specifications to see compliance logs here.</div>
+                <a href="/pages/analyze.html" class="btn btn-primary btn-sm" style="font-weight: 700; background: var(--navy); border-radius: 6px; padding: 0.5rem 1.25rem;">+ Analyze Requirement</a>
+              </td>
             </tr>
           `;
-        }).join('');
-      } else {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-secondary); background: white;">
-              <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.35rem;">No procurement requirements analyzed yet</div>
-              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Start an AI semantic search with your product specifications to see compliance logs here.</div>
-              <a href="/pages/analyze.html" class="btn btn-primary btn-sm" style="font-weight: 700; background: var(--navy); border-radius: 6px; padding: 0.5rem 1.25rem;">+ Analyze Requirement</a>
-            </td>
-          </tr>
-        `;
+        }
       }
-    }
 
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
+      function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+    });
   </script>
 </body>
 

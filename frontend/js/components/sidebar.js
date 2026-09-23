@@ -1,5 +1,5 @@
 import { Storage } from '../utils/storage.js';
-import { changeLanguage, getSavedLanguage } from '../utils/translator.js';
+import { bindLanguageSelects } from '../utils/translator.js';
 
 export function renderAppSidebar(activePage = 'dashboard') {
   const isCollapsed = localStorage.getItem('praman_sidebar_collapsed') === 'true';
@@ -80,7 +80,7 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = Stor
   return `
     <header class="app-topbar">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <button class="mobile-sidebar-btn" id="mobile-sidebar-toggle">
+        <button class="mobile-sidebar-btn" id="mobile-sidebar-toggle" aria-label="Open navigation">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <span class="topbar-page-title">${pageTitle}</span>
@@ -88,9 +88,9 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = Stor
 
       <div class="topbar-actions">
         <!-- Multilingual Select Language Dropdown -->
-        <div style="margin-right: 1rem; display: flex; align-items: center; gap: 0.35rem;" title="Select Language">
+        <div class="topbar-language" title="Select Language">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-secondary);"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-          <select id="gov-sidebar-lang-select" class="gov-lang-dropdown" style="background: var(--surface-white); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;" aria-label="Select Language">
+          <select id="gov-sidebar-lang-select" class="gov-lang-dropdown" aria-label="Select Language">
             <option value="en">English</option>
             <option value="hi">हिन्दी (Hindi)</option>
             <option value="te">తెలుగు (Telugu)</option>
@@ -149,15 +149,7 @@ export function initSidebarEvents() {
     });
   }
 
-  const sidebarLangSelect = document.getElementById('gov-sidebar-lang-select');
-  if (sidebarLangSelect) {
-    const savedLang = getSavedLanguage();
-    sidebarLangSelect.value = savedLang;
-    sidebarLangSelect.addEventListener('change', (e) => {
-      const selected = e.target.value;
-      changeLanguage(selected);
-    });
-  }
+  bindLanguageSelects();
 }
 
 export function initTopbarEvents() {

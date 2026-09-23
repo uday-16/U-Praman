@@ -28,13 +28,4 @@ export function initNavigation() {
     });
   }
 
-  // Language Selector Handler
-  const langSelect = document.getElementById('gov-lang-select');
-  if (langSelect) {
-    langSelect.value = PRAMANStorage.getLanguage();
-    langSelect.addEventListener('change', (e) => {
-      PRAMANStorage.setLanguage(e.target.value);
-      window.dispatchEvent(new CustomEvent('pramanLangChanged', { detail: { lang: e.target.value } }));
-    });
-  }
 }

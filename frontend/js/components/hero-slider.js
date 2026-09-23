@@ -2,13 +2,12 @@
  * PRAMAN Cinematic 5-Slide Hero Slider
  * Features:
  * - Ken Burns Zoom transitions across 5 high-resolution Indian infrastructure scenes
- * - Staggered text reveal animations
+ * - Independent, one-time content entrance
  * - Interactive glassmorphic Prev / Next controls
  * - Pill pagination indicators
  * - Real-time animated countdown progress bar
  * - Pause on hover / resume on leave
  * - Touch swipe and keyboard (ArrowLeft / ArrowRight) navigation
- * - Synchronized trust strip step indicator
  */
 
 export function initHeroSlider() {
@@ -21,9 +20,19 @@ export function initHeroSlider() {
   const btnNext = container.querySelector('.slider-arrow-next');
   const btnPlayPause = container.querySelector('.slider-play-pause');
   const progressBar = container.querySelector('.slider-progress-fill');
-  const trustItems = container.querySelectorAll('.trust-item');
 
   if (slides.length === 0) return;
+
+  // Keep the initial viewport fitted when fonts or navbar dimensions change.
+  const navbar = document.getElementById('navbar-root');
+  if (navbar && document.body.classList.contains('home-page')) {
+    const updateNavbarHeight = () => {
+      document.body.style.setProperty('--home-navbar-height', navbar.getBoundingClientRect().height + 'px');
+    };
+    updateNavbarHeight();
+    const navbarObserver = new ResizeObserver(updateNavbarHeight);
+    navbarObserver.observe(navbar);
+  }
 
   // Preload all 5 hero images to prevent flicker
   const heroImages = [
@@ -62,10 +71,6 @@ export function initHeroSlider() {
 
     dots.forEach((dot, i) => {
       dot.classList.toggle('active', i === index);
-    });
-
-    trustItems.forEach((item, i) => {
-      item.classList.toggle('active-trust', i === index);
     });
 
     currentIndex = index;
@@ -146,14 +151,6 @@ export function initHeroSlider() {
   // Dots selection listeners
   dots.forEach((dot, index) => {
     dot.addEventListener('click', () => {
-      goToSlide(index);
-      if (isPlaying) startAutoplay();
-    });
-  });
-
-  // Trust items clickable to jump to step
-  trustItems.forEach((item, index) => {
-    item.addEventListener('click', () => {
       goToSlide(index);
       if (isPlaying) startAutoplay();
     });

@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="/css/forms.css">
   <link rel="stylesheet" href="/css/standards.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -22,54 +24,53 @@
     <div class="app-main-wrapper">
       <div id="topbar-root"></div>
 
-      <main class="app-content">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+      <main class="app-content standards-workspace">
+        <div class="standards-page-header">
           <div>
+            <span class="standards-eyebrow">STANDARDS LIBRARY</span>
             <h1 class="page-title">Standards explorer</h1>
             <p class="page-subtitle">Search, filter, and compare available Indian Standards records.</p>
           </div>
-          <a href="/pages/compare.html" class="btn btn-secondary btn-sm" style="font-weight: 700;">Compare matrix</a>
+          <a href="/pages/compare.html" class="btn standards-compare-btn">Compare standards &rarr;</a>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="filter-bar" style="background: white; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
-          <div style="flex: 1; min-width: 260px;">
-            <input type="text" id="standards-search-input" class="form-input" placeholder="Search by code, title, or category..." />
+        <div class="standards-filters" role="search" aria-label="Filter standards">
+          <div class="standards-search-field">
+            <label for="standards-search-input">Find a standard</label>
+            <input type="search" id="standards-search-input" class="form-input" placeholder="Search by code, title, or category..." />
           </div>
-
-          <div class="filter-group" style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="filter-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Category:</span>
-            <select id="filter-category" class="form-select" style="padding: 0.35rem 0.75rem;">
-              <option value="All">All Categories</option>
+          <div>
+            <label for="filter-category">Category</label>
+            <select id="filter-category" class="form-select">
+              <option value="All">All categories</option>
             </select>
           </div>
-
-          <div class="filter-group" style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="filter-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Status:</span>
-            <select id="filter-status" class="form-select" style="padding: 0.35rem 0.75rem;">
-              <option value="All">All Statuses</option>
+          <div>
+            <label for="filter-status">Status</label>
+            <select id="filter-status" class="form-select">
+              <option value="All">All statuses</option>
               <option value="Active">Active</option>
               <option value="Replaced">Superseded</option>
             </select>
           </div>
         </div>
 
-        <!-- Counter -->
-        <div style="font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 1rem;" id="results-count">
-          Showing 3 Indian Standards
+        <div class="standards-results-summary">
+          <h2>Available standards</h2>
+          <span id="results-count" role="status" aria-live="polite"></span>
         </div>
 
         <!-- Standards Table -->
-        <div class="data-table-wrapper" style="background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
-          <table class="data-table">
+        <div class="data-table-wrapper standards-table-wrapper" role="region" aria-label="Standards results" tabindex="0">
+          <table class="data-table standards-table">
             <thead>
               <tr>
-                <th>Standard Code</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Year</th>
-                <th>Action</th>
+                <th scope="col">Standard Code</th>
+                <th scope="col">Title</th>
+                <th scope="col">Category</th>
+                <th scope="col">Status</th>
+                <th scope="col">Year</th>
+                <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody id="standards-tbody">
@@ -91,94 +92,99 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
     import { mockStandards } from '/js/data/standards.js';
     import { Storage } from '/js/utils/storage.js';
     import { showToast } from '/js/components/toast.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('standards');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Standards explorer');
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('standards');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Standards explorer');
 
-    const searchInput = document.getElementById('standards-search-input');
-    const filterCat = document.getElementById('filter-category');
-    const filterStatus = document.getElementById('filter-status');
-    const tbody = document.getElementById('standards-tbody');
-    const countEl = document.getElementById('results-count');
-    const emptyState = document.getElementById('empty-state');
+      const searchInput = document.getElementById('standards-search-input');
+      const filterCat = document.getElementById('filter-category');
+      const filterStatus = document.getElementById('filter-status');
+      const tbody = document.getElementById('standards-tbody');
+      const countEl = document.getElementById('results-count');
+      const emptyState = document.getElementById('empty-state');
 
-    // Dynamically populate category dropdown from ingested standards
-    const uniqueCategories = [...new Set(mockStandards.map(s => s.category).filter(Boolean))].sort();
-    uniqueCategories.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat;
-      opt.innerText = cat;
-      filterCat.appendChild(opt);
-    });
-
-    function renderTable() {
-      const q = searchInput.value.toLowerCase().trim();
-      const cat = filterCat.value;
-      const stat = filterStatus.value;
-
-      const filtered = mockStandards.filter(s => {
-        const matchesQuery = !q || s.isNumber.toLowerCase().includes(q) || s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q) || s.scope.toLowerCase().includes(q);
-        const matchesCat = cat === 'All' || s.category === cat;
-        const matchesStat = stat === 'All' || s.status === stat;
-
-        return matchesQuery && matchesCat && matchesStat;
+      // Dynamically populate category dropdown from ingested standards
+      const uniqueCategories = [...new Set(mockStandards.map(s => s.category).filter(Boolean))].sort();
+      uniqueCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.innerText = cat;
+        filterCat.appendChild(opt);
       });
 
-      countEl.innerText = `Showing ${filtered.length} Indian Standard${filtered.length === 1 ? '' : 's'}`;
+      function renderTable() {
+        const q = searchInput.value.toLowerCase().trim();
+        const cat = filterCat.value;
+        const stat = filterStatus.value;
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.style.display = 'block';
-      } else {
-        emptyState.style.display = 'none';
-        tbody.innerHTML = filtered.map(s => {
-          const isSaved = Storage.isStandardSaved(s.id);
-          return `
-            <tr>
-              <td style="font-weight: 800; color: var(--primary-blue);">${s.isNumber}</td>
-              <td style="font-weight: 700;">${s.title}</td>
-              <td><span class="badge badge-neutral">${s.category}</span></td>
-              <td><span class="badge badge-success">${s.status}</span></td>
-              <td>${s.year}</td>
-              <td>
-                <div style="display: flex; gap: 0.5rem;">
-                  <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-secondary btn-sm" style="font-weight:700;">View</a>
-                  <button class="btn btn-secondary btn-sm save-toggle-btn" data-id="${s.id}" style="font-weight:700;">
-                    ${isSaved ? 'Saved' : 'Save'}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
+        const filtered = mockStandards.filter(s => {
+          const matchesQuery = !q || s.isNumber.toLowerCase().includes(q) || s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q) || s.scope.toLowerCase().includes(q);
+          const matchesCat = cat === 'All' || s.category === cat;
+          const matchesStat = stat === 'All' || s.status === stat;
+
+          return matchesQuery && matchesCat && matchesStat;
+        });
+
+        countEl.innerText = `Showing ${filtered.length} Indian Standard${filtered.length === 1 ? '' : 's'}`;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '';
+          emptyState.style.display = 'block';
+        } else {
+          emptyState.style.display = 'none';
+          tbody.innerHTML = filtered.map(s => {
+            const isSaved = Storage.isStandardSaved(s.id);
+            return `
+              <tr>
+                <td class="standard-code">${s.isNumber}</td>
+                <td class="standard-title">${s.title}</td>
+                <td><span class="badge badge-neutral">${s.category}</span></td>
+                <td><span class="badge ${s.status === 'Active' ? 'badge-success' : 'badge-neutral'}">${s.status}</span></td>
+                <td>${s.year}</td>
+                <td>
+                  <div class="standard-row-actions">
+                    <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-secondary btn-sm standard-view-btn">View</a>
+                    <button class="btn btn-secondary btn-sm save-toggle-btn" data-id="${s.id}" style="font-weight:700;">
+                      ${isSaved ? 'Saved' : 'Save'}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
       }
-    }
 
-    searchInput.addEventListener('input', renderTable);
-    filterCat.addEventListener('change', renderTable);
-    filterStatus.addEventListener('change', renderTable);
+      searchInput.addEventListener('input', renderTable);
+      filterCat.addEventListener('change', renderTable);
+      filterStatus.addEventListener('change', renderTable);
 
-    document.getElementById('reset-search-btn').addEventListener('click', () => {
-      searchInput.value = '';
-      filterCat.value = 'All';
-      filterStatus.value = 'All';
+      document.getElementById('reset-search-btn').addEventListener('click', () => {
+        searchInput.value = '';
+        filterCat.value = 'All';
+        filterStatus.value = 'All';
+        renderTable();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('save-toggle-btn')) {
+          const id = e.target.dataset.id;
+          const saved = Storage.toggleSaveStandard(id);
+          e.target.innerText = saved ? 'Saved' : 'Save';
+          showToast(saved ? 'Standard saved' : 'Standard removed', saved ? 'success' : 'info');
+        }
+      });
+
       renderTable();
-    });
 
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('save-toggle-btn')) {
-        const id = e.target.dataset.id;
-        const saved = Storage.toggleSaveStandard(id);
-        e.target.innerText = saved ? 'Saved' : 'Save';
-        showToast(saved ? 'Standard saved' : 'Standard removed', saved ? 'success' : 'info');
-      }
     });
-
-    renderTable();
   </script>
 </body>
 </html>

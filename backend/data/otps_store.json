@@ -1,0 +1,44 @@
+[
+  {
+    "identifier": "masteruday3025@gmail.com",
+    "otp_type": "email",
+    "otp_hash": "641538a32db8d2e452c43c1d0c46be06c01371cb72817e05d7863859b19df92c",
+    "salt": "25a54954f4e5939440e7f920cf643c22",
+    "attempt_count": 0,
+    "max_attempts": 5,
+    "expires_at": "2026-09-23 16:02:08.023558+00:00",
+    "is_verified": 1,
+    "status": "verified",
+    "created_at": "2026-09-23 15:52:08.023558+00:00",
+    "_id": "doc-9f85e0bf3818aabe",
+    "verified_at": "2026-09-23 15:53:06.376944+00:00"
+  },
+  {
+    "identifier": "sirinandininarava@gmail.com",
+    "otp_type": "email",
+    "otp_hash": "bb2912581194692e5b24e6cc067e66d9c009e29e9a9ab12af7da8cfd487e6b25",
+    "salt": "118c11c392b1865ea2911fa7dc3ec0c7",
+    "attempt_count": 0,
+    "max_attempts": 5,
+    "expires_at": "2026-09-23 16:06:56.597512+00:00",
+    "is_verified": 1,
+    "status": "verified",
+    "created_at": "2026-09-23 15:56:56.597512+00:00",
+    "_id": "doc-4b29a6a9ef189aec",
+    "verified_at": "2026-09-23 15:57:28.829197+00:00"
+  },
+  {
+    "identifier": "sirinandininarava@gmail.com",
+    "otp_type": "email",
+    "otp_hash": "fb732b7fe298b602e29bdd4a3cc61ca707acd349846d3b2a42e3fead2f47432a",
+    "salt": "ba97a7b41ed8c2d32a2f91eaa7defb50",
+    "attempt_count": 0,
+    "max_attempts": 5,
+    "expires_at": "2026-09-23 20:17:46.783048+00:00",
+    "is_verified": 1,
+    "status": "verified",
+    "created_at": "2026-09-23 20:07:46.783048+00:00",
+    "_id": "doc-eff733aeed849761",
+    "verified_at": "2026-09-23 20:08:39.369144+00:00"
+  }
+]

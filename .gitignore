@@ -52,3 +52,4 @@ chroma_db/
 backend/data/*.db
 *.sqlite
 *.sqlite3
+backend/data/sessions_store.json

@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="/css/forms.css">
   <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -79,59 +81,64 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
     import { Storage } from '/js/utils/storage.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('history');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / History Archive');
-    initSidebarEvents();
-    initTopbarEvents();
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('history');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / History Archive');
+      initSidebarEvents();
+      initTopbarEvents();
 
-    const analyses = Storage.getAnalyses();
-    const tbody = document.getElementById('history-tbody');
-    const searchInput = document.getElementById('history-search');
-    let currentFilter = 'All';
+      const analyses = Storage.getAnalyses();
+      const tbody = document.getElementById('history-tbody');
+      const searchInput = document.getElementById('history-search');
+      let currentFilter = 'All';
 
-    function renderHistory() {
-      const q = searchInput.value.toLowerCase().trim();
-      const filtered = analyses.filter(a => {
-        const matchesQ = !q || a.product.toLowerCase().includes(q) || (a.requirementText && a.requirementText.toLowerCase().includes(q)) || (a.id && a.id.toLowerCase().includes(q));
-        const matchesStat = currentFilter === 'All' || a.status === currentFilter || (currentFilter === 'Completed' && a.status === 'Ready');
-        return matchesQ && matchesStat;
-      });
+      function renderHistory() {
+        const q = searchInput.value.toLowerCase().trim();
+        const filtered = analyses.filter(a => {
+          const matchesQ = !q || a.product.toLowerCase().includes(q) || (a.requirementText && a.requirementText.toLowerCase().includes(q)) || (a.id && a.id.toLowerCase().includes(q));
+          const matchesStat = currentFilter === 'All' || a.status === currentFilter || (currentFilter === 'Completed' && a.status === 'Ready');
+          return matchesQ && matchesStat;
+        });
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:4rem 2rem;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.75rem; color: #94A3B8;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem;">No analysis records match your search criteria</div><div style="font-size: 0.85rem;">Try adjusting your search keyword or switching the status filter tab.</div></td></tr>`;
-      } else {
-        tbody.innerHTML = filtered.map(a => `
-          <tr style="border-bottom: 1px solid var(--border-color); transition: background var(--transition-fast);">
-            <td style="padding: 1rem 1.25rem; font-family: monospace; font-size: 0.85rem; color: var(--govt-blue); font-weight: 700;">${a.id}</td>
-            <td style="padding: 1rem 1.25rem;">
-              <div style="font-weight: 700; color: var(--primary-navy); font-size: 0.95rem;">${a.product}</div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.15rem;">${a.requirementText || 'Standard procurement specification review'}</div>
-            </td>
-            <td style="padding: 1rem 1.25rem;"><span style="display: inline-block; background: #F1F5F9; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">${a.category || 'Engineering'}</span></td>
-            <td style="padding: 1rem 1.25rem;"><span class="badge ${a.status === 'Completed' || a.status === 'Ready' ? 'badge-success' : 'badge-warning'}">${a.status || 'Ready'}</span></td>
-            <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${a.standardsCount} BIS Codes</td>
-            <td style="padding: 1rem 1.25rem; color: var(--text-secondary); font-size: 0.85rem;">${a.date}</td>
-            <td style="padding: 1rem 1.25rem; text-align: right;"><a href="/pages/results.html?id=${a.id}" class="btn btn-secondary btn-sm" style="font-weight: 700; border-color: var(--border-color);">Review Results</a></td>
-          </tr>
-        `).join('');
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:4rem 2rem;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.75rem; color: #94A3B8;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><div style="font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem;">No analysis records match your search criteria</div><div style="font-size: 0.85rem;">Try adjusting your search keyword or switching the status filter tab.</div></td></tr>`;
+        } else {
+          tbody.innerHTML = filtered.map(a => `
+            <tr style="border-bottom: 1px solid var(--border-color); transition: background var(--transition-fast);">
+              <td style="padding: 1rem 1.25rem; font-family: monospace; font-size: 0.85rem; color: var(--govt-blue); font-weight: 700;">${a.id}</td>
+              <td style="padding: 1rem 1.25rem;">
+                <div style="font-weight: 700; color: var(--primary-navy); font-size: 0.95rem;">${a.product}</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 0.15rem;">${a.requirementText || 'Standard procurement specification review'}</div>
+              </td>
+              <td style="padding: 1rem 1.25rem;"><span style="display: inline-block; background: #F1F5F9; color: #334155; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">${a.category || 'Engineering'}</span></td>
+              <td style="padding: 1rem 1.25rem;"><span class="badge ${a.status === 'Completed' || a.status === 'Ready' ? 'badge-success' : 'badge-warning'}">${a.status || 'Ready'}</span></td>
+              <td style="padding: 1rem 1.25rem; font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${a.standardsCount} BIS Codes</td>
+              <td style="padding: 1rem 1.25rem; color: var(--text-secondary); font-size: 0.85rem;">${a.date}</td>
+              <td style="padding: 1rem 1.25rem; text-align: right;"><a href="/pages/results.html?id=${a.id}" class="btn btn-secondary btn-sm" style="font-weight: 700; border-color: var(--border-color);">Review Results</a></td>
+            </tr>
+          `).join('');
+        }
       }
-    }
 
-    searchInput.addEventListener('input', renderHistory);
+      searchInput.addEventListener('input', renderHistory);
 
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.className = 'btn btn-secondary btn-sm filter-btn');
-        btn.className = 'btn btn-primary btn-sm filter-btn';
-        currentFilter = btn.dataset.status;
-        renderHistory();
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.className = 'btn btn-secondary btn-sm filter-btn');
+          btn.className = 'btn btn-primary btn-sm filter-btn';
+          currentFilter = btn.dataset.status;
+          renderHistory();
+        });
       });
-    });
 
-    renderHistory();
+      renderHistory();
+
+    });
   </script>
 </body>
 </html>

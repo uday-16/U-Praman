@@ -246,248 +246,111 @@
   display: block;
 }
 
-/* App Topbar Styling — Executive Solid & Gradient Header */
+/* Workspace header shares the Home navbar's white and navy palette. */
 .app-topbar {
-  height: 72px;
-  background: linear-gradient(135deg, #071E3D 0%, #0B3558 52%, #104C7E 100%);
-  border-bottom: 2px solid;
-  border-image: linear-gradient(90deg, #FF9933 0%, rgba(255, 255, 255, 0.75) 50%, #138808 100%) 1;
+  min-height: 70px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  gap: 1rem;
+  padding: 12px 28px;
   position: sticky;
   top: 0;
   z-index: 800;
   box-sizing: border-box;
-  overflow: visible;
-  box-shadow: 0 4px 20px rgba(7, 30, 61, 0.28);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mobile-sidebar-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #FFFFFF;
-  border-radius: 6px;
-  width: 36px;
-  height: 36px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.mobile-sidebar-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(11, 31, 58, 0.04);
 }
 
 .topbar-page-title {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: #FFFFFF;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0B3558;
   letter-spacing: -0.015em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.topbar-page-title::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 18px;
-  background: linear-gradient(180deg, #FF9933 0%, #C08A28 100%);
-  border-radius: 2px;
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* Glassmorphic Language Selector */
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.topbar-language { display: flex; align-items: center; gap: 6px; color: #64748B; }
 .topbar-actions .gov-lang-dropdown {
-  background: rgba(255, 255, 255, 0.12) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  color: #FFFFFF !important;
-  border-radius: 7px !important;
-  padding: 0.35rem 0.65rem !important;
-  font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  transition: all 0.2s ease;
+  height: 40px;
+  max-width: 145px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #0B3558;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
 }
-
-.topbar-actions .gov-lang-dropdown:hover,
-.topbar-actions .gov-lang-dropdown:focus {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
-  outline: none;
-}
-
-.topbar-actions .gov-lang-dropdown option {
-  background: #082A46;
-  color: #FFFFFF;
-}
-
-/* Glassmorphic Search Bar */
-.topbar-search {
-  position: relative;
-  width: 290px;
-}
-
+.topbar-actions .gov-lang-dropdown option { background: #FFFFFF; color: #0B3558; }
+.topbar-search { position: relative; width: clamp(170px, 20vw, 260px); }
 .topbar-search input {
   width: 100%;
-  padding: 0.48rem 0.875rem 0.48rem 2.25rem;
-  font-size: var(--fs-sm, 0.875rem);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #FFFFFF;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 40px;
+  padding: 0 12px 0 36px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #0B3558;
 }
-
-.topbar-search input::placeholder {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.topbar-search input:focus {
-  border-color: #64B5F6;
-  background: rgba(255, 255, 255, 0.22);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.3);
-  width: 320px;
-}
-
-.topbar-search-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.75);
-}
-
-/* Glassmorphic Icon Buttons (Notifications) */
-.topbar-icon-btn {
+.topbar-search input::placeholder { color: #64748B; }
+.topbar-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B; }
+.topbar-icon-btn, .mobile-sidebar-btn {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #FFFFFF;
-  display: flex;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #0B3558;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   position: relative;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.topbar-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.45);
-  transform: translateY(-2px);
-  color: #FFD54F;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.notification-badge {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #FF8A3D;
-  box-shadow: 0 0 8px #FF8A3D;
-  animation: pulseSubtle 2s infinite ease-in-out;
-}
-
-/* Elevated User Profile Card in Topbar */
-.user-profile-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  padding: 0.35rem 0.75rem 0.35rem 0.5rem;
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-sizing: border-box;
-}
-
-.user-profile-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.38);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-}
-
-.avatar-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FF9933 0%, #FF6F00 100%);
-  color: #FFFFFF;
-  font-weight: 800;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(255, 111, 0, 0.35);
+  transition: all 0.2s ease;
 }
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  line-height: 1.25;
+.mobile-sidebar-btn { display: none; }
+.topbar-icon-btn:hover, .mobile-sidebar-btn:hover, .topbar-actions .gov-lang-dropdown:hover {
+  background: #FFFFFF;
+  border-color: #0B3558;
 }
-
-.user-name {
-  font-size: 0.85rem;
-  font-weight: 700;
+.app-topbar :is(button, select, input, a):focus-visible {
+  outline: 2px solid #0B3558;
+  outline-offset: 3px;
+}
+.notification-badge { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: #FF9933; }
+.user-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  padding: 6px 14px 6px 8px;
+  border-radius: 6px;
+  background: #0B3558;
+  border: 1px solid #0B3558;
   color: #FFFFFF;
-  line-height: 1.2;
-  margin: 0;
+  box-shadow: 0 2px 6px rgba(11, 53, 88, 0.2);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
+.user-profile-btn:hover { background: #082A46; border-color: #082A46; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(11, 53, 88, 0.3); }
+.avatar-circle { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.15); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.user-info { display: flex; flex-direction: column; line-height: 1.25; }
+.user-name { font-size: 0.85rem; font-weight: 700; color: #FFFFFF; }
+.user-role { font-size: 0.72rem; color: #D7E5F1; }
 
-.user-role {
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: #90CAF9;
-  line-height: 1.1;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: var(--text-secondary, #5E6878);
-  line-height: 1.2;
-  margin: 0;
-}
-
-.mobile-sidebar-btn {
-  display: none;
-  background: none;
-  border: 1px solid var(--border-color, #E3E8EF);
-  padding: 0.35rem 0.5rem;
-  border-radius: var(--radius-sm, 6px);
-  color: var(--text-primary, #16324F);
-  cursor: pointer;
+@media (max-width: 1100px) { .topbar-search { display: none; } }
+@media (max-width: 600px) {
+  .app-topbar { padding: 10px 16px; flex-wrap: wrap; }
+  .topbar-actions { width: 100%; justify-content: space-between; gap: 8px; }
+  .topbar-language { gap: 4px; }
+  .topbar-actions .gov-lang-dropdown { max-width: 125px; }
+  .user-profile-btn { padding-right: 8px; }
+  .user-info { display: none; }
 }
 
 @media (max-width: 900px) {

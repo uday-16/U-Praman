@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/forms.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -90,26 +92,25 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
     import { showToast } from '/js/components/toast.js';
-    import { changeLanguage, getSavedLanguage } from '/js/utils/translator.js';
+    import { changeLanguage, bindLanguageSelects } from '/js/utils/translator.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('settings');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Settings');
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('settings');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Settings');
 
-    const langDropdown = document.getElementById('lang-select');
-    const savedLang = getSavedLanguage();
-    if (langDropdown) {
-      langDropdown.value = savedLang;
-      langDropdown.addEventListener('change', (e) => {
-        changeLanguage(e.target.value);
+      const langDropdown = document.getElementById('lang-select');
+      bindLanguageSelects();
+
+      document.getElementById('save-settings-btn').addEventListener('click', () => {
+        const selected = langDropdown ? langDropdown.value : 'en';
+        changeLanguage(selected);
+        showToast('Workspace settings saved successfully', 'success');
       });
-    }
 
-    document.getElementById('save-settings-btn').addEventListener('click', () => {
-      const selected = langDropdown ? langDropdown.value : 'en';
-      changeLanguage(selected);
-      showToast('Workspace settings saved successfully', 'success');
     });
   </script>
 </body>

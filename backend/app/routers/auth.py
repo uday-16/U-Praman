@@ -1,4 +1,5 @@
 import re
+import hashlib
 import secrets
 import logging
 from datetime import datetime, timezone, timedelta
@@ -7,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 
 from app.database import (
     users_collection,
+    sessions_collection,
     otps_collection,
     hash_password,
     verify_password,
@@ -37,6 +39,36 @@ EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 MAX_ATTEMPTS = 5
 RATE_LIMIT_MINUTES = 15
 MAX_REQUESTS_PER_WINDOW = 3
+
+def issue_login_session(user_id: str) -> str:
+    token = secrets.token_urlsafe(32)
+    sessions_collection.insert_one({
+        "token_hash": hashlib.sha256(token.encode()).hexdigest(),
+        "user_id": user_id,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+        "revoked": False,
+    })
+    return token
+
+
+def require_session(request: Request):
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="Please log in to continue.")
+    session = sessions_collection.find_one({"token_hash": hashlib.sha256(token.encode()).hexdigest()})
+    if not session or session.get("revoked"):
+        raise HTTPException(status_code=401, detail="Your session has ended. Please log in again.")
+    try:
+        expires = datetime.fromisoformat(session["expires_at"])
+        if expires <= datetime.now(timezone.utc):
+            raise ValueError("expired")
+    except (KeyError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Your session has expired. Please log in again.")
+    user = users_collection.find_one({"id": session["user_id"]})
+    if not user or user.get("status") == "deactivated":
+        raise HTTPException(status_code=401, detail="Please log in with an active account.")
+    return user
+
 
 def normalize_role(role_str: Optional[str]) -> str:
     if not role_str:
@@ -400,7 +432,7 @@ def login(req: LoginRequest):
         is_email_verified=bool(user_doc.get("is_email_verified", 1))
     )
     
-    token = f"praman_jwt_{secrets.token_urlsafe(32)}"
+    token = issue_login_session(user_profile.id)
     return AuthResponse(
         access_token=token,
         token_type="bearer",
@@ -408,7 +440,13 @@ def login(req: LoginRequest):
     )
 
 @router.post("/logout")
-def logout():
+def logout(request: Request):
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    if scheme.lower() == "bearer" and token:
+        sessions_collection.update_one(
+            {"token_hash": hashlib.sha256(token.encode()).hexdigest()},
+            {"$set": {"revoked": True}}
+        )
     return {"success": True, "message": "Signed out successfully."}
 
 @router.post("/google", response_model=AuthResponse)
@@ -470,29 +508,17 @@ def google_auth(req: GoogleAuthRequest):
     )
 
 @router.get("/me", response_model=UserProfile)
-def get_current_user():
-    doc = users_collection.find_one({}, sort=[("last_login_at", -1), ("created_at", -1)])
-    if doc:
-        return UserProfile(
-            id=doc.get("id", str(doc.get("_id"))),
-            name=doc["full_name"],
-            email=doc["email"],
-            mobile_number=doc.get("mobile_number"),
-            role=normalize_role(doc.get("role")),
-            organization=doc.get("department", "Central Procurement Cell"),
-            department=doc.get("department", "Central Procurement Cell"),
-            status=doc.get("status", "active"),
-            is_email_verified=bool(doc.get("is_email_verified", 1))
-        )
-        
+def get_current_user(doc=Depends(require_session)):
     return UserProfile(
-        id="usr-default",
-        name="Procurement Officer",
-        email="officer@praman.gov.in",
-        role="Procurement Officer",
-        organization="Central Procurement Cell",
-        department="Procurement Operations",
-        status="active"
+        id=doc.get("id", str(doc.get("_id"))),
+        name=doc["full_name"],
+        email=doc["email"],
+        mobile_number=doc.get("mobile_number"),
+        role=normalize_role(doc.get("role")),
+        organization=doc.get("department", "Central Procurement Cell"),
+        department=doc.get("department", "Central Procurement Cell"),
+        status=doc.get("status", "active"),
+        is_email_verified=bool(doc.get("is_email_verified", 1))
     )
 
 @router.get("/users")

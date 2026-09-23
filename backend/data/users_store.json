@@ -1,0 +1,53 @@
+[
+  {
+    "id": "usr-admin-001",
+    "full_name": "PRAMAN Administrator",
+    "email": "admin@praman.gov.in",
+    "mobile_number": "+91 9876543210",
+    "department": "Central Procurement Division",
+    "role": "Administrator",
+    "password_hash": "1a4a9f203edf117e799247420863afa8195008f00253fa1f7a3b56bddea35073",
+    "salt": "f44510cc1197ae198fafe610fbf142e7",
+    "auth_provider": "local",
+    "status": "active",
+    "is_email_verified": 1,
+    "created_at": "2026-09-23T15:46:48.235397+00:00",
+    "updated_at": "2026-09-23T15:46:48.235397+00:00",
+    "last_login_at": "2026-09-23T15:46:48.235397+00:00",
+    "_id": "doc-a0184bc56f1d3d9e"
+  },
+  {
+    "id": "usr-0dae3d7e413c",
+    "full_name": "UDAY KIRAN",
+    "email": "masteruday3025@gmail.com",
+    "mobile_number": "",
+    "department": "gmrit",
+    "role": "Procurement Officer",
+    "password_hash": "71e833949569fbd051e181ab35ffb24a4e7e2149618c52d5031b4a66a28dc477",
+    "salt": "bb96ede2037aa799dd56f5ae1a431f93",
+    "auth_provider": "local",
+    "status": "active",
+    "is_email_verified": 1,
+    "created_at": "2026-09-23 15:53:24.463018+00:00",
+    "updated_at": "2026-09-23 15:53:24.463018+00:00",
+    "last_login_at": "2026-09-23 17:13:51.946191+00:00",
+    "_id": "doc-789f3a972386bb59"
+  },
+  {
+    "id": "usr-442f7a8996ee",
+    "full_name": "Narava Siri Nandini",
+    "email": "sirinandininarava@gmail.com",
+    "mobile_number": "",
+    "department": "gmrit",
+    "role": "Procurement Officer",
+    "password_hash": "93ba21ae7524c8c08f08b57b6427d27ec2ee413f5a8950dfc55f1148c72a8f48",
+    "salt": "f7f8bad9bb92894b4540abd752bc8583",
+    "auth_provider": "local",
+    "status": "active",
+    "is_email_verified": 1,
+    "created_at": "2026-09-23 15:57:41.728277+00:00",
+    "updated_at": "2026-09-23 15:57:41.728277+00:00",
+    "last_login_at": "2026-09-23 20:09:18.354401+00:00",
+    "_id": "doc-3ec305283b7054fc"
+  }
+]

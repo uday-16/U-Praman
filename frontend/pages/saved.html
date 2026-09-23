@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/standards.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
+  <script type="module" src="/js/utils/workspace-guard.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -47,57 +49,62 @@
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
+    import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
     import { mockStandards } from '/js/data/standards.js';
     import { Storage } from '/js/utils/storage.js';
     import { showToast } from '/js/components/toast.js';
+    workspaceReady.then(allowed => {
+      if (!allowed) return;
 
-    document.getElementById('sidebar-root').innerHTML = renderAppSidebar('saved');
-    document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Saved');
+      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('saved');
+      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Saved');
 
-    const grid = document.getElementById('saved-cards-grid');
-    const empty = document.getElementById('saved-empty');
+      const grid = document.getElementById('saved-cards-grid');
+      const empty = document.getElementById('saved-empty');
 
-    function renderSaved() {
-      const savedIds = Storage.getSavedStandards();
-      const savedStandards = mockStandards.filter(s => savedIds.includes(s.id));
+      function renderSaved() {
+        const savedIds = Storage.getSavedStandards();
+        const savedStandards = mockStandards.filter(s => savedIds.includes(s.id));
 
-      if (savedStandards.length === 0) {
-        grid.style.display = 'none';
-        empty.style.display = 'block';
-      } else {
-        empty.style.display = 'none';
-        grid.style.display = 'grid';
-        grid.innerHTML = savedStandards.map(s => `
-          <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid var(--border-color); padding: 1.5rem;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                <span class="badge badge-primary">${s.category}</span>
-                <button class="btn btn-secondary btn-sm remove-saved-btn" data-id="${s.id}" title="Remove Bookmark">✕ Remove</button>
+        if (savedStandards.length === 0) {
+          grid.style.display = 'none';
+          empty.style.display = 'block';
+        } else {
+          empty.style.display = 'none';
+          grid.style.display = 'grid';
+          grid.innerHTML = savedStandards.map(s => `
+            <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid var(--border-color); padding: 1.5rem;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                  <span class="badge badge-primary">${s.category}</span>
+                  <button class="btn btn-secondary btn-sm remove-saved-btn" data-id="${s.id}" title="Remove Bookmark">✕ Remove</button>
+                </div>
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 0.25rem;">${s.isNumber}</h3>
+                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem;">${s.title}</div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">${s.scope}</p>
               </div>
-              <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 0.25rem;">${s.isNumber}</h3>
-              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem;">${s.title}</div>
-              <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">${s.scope}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.875rem;">
+                <span class="badge badge-success">${s.status} (${s.year})</span>
+                <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">View details →</a>
+              </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.875rem;">
-              <span class="badge badge-success">${s.status} (${s.year})</span>
-              <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">View details →</a>
-            </div>
-          </div>
-        `).join('');
+          `).join('');
+        }
       }
-    }
 
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('remove-saved-btn')) {
-        const id = e.target.dataset.id;
-        Storage.toggleSaveStandard(id);
-        showToast('Standard removed from bookmarks', 'info');
-        renderSaved();
-      }
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-saved-btn')) {
+          const id = e.target.dataset.id;
+          Storage.toggleSaveStandard(id);
+          showToast('Standard removed from bookmarks', 'info');
+          renderSaved();
+        }
+      });
+
+      renderSaved();
+
     });
-
-    renderSaved();
   </script>
 </body>
 </html>
