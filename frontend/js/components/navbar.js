@@ -64,7 +64,7 @@ export function renderPublicNavbar(activePath = '/') {
       <div class="container navbar-container">
         <!-- PRAMAN Brand Identity Logo -->
         <a href="/" class="brand-logo" title="PRAMAN — Indian Standards Decision Support">
-          <img src="/assets/brand/praman-logo.svg" alt="PRAMAN / प्रमाण — Indian Standards Decision Support" height="40" class="brand-img" />
+          <img src="/assets/brand/praman-logo-light.svg" alt="PRAMAN / प्रमाण — Indian Standards Decision Support" height="40" class="brand-img" />
         </a>
 
         <!-- Center Navigation Links (Clean Direct Links) -->

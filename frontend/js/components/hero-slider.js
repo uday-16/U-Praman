@@ -1,51 +1,215 @@
-export function initHeroSlider() {
-  const layer1 = document.getElementById('hero-bg-1');
-  const layer2 = document.getElementById('hero-bg-2');
-  if (!layer1 || !layer2) return;
+/**
+ * PRAMAN Cinematic 5-Slide Hero Slider
+ * Features:
+ * - Ken Burns Zoom transitions across 5 high-resolution Indian infrastructure scenes
+ * - Staggered text reveal animations
+ * - Interactive glassmorphic Prev / Next controls
+ * - Pill pagination indicators
+ * - Real-time animated countdown progress bar
+ * - Pause on hover / resume on leave
+ * - Touch swipe and keyboard (ArrowLeft / ArrowRight) navigation
+ * - Synchronized trust strip step indicator
+ */
 
-  const images = [
+export function initHeroSlider() {
+  const container = document.getElementById('hero-slider-container');
+  if (!container) return;
+
+  const slides = container.querySelectorAll('.hero-slide');
+  const dots = container.querySelectorAll('.slider-dot');
+  const btnPrev = container.querySelector('.slider-arrow-prev');
+  const btnNext = container.querySelector('.slider-arrow-next');
+  const btnPlayPause = container.querySelector('.slider-play-pause');
+  const progressBar = container.querySelector('.slider-progress-fill');
+  const trustItems = container.querySelectorAll('.trust-item');
+
+  if (slides.length === 0) return;
+
+  // Preload all 5 hero images to prevent flicker
+  const heroImages = [
     '/assets/images/hero/hero-01.jpg',
     '/assets/images/hero/hero-02.jpg',
     '/assets/images/hero/hero-03.jpg',
     '/assets/images/hero/hero-04.jpg',
     '/assets/images/hero/hero-05.jpg'
   ];
-
-  // Preload all images to prevent loading flashes
-  images.forEach(src => {
+  heroImages.forEach(src => {
     const img = new Image();
     img.src = src;
   });
 
   let currentIndex = 0;
-  let activeLayer = 1;
+  let isPlaying = true;
+  let progressInterval = null;
+  const slideDuration = 6000; // 6 seconds per slide
+  let elapsed = 0;
+  const stepMs = 50;
 
-  // Set initial background image immediately
-  layer1.style.backgroundImage = `url('${images[0]}')`;
-  layer1.classList.add('hero-bg-active');
-
-  // Check user preference for reduced motion
+  // Reduced motion check
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const transitionInterval = prefersReducedMotion ? 12000 : 7000;
+  if (prefersReducedMotion) {
+    isPlaying = false;
+    if (btnPlayPause) btnPlayPause.textContent = '▶';
+  }
 
-  // Continuous background atmosphere crossfade loop
-  setInterval(() => {
-    const nextIndex = (currentIndex + 1) % images.length;
-    const nextImage = images[nextIndex];
+  function goToSlide(index) {
+    if (index < 0) index = slides.length - 1;
+    if (index >= slides.length) index = 0;
 
-    if (activeLayer === 1) {
-      layer2.style.backgroundImage = `url('${nextImage}')`;
-      layer2.classList.add('hero-bg-active');
-      layer1.classList.remove('hero-bg-active');
-      activeLayer = 2;
-    } else {
-      layer1.style.backgroundImage = `url('${nextImage}')`;
-      layer1.classList.add('hero-bg-active');
-      layer2.classList.remove('hero-bg-active');
-      activeLayer = 1;
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('active', i === index);
+    });
+
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+
+    trustItems.forEach((item, i) => {
+      item.classList.toggle('active-trust', i === index);
+    });
+
+    currentIndex = index;
+    resetProgress();
+  }
+
+  function nextSlide() {
+    goToSlide(currentIndex + 1);
+  }
+
+  function prevSlide() {
+    goToSlide(currentIndex - 1);
+  }
+
+  function resetProgress() {
+    elapsed = 0;
+    if (progressBar) progressBar.style.width = '0%';
+  }
+
+  function startAutoplay() {
+    if (prefersReducedMotion) return;
+    stopAutoplay();
+
+    isPlaying = true;
+    if (btnPlayPause) btnPlayPause.textContent = '⏸';
+
+    resetProgress();
+
+    progressInterval = setInterval(() => {
+      elapsed += stepMs;
+      const pct = Math.min(100, (elapsed / slideDuration) * 100);
+      if (progressBar) progressBar.style.width = `${pct}%`;
+
+      if (elapsed >= slideDuration) {
+        nextSlide();
+      }
+    }, stepMs);
+  }
+
+  function stopAutoplay() {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+      progressInterval = null;
     }
+  }
 
-    currentIndex = nextIndex;
-  }, transitionInterval);
+  function togglePlayPause() {
+    if (isPlaying) {
+      stopAutoplay();
+      isPlaying = false;
+      if (btnPlayPause) btnPlayPause.textContent = '▶';
+    } else {
+      isPlaying = true;
+      if (btnPlayPause) btnPlayPause.textContent = '⏸';
+      startAutoplay();
+    }
+  }
+
+  // Prev / Next button listeners
+  if (btnNext) {
+    btnNext.addEventListener('click', () => {
+      nextSlide();
+      if (isPlaying) startAutoplay();
+    });
+  }
+
+  if (btnPrev) {
+    btnPrev.addEventListener('click', () => {
+      prevSlide();
+      if (isPlaying) startAutoplay();
+    });
+  }
+
+  if (btnPlayPause) {
+    btnPlayPause.addEventListener('click', togglePlayPause);
+  }
+
+  // Dots selection listeners
+  dots.forEach((dot, index) => {
+    dot.addEventListener('click', () => {
+      goToSlide(index);
+      if (isPlaying) startAutoplay();
+    });
+  });
+
+  // Trust items clickable to jump to step
+  trustItems.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      goToSlide(index);
+      if (isPlaying) startAutoplay();
+    });
+  });
+
+  // Pause on hover
+  container.addEventListener('mouseenter', () => {
+    if (isPlaying) stopAutoplay();
+  });
+
+  container.addEventListener('mouseleave', () => {
+    if (isPlaying) startAutoplay();
+  });
+
+  // Keyboard navigation when hero section is in view
+  window.addEventListener('keydown', (e) => {
+    const rect = container.getBoundingClientRect();
+    const inView = rect.top <= window.innerHeight && rect.bottom >= 0;
+    if (!inView) return;
+
+    if (e.key === 'ArrowRight') {
+      nextSlide();
+      if (isPlaying) startAutoplay();
+    } else if (e.key === 'ArrowLeft') {
+      prevSlide();
+      if (isPlaying) startAutoplay();
+    }
+  });
+
+  // Touch swipe support for mobile
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  container.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  container.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    const swipeThreshold = 50;
+    if (touchEndX < touchStartX - swipeThreshold) {
+      nextSlide();
+      if (isPlaying) startAutoplay();
+    } else if (touchEndX > touchStartX + swipeThreshold) {
+      prevSlide();
+      if (isPlaying) startAutoplay();
+    }
+  }
+
+  // Initial activation
+  goToSlide(0);
+  if (isPlaying) {
+    startAutoplay();
+  }
 }
-

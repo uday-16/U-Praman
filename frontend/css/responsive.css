@@ -243,3 +243,9 @@
     display: none;
   }
 }
+
+@media (max-width: 960px) {
+  .auth-split-card {
+    grid-template-columns: 1fr !important;
+  }
+}
