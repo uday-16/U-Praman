@@ -1,41 +1,89 @@
 /* Report Preview Screen */
 .report-paper {
-  background-color: var(--surface-white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 3rem;
-  max-width: 900px;
-  margin: 0 auto 2rem auto;
-  box-shadow: var(--shadow-md);
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-md, 8px);
+  padding: 3rem 3.25rem;
+  max-width: 880px;
+  margin: 0 auto 2.5rem auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1e293b;
+  line-height: 1.6;
 }
 
 .report-header {
-  border-bottom: 2px solid var(--primary-blue);
-  padding-bottom: 1.5rem;
-  margin-bottom: 2rem;
+  border-bottom: 2px solid #0b3558;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
 .report-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .report-section-title {
-  font-size: var(--fs-lg);
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size: 1.12rem;
   font-weight: 700;
-  color: var(--primary-blue);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.375rem;
-  margin-bottom: 1rem;
+  color: #0b3558;
+  margin-top: 1.5rem;
+  margin-bottom: 0.65rem;
+  letter-spacing: -0.01em;
+}
+
+.report-callout {
+  border-left: 3.5px solid #0b3558;
+  background-color: #f8fafc;
+  padding: 0.85rem 1.15rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #1e293b;
+}
+
+.report-callout-success {
+  border-left: 3.5px solid #16a34a;
+  background-color: #f0fdf4;
+  padding: 0.85rem 1.15rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #166534;
+}
+
+.report-callout-warning {
+  border-left: 3.5px solid #d97706;
+  background-color: #fffbeb;
+  padding: 0.85rem 1.15rem;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #92400e;
+}
+
+.report-signoff-section {
+  border-top: 2px solid #cbd5e1;
+  padding-top: 1.5rem;
+  margin-top: 2.25rem;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 /* @media print for Procurement Standards Report */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm 12mm 14mm;
+  }
+
   body {
-    background-color: #FFFFFF !important;
+    background-color: #ffffff !important;
     color: #000000 !important;
+    font-size: 11pt;
   }
 
   .app-sidebar, .app-topbar, .public-header, .btn, .no-print {
@@ -44,6 +92,11 @@
 
   .app-main-wrapper {
     margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .app-content {
+    padding: 0 !important;
   }
 
   .report-paper {
@@ -51,5 +104,34 @@
     box-shadow: none !important;
     padding: 0 !important;
     max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .report-section-title {
+    color: #0b3558 !important;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .report-signoff-section {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 2rem !important;
+  }
+
+  .report-callout, .report-callout-success, .report-callout-warning {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  table {
+    page-break-inside: auto;
+    width: 100% !important;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
   }
 }
+

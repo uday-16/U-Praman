@@ -47,9 +47,9 @@ export function initChatbot() {
   `;
 
   widget.innerHTML = `
-    <button id="chatbot-toggle-btn" aria-label="Open PRAMAN AI Assistant" aria-expanded="false" aria-controls="chatbot-window">
-      <span class="pc-toggle-spark">${PRAMAN_LOGO_SVG(22)}</span>
-      <span class="pc-toggle-text">PRAMAN AI</span>
+    <button id="chatbot-toggle-btn" aria-label="Open PRAMAN Assistant" aria-expanded="false" aria-controls="chatbot-window">
+      <span class="pc-toggle-spark">${PRAMAN_LOGO_SVG(16)}</span>
+      <span class="pc-toggle-text">PRAMAN Assistant</span>
     </button>
     <section id="chatbot-window" aria-label="PRAMAN AI assistant" hidden>
       <header class="pc-header">

@@ -80,6 +80,7 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null
   const activeUser = user || Storage.getUser() || { name: 'Officer', role: 'Procurement Officer' };
   const officerName = activeUser.name || activeUser.full_name || 'Officer';
   const officerRole = activeUser.role || 'Procurement Officer';
+  const officerEmail = activeUser.email || 'officer@bis.gov.in';
   const initial = officerName.trim().charAt(0).toUpperCase() || 'O';
 
   return `
@@ -117,18 +118,98 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null
           <input type="text" placeholder="Search Indian Standards..." id="topbar-search-input" />
         </div>
 
-        <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" title="Notifications">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="notification-badge"></span>
-        </button>
-
-        <a href="/pages/profile.html" class="user-profile-btn" title="View & Edit Officer Profile">
-          <div class="avatar-circle">${initial}</div>
-          <div class="user-info">
-            <span class="user-name">${officerName}</span>
-            <span class="user-role">${officerRole}</span>
+        <!-- Interactive Notifications -->
+        <div class="topbar-notif-wrapper">
+          <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" title="Procurement Notifications" aria-expanded="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notification-badge" id="notif-badge"></span>
+          </button>
+          
+          <div class="notif-dropdown-panel" id="notif-dropdown" style="display: none;">
+            <div class="notif-header">
+              <div class="notif-title">
+                <span>Notifications</span>
+                <span class="notif-count-pill" id="notif-pill-count">3 new</span>
+              </div>
+              <button class="notif-mark-read-btn" id="notif-mark-all">Mark all as read</button>
+            </div>
+            <div class="notif-list" id="notif-items-list">
+              <a href="/pages/standards.html?search=IS+2062" class="notif-item unread">
+                <div class="notif-icon-col revision" title="BIS Revision">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </div>
+                <div class="notif-body">
+                  <div class="notif-item-title">BIS Standard Revision Alert</div>
+                  <div class="notif-item-desc">IS 2062:2011 structural steel standard amended with updated mechanical testing provisions.</div>
+                  <div class="notif-item-time">15m ago • Gazette Notification</div>
+                </div>
+                <span class="notif-dot"></span>
+              </a>
+              <a href="/pages/standards.html?search=IS+2925" class="notif-item unread">
+                <div class="notif-icon-col qco" title="Mandatory QCO">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="notif-body">
+                  <div class="notif-item-title">Mandatory QCO Compliance Active</div>
+                  <div class="notif-item-desc">Quality Control Order active: Mandatory ISI certification for Industrial Safety Helmets (IS 2925).</div>
+                  <div class="notif-item-time">2h ago • DPIIT Directive</div>
+                </div>
+                <span class="notif-dot"></span>
+              </a>
+              <a href="/pages/reports.html" class="notif-item unread">
+                <div class="notif-icon-col analysis" title="Analysis Completed">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="notif-body">
+                  <div class="notif-item-title">Procurement Review Ready</div>
+                  <div class="notif-item-desc">Analysis for Industrial Safety Helmet Procurement completed — 2 standards identified.</div>
+                  <div class="notif-item-time">Yesterday • PRAMAN Engine</div>
+                </div>
+                <span class="notif-dot"></span>
+              </a>
+            </div>
+            <div class="notif-footer">
+              <a href="/pages/history.html" class="notif-view-all">View All Procurement History &rarr;</a>
+            </div>
           </div>
-        </a>
+        </div>
+
+        <!-- Interactive User Profile Dropdown -->
+        <div class="topbar-user-wrapper">
+          <button class="user-profile-btn" id="user-profile-toggle" aria-haspopup="true" aria-expanded="false" title="Officer Account Menu">
+            <div class="avatar-circle">${initial}</div>
+            <div class="user-info">
+              <span class="user-name">${officerName}</span>
+              <span class="user-role">${officerRole}</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748B; margin-left: 2px;"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          
+          <div class="user-profile-dropdown" id="user-profile-dropdown" style="display: none;">
+            <div class="profile-dropdown-header">
+              <div class="avatar-circle-lg">${initial}</div>
+              <div style="overflow: hidden;">
+                <div class="profile-name">${officerName}</div>
+                <div class="profile-email" title="${officerEmail}">${officerEmail}</div>
+                <span class="profile-role-badge">${officerRole}</span>
+              </div>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <a href="/pages/profile.html" class="profile-menu-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Officer Profile</span>
+            </a>
+            <a href="/pages/settings.html" class="profile-menu-item">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Platform Settings</span>
+            </a>
+            <div class="profile-dropdown-divider"></div>
+            <button class="profile-menu-item logout" id="topbar-logout-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
   `;
@@ -166,4 +247,83 @@ export function initTopbarEvents() {
       }
     });
   }
+
+  // Notification Dropdown Toggle & Mark Read
+  const notifBtn = document.getElementById('notif-btn');
+  const notifDropdown = document.getElementById('notif-dropdown');
+  const notifMarkAll = document.getElementById('notif-mark-all');
+  const notifBadge = document.getElementById('notif-badge');
+  const notifPillCount = document.getElementById('notif-pill-count');
+
+  if (notifBtn && notifDropdown) {
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = notifDropdown.style.display !== 'none';
+      // Close other dropdowns
+      const profileDropdown = document.getElementById('user-profile-dropdown');
+      if (profileDropdown) profileDropdown.style.display = 'none';
+
+      notifDropdown.style.display = isOpen ? 'none' : 'flex';
+      notifBtn.setAttribute('aria-expanded', !isOpen);
+    });
+  }
+
+  if (notifMarkAll) {
+    notifMarkAll.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.notif-item.unread').forEach(item => {
+        item.classList.remove('unread');
+      });
+      if (notifBadge) notifBadge.style.display = 'none';
+      if (notifPillCount) notifPillCount.innerText = '0 new';
+    });
+  }
+
+  // User Profile Dropdown Toggle
+  const profileToggle = document.getElementById('user-profile-toggle');
+  const profileDropdown = document.getElementById('user-profile-dropdown');
+  const logoutBtn = document.getElementById('topbar-logout-btn');
+
+  if (profileToggle && profileDropdown) {
+    profileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = profileDropdown.style.display !== 'none';
+      // Close notification dropdown
+      if (notifDropdown) notifDropdown.style.display = 'none';
+
+      profileDropdown.style.display = isOpen ? 'none' : 'block';
+      profileToggle.setAttribute('aria-expanded', !isOpen);
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      Storage.logout();
+      window.location.href = '/pages/login.html';
+    });
+  }
+
+  // Global click outside to close dropdowns
+  document.addEventListener('click', (e) => {
+    if (notifDropdown && notifDropdown.style.display !== 'none') {
+      if (!notifDropdown.contains(e.target) && e.target !== notifBtn && !notifBtn?.contains(e.target)) {
+        notifDropdown.style.display = 'none';
+        if (notifBtn) notifBtn.setAttribute('aria-expanded', 'false');
+      }
+    }
+    if (profileDropdown && profileDropdown.style.display !== 'none') {
+      if (!profileDropdown.contains(e.target) && e.target !== profileToggle && !profileToggle?.contains(e.target)) {
+        profileDropdown.style.display = 'none';
+        if (profileToggle) profileToggle.setAttribute('aria-expanded', 'false');
+      }
+    }
+  });
+
+  // ESC key to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (notifDropdown) notifDropdown.style.display = 'none';
+      if (profileDropdown) profileDropdown.style.display = 'none';
+    }
+  });
 }

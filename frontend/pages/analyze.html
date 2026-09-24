@@ -52,7 +52,7 @@
           <div id="section-describe">
             <div class="form-group" style="margin-bottom: 1.25rem;">
               <label class="form-label" for="desc-prompt" style="font-weight: 600; color: var(--ink);">Describe the product or equipment to procure</label>
-              <textarea id="desc-prompt" class="form-textarea" rows="4" placeholder="e.g. Industrial safety helmets for CPWD construction site workers requiring impact protection and electrical insulation..."></textarea>
+              <textarea id="desc-prompt" class="form-textarea" rows="4"></textarea>
             </div>
           </div>
 
@@ -60,23 +60,43 @@
           <div id="section-spec" style="display: none;">
             <div class="form-group" style="margin-bottom: 1.25rem;">
               <label class="form-label" for="req-title-input" style="font-weight: 600; color: var(--ink);">Tender / Specification Title</label>
-              <input type="text" id="req-title-input" class="form-input" placeholder="e.g. Supply of Low Voltage 415V Switchgear for Power Substation" value="" />
+              <input type="text" id="req-title-input" class="form-input" value="" />
             </div>
 
             <div class="form-group" style="margin-bottom: 1.25rem;">
-              <label class="form-label" for="req-category-select" style="font-weight: 600; color: var(--ink);">Product Category</label>
-              <select id="req-category-select" class="form-select" style="height: 40px;">
-                <option value="Electrical Distribution">Electrical Distribution &amp; Switchgear</option>
-                <option value="Safety & Personal Protection">Safety &amp; Personal Protection</option>
-                <option value="Steel & Construction">Steel &amp; Structural Materials</option>
-                <option value="Solar & Renewable Energy">Solar &amp; Renewable Energy</option>
-                <option value="Water Supply & Sanitation">Water Supply &amp; Sanitation</option>
+              <label class="form-label" for="req-category-select" style="font-weight: 600; color: #17324D;">Procurement Category</label>
+              <select id="req-category-select" class="form-select" style="height: 42px; font-size: 0.88rem;">
+                <option value="Personal protective equipment">Personal protective equipment (PPE)</option>
+                <option value="Construction materials">Construction materials</option>
+                <option value="Structural steel">Structural steel &amp; alloys</option>
+                <option value="Electrical equipment">Electrical equipment &amp; switchgear</option>
+                <option value="Electronics">Electronics &amp; IT hardware</option>
+                <option value="Mechanical equipment">Mechanical equipment</option>
+                <option value="Industrial machinery">Industrial machinery</option>
+                <option value="Chemicals">Chemicals &amp; petrochemicals</option>
+                <option value="Water and environmental products">Water &amp; environmental products</option>
+                <option value="Food and agricultural products">Food &amp; agricultural products</option>
+                <option value="Medical equipment">Medical equipment &amp; healthcare supplies</option>
+                <option value="Laboratory equipment">Laboratory &amp; testing equipment</option>
+                <option value="Automotive components">Automotive components</option>
+                <option value="Railway equipment">Railway equipment</option>
+                <option value="Telecommunications">Telecommunications equipment</option>
+                <option value="Energy equipment">Energy &amp; renewable equipment</option>
+                <option value="Fire and safety equipment">Fire &amp; safety equipment</option>
+                <option value="Packaging">Packaging materials</option>
+                <option value="Textiles">Textiles &amp; technical fabrics</option>
+                <option value="Petroleum and fuels">Petroleum and fuels</option>
+                <option value="Civil engineering materials">Civil engineering materials</option>
+                <option value="Manufacturing equipment">Manufacturing equipment</option>
+                <option value="Consumer products">Consumer products</option>
+                <option value="Other / Custom">Other / Custom category...</option>
               </select>
+              <input type="text" id="req-custom-category-input" class="form-input" placeholder="Type custom procurement category..." style="display: none; margin-top: 0.65rem;" />
             </div>
 
             <div class="form-group" style="margin-bottom: 1.25rem;">
               <label class="form-label" for="req-text-input" style="font-weight: 600; color: var(--ink);">Technical Specification Text</label>
-              <textarea id="req-text-input" class="form-textarea" rows="5" placeholder="Paste full technical specifications, material grades, performance parameters, and testing criteria..."></textarea>
+              <textarea id="req-text-input" class="form-textarea" rows="5"></textarea>
             </div>
           </div>
 
@@ -188,6 +208,19 @@
       if (tabSpec) tabSpec.addEventListener('click', () => setActiveTab(tabSpec, secSpec, 'spec'));
       if (tabUpload) tabUpload.addEventListener('click', () => setActiveTab(tabUpload, secUpload, 'upload'));
 
+      const catSelect = document.getElementById('req-category-select');
+      const customCatInput = document.getElementById('req-custom-category-input');
+      if (catSelect && customCatInput) {
+        catSelect.addEventListener('change', () => {
+          if (catSelect.value === 'Other / Custom') {
+            customCatInput.style.display = 'block';
+            customCatInput.focus();
+          } else {
+            customCatInput.style.display = 'none';
+          }
+        });
+      }
+
       function markFieldError(el) {
         if (!el) return;
         el.style.borderColor = '#DC2626';
@@ -240,7 +273,11 @@
 
           const titleVal = titleEl ? titleEl.value.trim() : '';
           const textVal = textEl ? textEl.value.trim() : '';
-          const catVal = catEl ? catEl.value : 'Electrical Distribution';
+          let catVal = catEl ? catEl.value : 'Personal protective equipment';
+          if (catVal === 'Other / Custom') {
+            const customCatEl = document.getElementById('req-custom-category-input');
+            catVal = (customCatEl && customCatEl.value.trim()) ? customCatEl.value.trim() : 'Custom Category';
+          }
 
           if (!titleVal && !textVal) {
             showToast('Please enter the tender title and technical specifications before analyzing.', 'warning');
