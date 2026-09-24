@@ -1,112 +1,97 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from typing import List, Optional
-from app.services.vector_engine import get_collection, get_model
-from app.services.gemini_service import generate_dynamic_chat_reply
 import logging
-import re
+from typing import List, Optional, Literal
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi.responses import Response
+from starlette.concurrency import run_in_threadpool
+from pydantic import BaseModel, Field
+from app.services.chat_assistant import chat_reply, LANGUAGES
+from app.services.chat_audio import transcribe_audio, synthesize_speech
 
-logger = logging.getLogger("praman.chat")
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix='/chat', tags=['chat'])
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+
+class ChatTurn(BaseModel):
+    role: Literal['user', 'assistant']
+    content: str = Field(min_length=1, max_length=2000)
+
 
 class ChatRequest(BaseModel):
-    query: str
-    standard_id: Optional[str] = None  # Optional: if querying a specific standard
+    query: str = Field(min_length=1, max_length=2000)
+    standard_id: Optional[str] = Field(default=None, max_length=80)
+    history: List[ChatTurn] = Field(default_factory=list, max_length=12)
+    language: str = Field(default='auto', max_length=12)
+    web_enabled: bool = True
+
 
 class Citation(BaseModel):
     source: str
     is_number: str
     chunk_index: int
+    page: int
     text: str
+
+
+class WebSource(BaseModel):
+    title: str
+    url: str
+
 
 class ChatResponse(BaseModel):
     answer: str
-    citations: List[Citation]
+    language: str
+    standards_note: str = ''
+    citations: List[Citation] = Field(default_factory=list)
+    web_sources: List[WebSource] = Field(default_factory=list)
+    web_status: Literal['verified', 'unavailable', 'not_needed', 'off'] = 'not_needed'
+    search_suggestions: str = ''
 
-GREETING_WORDS = {"hi", "hii", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening", "help", "who are you"}
 
-def is_greeting(query: str) -> bool:
-    clean = re.sub(r'[^a-zA-Z\s]', '', query).strip().lower()
-    return clean in GREETING_WORDS or (len(clean) <= 3 and clean in GREETING_WORDS)
-
-@router.post("", response_model=ChatResponse)
-@router.post("/", response_model=ChatResponse)
-async def chat_with_knowledge_base(request: ChatRequest):
+@router.post('', response_model=ChatResponse)
+@router.post('/', response_model=ChatResponse)
+def chat_with_knowledge_base(request: ChatRequest):
     query = request.query.strip()
     if not query:
-        return ChatResponse(
-            answer="Please enter a question about Indian Standards (e.g., 'What is the requirement for impact resistance under IS 2925?' or 'Permissible turbidity in IS 10500').",
-            citations=[]
-        )
+        raise HTTPException(422, 'Please enter a message.')
+    if request.language not in LANGUAGES | {'auto'}:
+        raise HTTPException(422, 'Unsupported language selection.')
+    return chat_reply(query, [turn.model_dump() for turn in request.history], request.language,
+                      request.web_enabled, request.standard_id)
 
-    # Check for simple greetings
-    if is_greeting(query):
-        reply = generate_dynamic_chat_reply(query, citations=[])
-        return ChatResponse(
-            answer=reply,
-            citations=[]
-        )
-        
-    citations: List[Citation] = []
-    citations_data = []
 
-    # Attempt to retrieve citations from RAG Chroma collection if available
+@router.post('/transcribe')
+async def transcribe(audio: UploadFile = File(...), language: str = Form('auto')):
+    mime = (audio.content_type or '').split(';')[0]
+    if mime not in {'audio/webm','audio/ogg','audio/wav','audio/mp4','audio/mpeg','audio/x-wav'}:
+        raise HTTPException(415, 'Unsupported recording format.')
+    if language not in LANGUAGES | {'auto'}:
+        raise HTTPException(422, 'Unsupported language selection.')
+    data = await audio.read(8 * 1024 * 1024 + 1)
+    await audio.close()
+    if not data or len(data) > 8 * 1024 * 1024:
+        raise HTTPException(413, 'Use a recording shorter than 45 seconds (maximum 8 MB).')
     try:
-        collection = get_collection()
-        if collection:
-            model = get_model()
-            query_embed = model.encode([query])
-            if hasattr(query_embed, "tolist"):
-                query_embed = query_embed.tolist()
-            elif isinstance(query_embed, list) and len(query_embed) > 0 and hasattr(query_embed[0], "tolist"):
-                query_embed = [e.tolist() for e in query_embed]
-            
-            where_clause = None
-            if request.standard_id:
-                where_clause = {"is_number": request.standard_id}
-                
-            results = collection.query(
-                query_embeddings=query_embed,
-                n_results=3,
-                where=where_clause  # type: ignore[arg-type]
-            )
-            
-            docs = results.get('documents') if results else None
-            metas = results.get('metadatas') if results else None
-            
-            if docs and metas and len(docs) > 0 and len(metas) > 0 and docs[0] and metas[0]:
-                for doc, meta in zip(docs[0], metas[0]):
-                    meta_dict = meta if isinstance(meta, dict) else {}
-                    raw_idx = meta_dict.get("chunk_index")
-                    chunk_idx = int(raw_idx) if isinstance(raw_idx, (int, float)) else 0
-                    cit = Citation(
-                        source=str(meta_dict.get("source") or "Unknown"),
-                        is_number=str(meta_dict.get("is_number") or "Unknown"),
-                        chunk_index=chunk_idx,
-                        text=doc
-                    )
-                    citations.append(cit)
-                    citations_data.append({
-                        "source": cit.source,
-                        "is_number": cit.is_number,
-                        "chunk_index": cit.chunk_index,
-                        "text": cit.text
-                    })
-    except Exception as e:
-        logger.warning(f"Vector search skipped or encountered notice: {e}")
+        text = await run_in_threadpool(transcribe_audio, data, mime, language)
+        return {'text': text}
+    except Exception as exc:
+        logger.warning('Transcription failed: %s', type(exc).__name__)
+        raise HTTPException(503, 'Could not transcribe the recording. Please retry or type your message.')
 
-    # Generate dynamic, rich response using Gemini (grounded in citations if available)
+
+class SpeechRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+    language: str = Field(default='en', max_length=12)
+
+
+@router.post('/speak')
+def speak(request: SpeechRequest):
+    if request.language not in LANGUAGES:
+        raise HTTPException(422, 'Unsupported language selection.')
+    if not request.text.strip():
+        raise HTTPException(422, 'Please provide text to read.')
     try:
-        answer = generate_dynamic_chat_reply(query, citations=citations_data)
-        return ChatResponse(
-            answer=answer,
-            citations=citations
-        )
-    except Exception as e:
-        logger.error(f"Error generating chat answer: {e}", exc_info=True)
-        return ChatResponse(
-            answer="An error occurred while generating a response. Please verify connection and try again.",
-            citations=[]
-        )
-
+        return Response(synthesize_speech(request.text, request.language), media_type='audio/wav',
+                        headers={'Cache-Control':'no-store'})
+    except Exception as exc:
+        logger.warning('Speech output failed: %s', type(exc).__name__)
+        raise HTTPException(503, 'Voice is temporarily unavailable. You can still read the reply.')

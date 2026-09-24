@@ -30,6 +30,9 @@ class Settings(BaseModel):
 
     # Gemini AI Configuration
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    gemini_fallback_model: str = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash")
+    gemini_tts_model: str = os.getenv("GEMINI_TTS_MODEL", "gemini-3.8-flash-tts")
 
     # SMS & OTP Service Configuration
     sms_provider: str = os.getenv("SMS_PROVIDER", "")
@@ -39,3 +42,5 @@ class Settings(BaseModel):
     auth_otp_dev_mode: bool = os.getenv("AUTH_OTP_DEV_MODE", "true").lower() in ("true", "1", "yes")
 
 settings = Settings()
+
+

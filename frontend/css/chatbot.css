@@ -1,0 +1,74 @@
+/* All rules are confined to PRAMAN chat; portal layout and hero remain independent. */
+#praman-chatbot-widget { position:fixed;right:24px;bottom:24px;z-index:9999;font-family:Inter,system-ui,sans-serif;color:#17334b;font-size:14px;line-height:1.5; }
+#praman-chatbot-widget * { box-sizing:border-box; }
+#praman-chatbot-widget [hidden] { display:none !important; }
+#praman-chatbot-widget button,#praman-chatbot-widget select,#praman-chatbot-widget textarea { font:inherit; }
+#praman-chatbot-widget button { cursor:pointer; }
+#praman-chatbot-widget button:disabled { opacity:.5;cursor:wait; }
+#praman-chatbot-widget :focus-visible { outline:3px solid #81b5df;outline-offset:2px; }
+#chatbot-toggle-btn { display:flex;align-items:center;justify-content:center;width:58px;height:58px;margin-left:auto;border:1px solid #315c7e;border-radius:50%;background:#0b3558;color:#fff;box-shadow:0 6px 24px #0b35583b;transition:transform .2s; }
+#chatbot-toggle-btn:hover { transform:translateY(-2px); }
+#chatbot-window { position:absolute;bottom:74px;right:0;width:422px;max-width:calc(100vw - 32px);height:650px;max-height:calc(100dvh - 116px);display:flex;flex-direction:column;overflow:hidden;background:white;border:1px solid #dbe5ee;border-radius:20px;box-shadow:0 18px 60px #0c294238;animation:pc-enter .18s ease-out; }
+#praman-chatbot-widget .pc-header { display:flex;align-items:center;gap:10px;padding:18px 16px;background:#0b3558;color:white;flex-shrink:0; }
+#praman-chatbot-widget .pc-brand { width:34px;height:34px;border:1px solid #ffffff40;border-radius:11px;display:grid;place-items:center;font-size:24px;color:#efcf8b; }
+#praman-chatbot-widget .pc-heading { flex:1;min-width:0; }
+#praman-chatbot-widget .pc-heading strong { font-size:15px;letter-spacing:.05em; }
+#praman-chatbot-widget .pc-heading strong span { color:#e6c789;font-size:11px;letter-spacing:0; }
+#praman-chatbot-widget .pc-heading small { display:block;font-size:10px;color:#d1e0ec;margin-top:1px; }
+#praman-chatbot-widget .pc-icon { display:grid;place-items:center;width:32px;height:32px;padding:0;background:transparent;border:0;border-radius:8px;color:inherit;flex-shrink:0; }
+#praman-chatbot-widget .pc-icon:hover { background:#ffffff20; }
+#praman-chatbot-widget .pc-toolbar { display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #edf1f5;background:#fafcfd;font-size:11px;flex-shrink:0; }
+#praman-chatbot-widget .pc-toolbar label { display:flex;align-items:center;gap:6px; }
+#praman-chatbot-widget select { max-width:136px;border:0;background:transparent;color:#17334b;font-weight:600;outline-offset:0; }
+#praman-chatbot-widget input[type=checkbox] { accent-color:#0b6d64;width:13px;height:13px; }
+#praman-chatbot-widget .pc-web { white-space:nowrap; }
+#chatbot-messages { min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:18px 16px;display:flex;flex-direction:column;gap:17px;scrollbar-width:thin; }
+#praman-chatbot-widget .pc-welcome { padding:15px 10px 6px;text-align:center;color:#456074; }
+#praman-chatbot-widget .pc-welcome-icon { font-size:32px;color:#b78a32; }
+#praman-chatbot-widget .pc-welcome h3 { font-size:17px;color:#143850;margin:12px 0 8px;line-height:1.5; }
+#praman-chatbot-widget .pc-welcome p { font-size:12px;max-width:270px;margin:0 auto;line-height:1.7; }
+#praman-chatbot-widget .pc-message { max-width:100%;align-self:flex-start;overflow-wrap:anywhere;animation:pc-enter .18s ease-out; }
+#praman-chatbot-widget .pc-user { align-self:flex-end;max-width:88%; }
+#praman-chatbot-widget .pc-bubble { font-size:13px;line-height:1.75; }
+#praman-chatbot-widget .pc-bubble p { margin:0 0 8px; }
+#praman-chatbot-widget .pc-bubble p:last-child { margin-bottom:0; }
+#praman-chatbot-widget .pc-bubble ul { padding-inline-start:18px;margin:8px 0; }
+#praman-chatbot-widget .pc-bubble li { margin:4px 0; }
+#praman-chatbot-widget .pc-user .pc-bubble { padding:10px 14px;border-radius:14px 14px 3px 14px;background:#edf3f8;white-space:pre-wrap;color:#163a56; }
+#praman-chatbot-widget .pc-standard-note { background:#f0f7f6;border-left:2px solid #589990;border-radius:0 7px 7px 0;padding:9px 11px;margin-top:11px;font-size:12px;line-height:1.65; }
+#praman-chatbot-widget .pc-standard-note>strong { display:block;font-size:10px;color:#2d6b60;margin-bottom:3px;letter-spacing:.03em; }
+#praman-chatbot-widget .pc-standard-note p { margin:0; }
+#praman-chatbot-widget .pc-sources { margin-top:10px;font-size:11px;color:#607b90; }
+#praman-chatbot-widget .pc-sources summary { cursor:pointer;padding:4px 0; }
+#praman-chatbot-widget .pc-source { padding:10px;border:1px solid #e4edf4;border-radius:8px;margin-top:6px;color:#36546a; }
+#praman-chatbot-widget .pc-source small { display:block;margin-top:2px; }
+#praman-chatbot-widget .pc-source blockquote { margin:7px 0 0;font-size:11px;line-height:1.65;white-space:pre-wrap;max-height:150px;overflow-y:auto; }
+#praman-chatbot-widget .pc-source a { color:#165c93;text-decoration:underline; }
+#praman-chatbot-widget .pc-search-suggestions { width:100%;height:88px;border:0;margin-top:8px;background:white; }
+#praman-chatbot-widget .pc-message-actions { display:flex;gap:12px;margin-top:8px; }
+#praman-chatbot-widget .pc-message-actions button { border:0;background:none;color:#59758a;font-size:10px;padding:4px 0;text-align:start; }
+#praman-chatbot-widget .pc-message-actions button:hover { color:#0b3558;text-decoration:underline; }
+#praman-chatbot-widget .pc-starters { display:flex;gap:6px;padding:8px 16px;overflow-x:auto;flex-shrink:0; }
+#praman-chatbot-widget .pc-starters button { border:1px solid #dce6ee;border-radius:20px;padding:7px 11px;background:white;white-space:nowrap;color:#3d5d76;font-size:11px; }
+#praman-chatbot-widget .pc-starters button:hover { background:#f2f6fa; }
+#pc-status { font-size:11px;padding:0 16px;color:#597387;max-height:70px;overflow:auto; }
+#pc-status:not(:empty) { padding-top:7px;padding-bottom:7px; }
+#pc-form { margin:0;padding:10px 14px 9px;border-top:1px solid #edf1f5;flex-shrink:0; }
+#praman-chatbot-widget .pc-compose { display:flex;align-items:flex-end;gap:4px;background:#f6f9fc;border:1px solid #dce6ee;padding:6px;border-radius:13px; }
+#praman-chatbot-widget .pc-compose:focus-within { border-color:#82a7c4;box-shadow:0 0 0 2px #c3d9ea33; }
+#chatbot-input { min-width:0;flex:1;max-height:100px;resize:none;background:transparent;border:0;padding:6px;color:#17334b;font-size:13px;line-height:1.5;outline:none; }
+#chatbot-send-btn { display:grid;place-items:center;width:32px;height:32px;background:#0b3558;border:0;border-radius:9px;color:white;flex-shrink:0; }
+#praman-chatbot-widget .pc-compose .pc-icon:hover { background:#e4edf5; }
+#praman-chatbot-widget .pc-footer { display:flex;justify-content:space-between;align-items:center;gap:4px;margin-top:7px;color:#7e909e;font-size:9px; }
+#praman-chatbot-widget .pc-footer label { display:flex;align-items:center;gap:3px;white-space:nowrap; }
+#praman-chatbot-widget .pc-loading { display:flex;align-items:center;gap:10px;font-size:12px;color:#6a8193;padding:8px 0; }
+#praman-chatbot-widget .pc-dots { display:flex;gap:4px; }
+#praman-chatbot-widget .pc-dots i { height:4px;width:4px;border-radius:50%;background:#6388a5;animation:pc-dot 1.2s infinite; }
+#praman-chatbot-widget .pc-dots i:nth-child(2) { animation-delay:.15s; }
+#praman-chatbot-widget .pc-dots i:nth-child(3) { animation-delay:.3s; }
+#praman-chatbot-widget .pc-recording { color:#b23939;background:#feecec;animation:pc-record 1.2s infinite; }
+@keyframes pc-enter { from { opacity:0;transform:translateY(5px); } to { opacity:1;transform:translateY(0); } }
+@keyframes pc-dot { 0%,70%,100% { opacity:.4;transform:translateY(0); } 35% { opacity:1;transform:translateY(-3px); } }
+@keyframes pc-record { 50% { box-shadow:0 0 0 3px #f8cccc; } }
+@media(max-width:480px) { #praman-chatbot-widget { right:16px;bottom:16px; } #chatbot-window { max-height:calc(100dvh - 106px); } #praman-chatbot-widget .pc-toolbar { padding:8px 12px;gap:5px; } #pc-language-label { display:none; } #pc-footer-note { display:none; } }
+@media(prefers-reduced-motion:reduce) { #praman-chatbot-widget *,#praman-chatbot-widget *::before { animation:none!important;transition:none!important;scroll-behavior:auto!important; } }

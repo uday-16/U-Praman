@@ -1,229 +1,183 @@
-/**
- * PRAMAN Standards AI Chatbot Component
- * Powered by Gemini AI & Grounded Indian Standards RAG
- */
-
-function formatMarkdown(text) {
-  if (!text) return '';
-
-  // 1. Sanitize HTML entities
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-  // 2. Headings (###, ##, #)
-  html = html.replace(/^### (.*$)/gim, '<div style="font-weight: 700; font-size: 0.95rem; color: var(--navy, #0B3558); margin: 8px 0 4px;">$1</div>');
-  html = html.replace(/^## (.*$)/gim, '<div style="font-weight: 700; font-size: 1.02rem; color: var(--navy, #0B3558); margin: 10px 0 4px; border-bottom: 1px solid var(--line, #E2E8F0); padding-bottom: 2px;">$1</div>');
-  html = html.replace(/^# (.*$)/gim, '<div style="font-weight: 700; font-size: 1.1rem; color: var(--navy, #0B3558); margin: 12px 0 6px;">$1</div>');
-
-  // 3. Bold & Italic
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--navy-deep, #082A46); font-weight: 600;">$1</strong>');
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-  // 4. Inline code
-  html = html.replace(/`([^`]+)`/g, '<code style="background: rgba(11, 53, 88, 0.08); color: var(--navy, #0B3558); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 0.82em;">$1</code>');
-
-  // 5. Blockquotes (> ...)
-  html = html.replace(/^&gt; (.*$)/gim, '<blockquote style="border-left: 3px solid var(--gold, #C08A28); margin: 6px 0; padding: 4px 10px; background: rgba(192, 138, 40, 0.06); border-radius: 0 4px 4px 0; color: var(--ink-soft, #64748B); font-style: italic;">$1</blockquote>');
-
-  // 6. Bullet lists (- or *)
-  html = html.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li style="margin-bottom: 4px; line-height: 1.45;">$1</li>');
-  html = html.replace(/(<li.*<\/li>)/s, '<ul style="margin: 6px 0; padding-left: 18px;">$1</ul>');
-
-  // 7. Horizontal rules (---)
-  html = html.replace(/^---$/gim, '<hr style="border: none; border-top: 1px solid var(--line, #E2E8F0); margin: 8px 0;">');
-
-  // 8. Line breaks to clean paragraphs
-  html = html.replace(/\n\n/g, '<div style="height: 6px;"></div>');
-  html = html.replace(/\n/g, '<br>');
-
-  return html;
-}
+import '../../css/chatbot.css';
+import {LANGUAGES, copy, escapeHTML, formatReply, safeURL, apiRoot} from './chat-utils.js';
+import {ChatVoice} from './chat-voice.js';
 
 export function initChatbot() {
-  if (document.getElementById('praman-chatbot-widget')) {
-    return; // Already initialized
+  if(document.getElementById('praman-chatbot-widget')) return;
+  const base=apiRoot(import.meta.env?.VITE_API_BASE_URL || '/api/v1');
+  const widget=document.createElement('section');
+  widget.id='praman-chatbot-widget';widget.className='notranslate';widget.setAttribute('translate','no');
+  const icon=(name)=>({
+    chat:'<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/>',
+    mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/>',
+    send:'<path d="m5 12 7-7 7 7M12 5v15"/>',
+    close:'<path d="m6 6 12 12M6 18 18 6"/>',
+    reset:'<path d="M3 10a9 9 0 1 1 2 8M3 3v7h7"/>',
+    stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>'
+  }[name]);
+  const svg=name=>`<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon(name)}</svg>`;
+  widget.innerHTML=`
+    <button id="chatbot-toggle-btn" aria-label="Open PRAMAN chat" aria-expanded="false" aria-controls="chatbot-window">${svg('chat')}</button>
+    <section id="chatbot-window" aria-label="PRAMAN AI assistant" hidden>
+      <header class="pc-header"><div class="pc-brand">✦</div><div class="pc-heading"><strong>PRAMAN <span>AI</span></strong><small id="pc-tagline"></small></div><button id="pc-reset" class="pc-icon">${svg('reset')}</button><button id="chatbot-close-btn" class="pc-icon">${svg('close')}</button></header>
+      <div class="pc-toolbar"><label><span id="pc-language-label"></span><select id="pc-language">${LANGUAGES.map(([code,label])=>`<option value="${code}">${label}</option>`).join('')}</select></label><label class="pc-web"><input id="pc-web" type="checkbox" checked><span id="pc-web-label"></span></label></div>
+      <div id="chatbot-messages" role="log" aria-live="polite" aria-relevant="additions" tabindex="0"></div>
+      <div class="pc-starters" id="pc-starters"><button data-query="Which helmet standard applies to my use?">Safety helmets</button><button data-query="Help me choose the right cement">Cement</button><button data-query="What should I check when buying plywood?">Plywood</button></div>
+      <div id="pc-status" role="status" aria-live="polite"></div>
+      <form id="pc-form"><div class="pc-compose"><textarea id="chatbot-input" rows="1" maxlength="2000" dir="auto"></textarea><button type="button" id="pc-mic" class="pc-icon">${svg('mic')}</button><button type="submit" id="chatbot-send-btn">${svg('send')}</button></div><div class="pc-footer"><span>PRAMAN · <span id="pc-footer-note">Clear answers. Traceable sources.</span></span><label title="Read new replies aloud"><input id="pc-autoread" type="checkbox">Auto-read</label></div></form>
+    </section>`;
+  document.body.appendChild(widget);
+  const $=id=>widget.querySelector('#'+id);
+  const panel=$('chatbot-window'),input=$('chatbot-input'),messages=$('chatbot-messages'),send=$('chatbot-send-btn');
+  const language=$('pc-language'),status=$('pc-status');
+  let languageOverride=false;
+  try { language.value=sessionStorage.getItem('praman_chat_language') || 'auto'; } catch { /* Storage may be disabled. */ }
+  let strings=copy(language.value),history=[],pending=null,voiceState='idle',activeListen=null,epoch=0,progressTimer=null;
+  function announce(message) { status.textContent=message; }
+  function scroll() { messages.scrollTo({top:messages.scrollHeight,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
+  function labels() {
+    let ui=language.value;
+    if(ui==='auto') { try {ui=localStorage.getItem('praman_lang') || 'en';} catch {ui='en';} }
+    strings=copy(ui);
+    $('pc-tagline').textContent=strings.tagline;$('pc-language-label').textContent=strings.language;
+    $('pc-web-label').textContent=strings.web;input.placeholder=strings.placeholder;input.setAttribute('aria-label',strings.placeholder);
+    language.setAttribute('aria-label',strings.language);
+    $('pc-reset').title=strings.newChat;$('pc-reset').setAttribute('aria-label',strings.newChat);
+    $('chatbot-close-btn').setAttribute('aria-label',strings.close);
+    send.setAttribute('aria-label',pending?'Stop response':strings.send);
+    $('pc-mic').setAttribute('aria-label',voiceState==='recording'?strings.recordStop:strings.mic);
+    $('pc-mic').title=voiceState==='recording'?strings.recordStop:strings.mic;
+    widget.querySelectorAll('[data-label]').forEach(el=>{el.textContent=strings[el.dataset.label] || el.textContent;});
   }
-
-  const backendHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : '';
-
-  const chatbotHTML = `
-    <div id="praman-chatbot-widget" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <!-- Floating Trigger Button -->
-      <button id="chatbot-toggle-btn" aria-label="Open Standards AI Chat" style="width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, #0B3558 0%, #1769AA 100%); color: white; border: none; box-shadow: 0 6px 18px rgba(11, 53, 88, 0.35); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-        </svg>
-      </button>
-
-      <!-- Chat Window -->
-      <div id="chatbot-window" style="display: none; position: absolute; bottom: 72px; right: 0; width: 380px; max-width: calc(100vw - 32px); height: 540px; max-height: calc(100vh - 100px); background: #ffffff; border-radius: 14px; box-shadow: 0 12px 36px rgba(11, 53, 88, 0.22); border: 1px solid var(--line, #E2E8F0); flex-direction: column; overflow: hidden; animation: popIn 0.2s ease-out;">
-        
-        <!-- Header -->
-        <div style="padding: 14px 16px; background: linear-gradient(135deg, #0B3558 0%, #082A46 100%); color: white; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="background: rgba(255, 255, 255, 0.15); padding: 7px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h2z"></path>
-                <path d="M16 12a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h4z"></path>
-              </svg>
-            </div>
-            <div>
-              <div style="font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px;">
-                PRAMAN AI
-                <span style="font-size: 0.65rem; background: #C08A28; color: white; padding: 1px 6px; border-radius: 10px; text-transform: uppercase; font-weight: 700;">Gemini 3.8</span>
-              </div>
-              <div style="font-size: 0.72rem; color: #CBD5E1;">Bureau of Indian Standards Assistant</div>
-            </div>
-          </div>
-          <button id="chatbot-close-btn" aria-label="Close Chat" style="background: rgba(255,255,255,0.1); border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; line-height: 1; transition: background 0.15s;">&times;</button>
-        </div>
-
-        <!-- Suggestion Chips -->
-        <div id="chatbot-chips" style="padding: 8px 12px; background: #F8FAFC; border-bottom: 1px solid var(--line, #E2E8F0); display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;">
-          <button class="praman-chip" data-query="What are the permissible limits in IS 10500 for drinking water?" style="background: white; border: 1px solid #CBD5E1; color: var(--navy, #0B3558); font-size: 0.72rem; padding: 4px 9px; border-radius: 12px; cursor: pointer; transition: all 0.15s; font-weight: 500;">💧 IS 10500 Limits</button>
-          <button class="praman-chip" data-query="What are the testing requirements for industrial safety helmets under IS 2925?" style="background: white; border: 1px solid #CBD5E1; color: var(--navy, #0B3558); font-size: 0.72rem; padding: 4px 9px; border-radius: 12px; cursor: pointer; transition: all 0.15s; font-weight: 500;">⛑️ IS 2925 Helmets</button>
-          <button class="praman-chip" data-query="What are the specifications for PVC insulated cables under IS 694?" style="background: white; border: 1px solid #CBD5E1; color: var(--navy, #0B3558); font-size: 0.72rem; padding: 4px 9px; border-radius: 12px; cursor: pointer; transition: all 0.15s; font-weight: 500;">⚡ IS 694 Cables</button>
-        </div>
-
-        <!-- Messages Area -->
-        <div id="chatbot-messages" style="flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #ffffff;">
-          <div style="align-self: flex-start; max-width: 90%; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 10px 14px; border-radius: 12px; border-bottom-left-radius: 2px; font-size: 0.84rem; line-height: 1.45; color: #1E293B;">
-            Namaste! I am <strong>PRAMAN AI</strong>. Ask me any question about Indian Standards (BIS), Quality Control Orders (QCOs), or procurement technical specifications.
-          </div>
-        </div>
-
-        <!-- Input Area -->
-        <div style="padding: 10px 12px; border-top: 1px solid var(--line, #E2E8F0); background: #F8FAFC; display: flex; gap: 8px; align-items: center;">
-          <input type="text" id="chatbot-input" placeholder="Ask about an Indian Standard or specification..." style="flex: 1; padding: 9px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.84rem; outline: none; background: white; color: #1E293B; font-family: inherit;">
-          <button id="chatbot-send-btn" aria-label="Send Message" style="background: var(--navy, #0B3558); color: white; border: none; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML('beforeend', chatbotHTML);
-
-  const toggleBtn = document.getElementById('chatbot-toggle-btn');
-  const closeBtn = document.getElementById('chatbot-close-btn');
-  const windowEl = document.getElementById('chatbot-window');
-  const inputEl = document.getElementById('chatbot-input');
-  const sendBtn = document.getElementById('chatbot-send-btn');
-  const messagesEl = document.getElementById('chatbot-messages');
-  const chips = document.querySelectorAll('.praman-chip');
-
-  let isOpen = false;
-
-  const toggleChat = () => {
-    isOpen = !isOpen;
-    if (isOpen) {
-      windowEl.style.display = 'flex';
-      toggleBtn.style.transform = 'scale(0.85) rotate(90deg)';
-      inputEl.focus();
-    } else {
-      windowEl.style.display = 'none';
-      toggleBtn.style.transform = 'scale(1) rotate(0deg)';
+  const voice=new ChatVoice(base,state=>{
+    voiceState=state;
+    const recording=state==='recording';
+    $('pc-mic').classList.toggle('pc-recording',recording);
+    $('pc-mic').innerHTML=svg(recording?'stop':'mic');
+    $('pc-mic').disabled=!!pending || ['transcribing','preparing','permission'].includes(state);
+    send.disabled=['recording','permission','transcribing'].includes(state);
+    if(state==='idle') { if(activeListen) {activeListen.textContent=strings.listen;activeListen=null;} announce(''); }
+    else if(state==='permission') announce('Allow microphone access to record.');
+    else if(recording) announce('Recording · tap stop when finished (45s max). Audio goes to Gemini for transcription.');
+    else if(state==='transcribing') announce('Turning your speech into text…');
+    else if(state==='preparing') announce('Preparing voice…');
+    else if(state==='speaking') announce('Playing reply · tap Stop audio to pause.');
+    labels();
+  },announce);
+  function toggle(open) {
+    panel.hidden=!open;$('chatbot-toggle-btn').setAttribute('aria-expanded',String(open));
+    if(open) input.focus(); else {voice.stop();$('chatbot-toggle-btn').focus();}
+  }
+  $('chatbot-toggle-btn').onclick=()=>toggle(panel.hidden);
+  $('chatbot-close-btn').onclick=()=>toggle(false);
+  panel.addEventListener('keydown',event=>{if(event.key==='Escape') toggle(false);});
+  language.onchange=()=>{languageOverride=true;voice.stop();try {sessionStorage.setItem('praman_chat_language',language.value);} catch {} labels();};
+  window.addEventListener('praman_language_changed',event=>{
+    if(!languageOverride && LANGUAGES.some(([code])=>code===event.detail?.lang)) {language.value=event.detail.lang;voice.stop();labels();}
+  });
+  function welcome() {
+    const intro=document.createElement('div');intro.className='pc-welcome';
+    intro.innerHTML='<span class="pc-welcome-icon">✦</span><h3 data-label="welcome"></h3><p>Short explanations, current information, and a standards check when it helps.</p>';
+    intro.querySelector('h3').textContent=strings.welcome;messages.appendChild(intro);
+  }
+  function message(text,user,data={}) {
+    const row=document.createElement('article');row.className=`pc-message ${user?'pc-user':'pc-assistant'}`;row.dir='auto';
+    const body=document.createElement('div');body.className='pc-bubble';
+    if(user) body.textContent=text; else body.innerHTML=formatReply(text);
+    row.appendChild(body);
+    if(!user && data.standards_note) {
+      const note=document.createElement('div');note.className='pc-standard-note';
+      const title=document.createElement('strong');title.dataset.label='standards';title.textContent=strings.standards;
+      const content=document.createElement('div');content.innerHTML=formatReply(data.standards_note);note.append(title,content);row.appendChild(note);
     }
-  };
-
-  toggleBtn.addEventListener('click', toggleChat);
-  closeBtn.addEventListener('click', toggleChat);
-
-  chips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const q = chip.getAttribute('data-query');
-      if (q) {
-        inputEl.value = q;
-        handleSend();
+    const sources=[...(data.citations || []),...(data.web_sources || [])];
+    if(sources.length) {
+      const details=document.createElement('details');details.className='pc-sources';
+      const summary=document.createElement('summary');summary.textContent=`${strings.sources} · ${sources.length}${data.web_status==='verified'?' · Web checked now':''}`;
+      details.appendChild(summary);
+      sources.forEach(source=>{
+        const item=document.createElement('div');item.className='pc-source';
+        if(source.url) {
+          const url=safeURL(source.url);if(!url) return;
+          const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=source.title;item.appendChild(link);
+        } else {
+          const title=document.createElement('strong');title.textContent=`${source.is_number} · PDF ${source.page}`;
+          const filename=document.createElement('small');filename.textContent=source.source;
+          const excerpt=document.createElement('blockquote');excerpt.textContent=source.text;
+          item.append(title,filename,excerpt);
+        }
+        details.appendChild(item);
+      });row.appendChild(details);
+    }
+    if(data.search_suggestions && data.web_status==='verified') {
+      const frame=document.createElement('iframe');frame.className='pc-search-suggestions';frame.title='Google Search suggestions';
+      frame.setAttribute('sandbox','allow-popups allow-popups-to-escape-sandbox');frame.referrerPolicy='no-referrer';
+      frame.srcdoc='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; img-src https: data:;">'+data.search_suggestions;
+      row.appendChild(frame);
+    }
+    if(!user && data.language) {
+      const actions=document.createElement('div');actions.className='pc-message-actions';
+      const listen=document.createElement('button');listen.type='button';listen.textContent=strings.listen;
+      listen.onclick=()=>{
+        if(activeListen===listen) {voice.stop();return;}
+        voice.stop();activeListen=listen;
+        voice.speak(text+(data.standards_note?'\n'+data.standards_note:''),data.language);
+        activeListen=listen;listen.textContent=strings.audioStop;
+      };
+      actions.appendChild(listen);
+      if(history.length && !data.standards_note) {
+        const compare=document.createElement('button');compare.type='button';compare.textContent=strings.compare;
+        compare.onclick=()=>handleSend('Compare the relevant points in our discussion with applicable Indian Standards. Keep it brief.');actions.appendChild(compare);
       }
-    });
-  });
-
-  const addMessage = (text, isUser, citations = []) => {
-    const msgDiv = document.createElement('div');
-    msgDiv.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
-    msgDiv.style.maxWidth = isUser ? '82%' : '90%';
-    
-    let formattedText = isUser ? text : formatMarkdown(text);
-
-    let contentHtml = `
-      <div style="background: ${isUser ? 'linear-gradient(135deg, #0B3558, #1769AA)' : '#F8FAFC'}; 
-                  color: ${isUser ? '#ffffff' : '#1E293B'}; 
-                  border: ${isUser ? 'none' : '1px solid #E2E8F0'}; 
-                  padding: 10px 14px; 
-                  border-radius: 12px; 
-                  border-bottom-${isUser ? 'right' : 'left'}-radius: 2px; 
-                  font-size: 0.85rem; 
-                  line-height: 1.5;
-                  box-shadow: ${isUser ? '0 2px 6px rgba(11, 53, 88, 0.2)' : '0 1px 3px rgba(0,0,0,0.04)'};">
-        ${formattedText}
-      </div>
-    `;
-
-    if (citations && citations.length > 0) {
-      contentHtml += '<div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; width: 100%;">';
-      citations.forEach(cit => {
-        const snippet = cit.text ? cit.text.substring(0, 120).replace(/\n/g, ' ') : '';
-        contentHtml += `
-          <div style="background: #EBF3FC; border: 1px solid rgba(11, 53, 88, 0.18); padding: 8px 10px; border-radius: 6px; font-size: 0.74rem;">
-            <div style="color: #0B3558; font-weight: 700; margin-bottom: 2px;">📘 ${cit.is_number} <span style="font-weight: 400; color: #64748B;">(${cit.source})</span></div>
-            <div style="color: #475569; font-style: italic;">"${snippet}..."</div>
-          </div>
-        `;
-      });
-      contentHtml += '</div>';
+      row.appendChild(actions);
+      if($('pc-autoread').checked && !panel.hidden) listen.click();
     }
-
-    msgDiv.innerHTML = contentHtml;
-    messagesEl.appendChild(msgDiv);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  };
-
-  const handleSend = async () => {
-    const query = inputEl.value.trim();
-    if (!query) return;
-
-    addMessage(query, true);
-    inputEl.value = '';
-    
-    // Add dynamic typing animation indicator
-    const loadingDiv = document.createElement('div');
-    loadingDiv.id = 'chatbot-loading';
-    loadingDiv.style.alignSelf = 'flex-start';
-    loadingDiv.innerHTML = `
-      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px 14px; border-radius: 12px; border-bottom-left-radius: 2px; display: flex; align-items: center; gap: 6px;">
-        <span style="font-size: 0.78rem; color: #64748B; font-weight: 500;">PRAMAN AI is researching...</span>
-      </div>
-    `;
-    messagesEl.appendChild(loadingDiv);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-
+    messages.appendChild(row);scroll();return row;
+  }
+  function setBusy(value) {
+    messages.setAttribute('aria-busy',String(value));send.innerHTML=svg(value?'stop':'send');
+    $('pc-mic').disabled=value;widget.querySelectorAll('[data-query]').forEach(button=>{button.disabled=value;});labels();
+  }
+  async function handleSend(override) {
+    if(pending) return;
+    const query=(override || input.value).trim();if(!query) return;
+    voice.stop();const version=epoch;const requestLanguage=language.value;
+    pending=new AbortController();const controller=pending;
+    setBusy(true);message(query,true);input.value='';input.style.height='auto';$('pc-starters').hidden=true;
+    const loading=document.createElement('div');loading.className='pc-loading';loading.setAttribute('role','status');
+    loading.innerHTML=`<span>${escapeHTML(strings.thinking)}</span><span class="pc-dots" aria-hidden="true"><i></i><i></i><i></i></span>`;messages.appendChild(loading);scroll();
+    const timeout=setTimeout(()=>controller.abort('timeout'),150000);
+    progressTimer=setTimeout(()=>{if(version===epoch) loading.querySelector('span').textContent='Checking context and sources…';},6000);
     try {
-      const response = await fetch(`${backendHost}/api/v1/chat/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      });
-      
-      const data = await response.json();
-      loadingDiv.remove();
-      addMessage(data.answer, false, data.citations);
-    } catch (err) {
-      loadingDiv.remove();
-      addMessage("I couldn't reach the server. Make sure the PRAMAN backend is running on port 8000.", false);
+      const res=await fetch(`${base}/chat/`,{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,
+        body:JSON.stringify({query,history:history.slice(-8),language:requestLanguage,web_enabled:$('pc-web').checked})});
+      if(!res.ok) throw new Error('server');const data=await res.json();
+      if(typeof data.answer!=='string' || !Array.isArray(data.citations)) throw new Error('invalid');
+      if(version!==epoch) return;
+      loading.remove();
+      history.push({role:'user',content:query},{role:'assistant',content:(data.answer+'\n'+data.standards_note).slice(0,2000)});history=history.slice(-8);
+      message(data.answer,false,data);
+      if(data.web_status==='unavailable') announce('Live search could not be verified this time.');
+    } catch(error) {
+      if(version!==epoch) return;
+      if(!input.value) input.value=query;
+      const cancelled=controller.signal.aborted && controller.signal.reason!=='timeout';
+      announce(cancelled?'Response stopped. Your question is ready to edit.':'Could not complete that request. Your question is ready to retry.');
+    } finally {
+      clearTimeout(timeout);clearTimeout(progressTimer);loading.remove();
+      if(version===epoch) {pending=null;setBusy(false);if(!panel.hidden) input.focus();}
     }
+  }
+  $('pc-form').onsubmit=event=>{event.preventDefault();if(pending) pending.abort('user');else handleSend();};
+  input.addEventListener('keydown',event=>{if(event.key==='Enter' && !event.shiftKey && !event.isComposing) {event.preventDefault();if(!pending && !['recording','transcribing','permission'].includes(voiceState)) handleSend();}});
+  input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,100)+'px';});
+  $('pc-mic').onclick=()=>{
+    if(voiceState==='recording') {voice.finishRecording();return;}
+    const draft=input.value;
+    voice.record(language.value,transcript=>{input.value=(draft+(draft?' ':'')+transcript).slice(0,2000);input.dispatchEvent(new Event('input'));input.focus();});
   };
-
-  sendBtn.addEventListener('click', handleSend);
-  inputEl.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSend();
-  });
+  widget.querySelectorAll('[data-query]').forEach(button=>{button.onclick=()=>handleSend(button.dataset.query);});
+  $('pc-reset').onclick=()=>{epoch++;pending?.abort('reset');pending=null;clearTimeout(progressTimer);voice.stop();history=[];messages.replaceChildren();input.value='';setBusy(false);welcome();$('pc-starters').hidden=false;};
+  window.addEventListener('pagehide',()=>{epoch++;pending?.abort();voice.stop();clearTimeout(progressTimer);});
+  labels();welcome();
 }
