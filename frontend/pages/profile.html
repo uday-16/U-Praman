@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Officer Profile &amp; Credentials — PRAMAN</title>
+  <script>
+    (function() {
+      var saved = localStorage.getItem('praman_lang') || localStorage.getItem('standardsai_lang');
+      if (saved && saved !== 'en') {
+        document.cookie = 'googtrans=/en/' + saved + '; path=/;';
+        if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          document.cookie = 'googtrans=/en/' + saved + '; domain=' + window.location.hostname + '; path=/;';
+        }
+      }
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/variables.css">
