@@ -1,3 +1,4 @@
+import { api, escapeHtml, sourceUrl } from '../utils/api.js';
 /**
  * PRAMAN Standards AI Chatbot Component
  * Powered by Gemini AI & Grounded Indian Standards RAG
@@ -46,10 +47,6 @@ export function initChatbot() {
     return; // Already initialized
   }
 
-  const backendHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : '';
-
   const chatbotHTML = `
     <div id="praman-chatbot-widget" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <!-- Floating Trigger Button -->
@@ -74,7 +71,7 @@ export function initChatbot() {
             <div>
               <div style="font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px;">
                 PRAMAN AI
-                <span style="font-size: 0.65rem; background: #C08A28; color: white; padding: 1px 6px; border-radius: 10px; text-transform: uppercase; font-weight: 700;">Gemini 3.8</span>
+                <span style="font-size: 0.65rem; background: #C08A28; color: white; padding: 1px 6px; border-radius: 10px; text-transform: uppercase; font-weight: 700;">Source-based</span>
               </div>
               <div style="font-size: 0.72rem; color: #CBD5E1;">Bureau of Indian Standards Assistant</div>
             </div>
@@ -92,7 +89,7 @@ export function initChatbot() {
         <!-- Messages Area -->
         <div id="chatbot-messages" style="flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #ffffff;">
           <div style="align-self: flex-start; max-width: 90%; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 10px 14px; border-radius: 12px; border-bottom-left-radius: 2px; font-size: 0.84rem; line-height: 1.45; color: #1E293B;">
-            Namaste! I am <strong>PRAMAN AI</strong>. Ask me any question about Indian Standards (BIS), Quality Control Orders (QCOs), or procurement technical specifications.
+            Namaste! I am <strong>PRAMAN AI</strong>. Ask about the local Indian Standards documents and procurement requirements. Answers include source pages when evidence is available.
           </div>
         </div>
 
@@ -121,6 +118,8 @@ export function initChatbot() {
   const chips = document.querySelectorAll('.praman-chip');
 
   let isOpen = false;
+  let sending = false;
+  const history = [];
 
   const toggleChat = () => {
     isOpen = !isOpen;
@@ -152,7 +151,7 @@ export function initChatbot() {
     msgDiv.style.alignSelf = isUser ? 'flex-end' : 'flex-start';
     msgDiv.style.maxWidth = isUser ? '82%' : '90%';
     
-    let formattedText = isUser ? text : formatMarkdown(text);
+    let formattedText = isUser ? escapeHtml(text) : formatMarkdown(text);
 
     let contentHtml = `
       <div style="background: ${isUser ? 'linear-gradient(135deg, #0B3558, #1769AA)' : '#F8FAFC'}; 
@@ -174,8 +173,8 @@ export function initChatbot() {
         const snippet = cit.text ? cit.text.substring(0, 120).replace(/\n/g, ' ') : '';
         contentHtml += `
           <div style="background: #EBF3FC; border: 1px solid rgba(11, 53, 88, 0.18); padding: 8px 10px; border-radius: 6px; font-size: 0.74rem;">
-            <div style="color: #0B3558; font-weight: 700; margin-bottom: 2px;">📘 ${cit.is_number} <span style="font-weight: 400; color: #64748B;">(${cit.source})</span></div>
-            <div style="color: #475569; font-style: italic;">"${snippet}..."</div>
+            <div style="color: #0B3558; font-weight: 700; margin-bottom: 2px;">📘 ${escapeHtml(cit.is_number)} <span style="font-weight: 400; color: #64748B;">(${escapeHtml(cit.source)}, page ${Number(cit.page)})</span></div>
+            <a href="${escapeHtml(sourceUrl(cit))}" target="_blank" rel="noopener">Open source page ↗</a><div style="color: #475569; font-style: italic;">"${escapeHtml(snippet)}..."</div>
           </div>
         `;
       });
@@ -189,7 +188,8 @@ export function initChatbot() {
 
   const handleSend = async () => {
     const query = inputEl.value.trim();
-    if (!query) return;
+    if (!query || sending) return;
+    sending = true; sendBtn.disabled = true;
 
     addMessage(query, true);
     inputEl.value = '';
@@ -207,19 +207,15 @@ export function initChatbot() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
     try {
-      const response = await fetch(`${backendHost}/api/v1/chat/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      });
-      
-      const data = await response.json();
+      const data = await api('/chat/', { method: 'POST', body: { query, history: history.slice(-6) } });
+      history.push({ role: 'user', content: query }, { role: 'assistant', content: data.answer.slice(0, 12000) });
       loadingDiv.remove();
       addMessage(data.answer, false, data.citations);
+      if (data.generation_mode === 'extractive') addMessage('AI generation is unavailable. The answer above contains retrieved source text.', false);
     } catch (err) {
       loadingDiv.remove();
-      addMessage("I couldn't reach the server. Make sure the PRAMAN backend is running on port 8000.", false);
-    }
+      addMessage(err.message || 'Could not reach the standards service. Please try again.', false);
+    } finally { sending = false; sendBtn.disabled = false; }
   };
 
   sendBtn.addEventListener('click', handleSend);

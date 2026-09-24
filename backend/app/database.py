@@ -4,6 +4,9 @@ import hashlib
 import json
 import re
 import copy
+import tempfile
+from functools import wraps
+from filelock import FileLock
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from dotenv import load_dotenv
@@ -72,11 +75,20 @@ class MockCursor:
     def to_list(self):
         return list(self._items)
 
+def persisted(method):
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        with self._lock:
+            self._load()
+            return method(self, *args, **kwargs)
+    return wrapped
+
 class FallbackCollection:
     """High-performance in-memory + JSON persisted MongoDB-compatible collection fallback."""
     def __init__(self, name: str, filepath: str):
         self.name = name
         self.filepath = filepath
+        self._lock = FileLock(filepath + ".lock", timeout=15)
         self._docs: List[Dict[str, Any]] = []
         self._load()
 
@@ -85,18 +97,18 @@ class FallbackCollection:
             try:
                 with open(self.filepath, 'r', encoding='utf-8') as f:
                     self._docs = json.load(f)
-            except Exception:
-                self._docs = []
+            except (ValueError, OSError) as error:
+                raise RuntimeError(f"Could not read local collection {self.name}; refusing to overwrite it.") from error
         else:
             self._docs = []
 
     def _save(self):
-        try:
-            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-            with open(self.filepath, 'w', encoding='utf-8') as f:
-                json.dump(self._docs, f, default=str, indent=2)
-        except Exception as e:
-            print(f"FallbackCollection save notice for {self.name}: {e}")
+        directory = os.path.dirname(self.filepath)
+        os.makedirs(directory, exist_ok=True)
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=directory, delete=False) as output:
+            json.dump(self._docs, output, default=str, indent=2)
+            temporary = output.name
+        os.replace(temporary, self.filepath)
 
     def _match_condition(self, doc: Dict[str, Any], key: str, val: Any) -> bool:
         doc_val = doc.get(key)
@@ -137,6 +149,7 @@ class FallbackCollection:
                     return False
         return True
 
+    @persisted
     def find_one(self, query: Dict[str, Any] = None, sort=None) -> Optional[Dict[str, Any]]:
         matches = [d for d in self._docs if self._matches(d, query or {})]
         if not matches:
@@ -147,6 +160,7 @@ class FallbackCollection:
             return copy.deepcopy(cursor._items[0])
         return copy.deepcopy(matches[0])
 
+    @persisted
     def find(self, query: Dict[str, Any] = None, sort=None) -> MockCursor:
         matches = [copy.deepcopy(d) for d in self._docs if self._matches(d, query or {})]
         cursor = MockCursor(matches)
@@ -154,6 +168,7 @@ class FallbackCollection:
             cursor.sort(sort)
         return cursor
 
+    @persisted
     def insert_one(self, doc: Dict[str, Any]) -> Any:
         item = copy.deepcopy(doc)
         if "_id" not in item:
@@ -164,6 +179,7 @@ class FallbackCollection:
             inserted_id = item["_id"]
         return Result()
 
+    @persisted
     def update_one(self, query: Dict[str, Any], update: Dict[str, Any]) -> Any:
         modified_count = 0
         for doc in self._docs:
@@ -184,6 +200,7 @@ class FallbackCollection:
         r.modified_count = modified_count
         return r
 
+    @persisted
     def update_many(self, query: Dict[str, Any], update: Dict[str, Any]) -> Any:
         modified_count = 0
         for doc in self._docs:
@@ -200,6 +217,7 @@ class FallbackCollection:
         r.modified_count = modified_count
         return r
 
+    @persisted
     def delete_one(self, query: Dict[str, Any]) -> Any:
         idx = -1
         for i, doc in enumerate(self._docs):
@@ -213,6 +231,7 @@ class FallbackCollection:
             deleted_count = 1 if idx >= 0 else 0
         return Result()
 
+    @persisted
     def count_documents(self, query: Dict[str, Any] = None) -> int:
         return sum(1 for d in self._docs if self._matches(d, query or {}))
 
@@ -252,10 +271,13 @@ except Exception as e:
 
 # Seed default admin account if not existing
 def seed_default_admin():
-    admin_email = "admin@praman.gov.in"
+    admin_email = os.getenv("BOOTSTRAP_ADMIN_EMAIL", "").strip().lower()
+    admin_password = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "")
+    if not admin_email or len(admin_password) < 12:
+        return
     existing = users_collection.find_one({"email": admin_email})
     if not existing:
-        pwd_hash, salt = hash_password("admin123")
+        pwd_hash, salt = hash_password(admin_password)
         now_utc = datetime.now(timezone.utc).isoformat()
         users_collection.insert_one({
             "id": "usr-admin-001",

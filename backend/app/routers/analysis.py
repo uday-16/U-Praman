@@ -1,158 +1,90 @@
+"""Persistent, owner-scoped requirement analysis workflow."""
+import json
+import re
 import uuid
-from datetime import datetime, timezone
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from app.schemas.analysis import (
-    RequirementInput, ExtractedRequirement, ExtractionReviewRequest, AnalysisResult
-)
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from app.routers.auth import require_session
+from app.schemas.analysis import RequirementInput, ExtractedRequirement, ExtractionReviewRequest, AnalysisResult
 from app.services.ai_extractor import extract_requirements_from_input
+from app.services.document_reader import read_document, MAX_UPLOAD_BYTES
 from app.services.vector_engine import rank_standards_for_requirement
 from app.services.evidence_service import evaluate_specification_completeness
-from app.services.standards_db import get_standard_graph, STANDARDS_KNOWLEDGE_BASE
+from app.services.standards_db import get_standard_graph, get_standard_by_id
+from app.services.corpus import get_corpus, BACKEND, atomic_json
+from app.services.gemini_service import grounded_reply
 
-router = APIRouter(prefix="/analysis", tags=["Requirement Analysis"])
+router = APIRouter(prefix='/analysis', tags=['Requirement Analysis'])
+STORE = BACKEND / 'data' / 'analyses'
+ANALYSIS_STORE = {}  # Compatibility for report imports; durable records live on disk.
 
-# In-memory storage for analysis results
-ANALYSIS_STORE: dict[str, AnalysisResult] = {}
-EXTRACTION_STORE: dict[str, ExtractedRequirement] = {}
 
-@router.post("/extract", response_model=ExtractedRequirement)
-def extract_requirements(req: RequirementInput):
-    extracted = extract_requirements_from_input(req)
-    EXTRACTION_STORE[extracted.id] = extracted
-    return extracted
+def owner_id(user):
+    return str(user.get('id', user.get('_id', '')))
 
-@router.post("/upload", response_model=ExtractedRequirement)
-async def upload_tender_document(file: UploadFile = File(...)):
-    filename = file.filename or ""
-    if not filename.endswith(('.pdf', '.docx', '.txt', '.doc')):
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload PDF, DOCX or TXT tender document.")
-        
-    contents = await file.read()
-    text_content = ""
-    
+
+def save(kind, value, user):
+    atomic_json(STORE / f'{kind}-{value.id}.json', {'owner': owner_id(user), 'data': value.model_dump()})
+
+
+def load(kind, identifier, user, schema):
+    if not re.fullmatch(r'[a-z0-9-]{1,80}', identifier): raise HTTPException(404, 'Record not found.')
     try:
-        if filename.endswith('.pdf'):
-            import PyPDF2
-            import io
-            reader = PyPDF2.PdfReader(io.BytesIO(contents))
-            for page in reader.pages:
-                text_content += page.extract_text() + "\n"
-        elif filename.endswith(('.docx', '.doc')):
-            import docx
-            import io
-            doc = docx.Document(io.BytesIO(contents))
-            text_content = "\n".join([para.text for para in doc.paragraphs])
-        else:
-            text_content = contents.decode('utf-8')
-    except Exception as e:
-        # Fallback if parsing fails
-        text_content = f"Uploaded tender file: {filename}. Requirements include safety gear, impact resistance, and mandatory standards compliance."
-    
-    # If file was empty or parsing returned nothing
-    if not text_content.strip():
-        text_content = f"Uploaded tender file: {filename}. Requirements include safety gear, impact resistance, and mandatory standards compliance."
-    
-    req_input = RequirementInput(
-        text=text_content,
-        product_name=filename.split('.')[0].replace('_', ' ').replace('-', ' ').title()
-    )
-    
-    extracted = extract_requirements_from_input(req_input)
-    EXTRACTION_STORE[extracted.id] = extracted
+        record = json.loads((STORE / f'{kind}-{identifier}.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError): raise HTTPException(404, 'Record not found. Start a new analysis.')
+    if record['owner'] != owner_id(user): raise HTTPException(404, 'Record not found.')
+    return schema.model_validate(record['data'])
+
+
+@router.post('/extract', response_model=ExtractedRequirement)
+def extract_requirements(req: RequirementInput, user=Depends(require_session)):
+    try: extracted = extract_requirements_from_input(req)
+    except ValueError as error: raise HTTPException(422, str(error))
+    save('extraction', extracted, user)
     return extracted
 
-@router.post("/confirm", response_model=AnalysisResult)
-def confirm_and_analyze(extraction_id: str, review: ExtractionReviewRequest):
-    extracted = EXTRACTION_STORE.get(extraction_id)
-    if not extracted:
-        extracted = ExtractedRequirement(
-            id=extraction_id,
-            product_name=review.product_name,
-            application=review.application,
-            purpose=review.purpose,
-            key_requirements=review.key_requirements,
-            technical_parameters={"Material": "Standard Grade", "Application": review.application},
-            safety_parameters=["Mandatory BIS QCO Compliance"],
-            extracted_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        )
-    else:
-        # Officer overrides
-        extracted.product_name = review.product_name
-        extracted.application = review.application
-        extracted.purpose = review.purpose
-        extracted.key_requirements = review.key_requirements
 
-    # Perform semantic matching
-    recommendations = rank_standards_for_requirement(extracted)
-    
-    # Gather related standards
-    top_std_id = recommendations[0].id if recommendations else "is-2925-1984"
-    graph = get_standard_graph(top_std_id)
-    
-    # Collect related items
-    related_items = []
-    if recommendations:
-        for std in STANDARDS_KNOWLEDGE_BASE:
-            if std.id == top_std_id:
-                related_items = std.related_standards
-                break
-                
-    completeness = evaluate_specification_completeness(extracted)
-    
-    analysis_id = f"anl-{uuid.uuid4().hex[:8]}"
-    summary_notice = (
-        "AI-assisted recommendation notice: Recommendations are generated from available Indian Standards "
-        "knowledge base and supporting evidence. The procurement authority should review and make final determination."
-    )
-    
-    result = AnalysisResult(
-        id=analysis_id,
-        status="Completed",
-        extracted=extracted,
-        recommendations=recommendations,
-        related_standards=related_items,
-        completeness=completeness,
-        graph=graph,
-        summary_notice=summary_notice
-    )
-    
-    ANALYSIS_STORE[analysis_id] = result
+@router.post('/upload', response_model=ExtractedRequirement)
+def upload_tender_document(file: UploadFile = File(...), user=Depends(require_session)):
+    try:
+        contents = file.file.read(MAX_UPLOAD_BYTES + 1)
+        pages = read_document(contents, file.filename or '')
+        extracted = extract_requirements_from_input(RequirementInput(text='\n'.join(p['text'] for p in pages)))
+    except ValueError as error: raise HTTPException(422, str(error))
+    save('extraction', extracted, user)
+    return extracted
+
+
+@router.get('/extractions/{extraction_id}', response_model=ExtractedRequirement)
+def get_extraction(extraction_id: str, user=Depends(require_session)):
+    return load('extraction', extraction_id, user, ExtractedRequirement)
+
+
+@router.post('/confirm', response_model=AnalysisResult)
+def confirm_and_analyze(extraction_id: str, review: ExtractionReviewRequest, user=Depends(require_session)):
+    extracted = load('extraction', extraction_id, user, ExtractedRequirement)
+    if not review.product_name.strip(): raise HTTPException(422, 'Product name is required.')
+    for key, value in review.model_dump(exclude_none=True).items(): setattr(extracted, key, value)
+    try:
+        corpus = get_corpus()
+        recommendations = rank_standards_for_requirement(extracted)
+    except (ValueError, OSError): raise HTTPException(503, 'Standards corpus is unavailable. Run the ingestion command and check its report.')
+    citations = []
+    for rec in recommendations:
+        for source in rec.evidence:
+            citations.append({**source.model_dump(), 'is_number': rec.is_number})
+    explanation, mode = grounded_reply('Explain the relevance and specification gaps for this procurement requirement: ' +
+        '\n'.join([extracted.product_name, extracted.application, extracted.purpose, *extracted.key_requirements]), citations)
+    standard = get_standard_by_id(recommendations[0].id) if recommendations else None
+    result = AnalysisResult(id='anl-' + uuid.uuid4().hex, status='Completed' if recommendations else 'Needs Review',
+        extracted=extracted, recommendations=recommendations, related_standards=standard.related_standards if standard else [],
+        completeness=evaluate_specification_completeness(extracted), graph=get_standard_graph(standard.id if standard else ''),
+        summary_notice='Retrieval relevance is not a compliance score. Editions and amendments refer to local files only. Current BIS validity, supersession and mandatory certification require official verification.',
+        explanation=explanation, generation_mode=mode, retrieval_mode=corpus.mode, corpus_fingerprint=corpus.fingerprint)
+    save('extraction', extracted, user)
+    save('analysis', result, user)
     return result
 
-@router.get("/{analysis_id}", response_model=AnalysisResult)
-def get_analysis_result(analysis_id: str):
-    result = ANALYSIS_STORE.get(analysis_id)
-    if not result:
-        # Default mock fallback analysis result for direct URL navigation
-        default_extracted = ExtractedRequirement(
-            id=f"req-{analysis_id}",
-            product_name="Industrial Safety Helmet",
-            application="Construction & Infrastructure Sites",
-            purpose="Worker Protection against Impact & Electrical Hazards",
-            key_requirements=[
-                "Shock absorption performance tests (max force transmission <= 5.0 kN)",
-                "Penetration resistance with 3kg drop weight",
-                "Flame resistance and lateral rigidity",
-                "Electrical insulation up to 1.2 kV for electrical hazards"
-            ],
-            technical_parameters={"Material": "HDPE / ABS", "Dielectric Insulation": "1.2 kV"},
-            safety_parameters=["Mandatory BIS QCO Marking"],
-            extracted_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        )
-        recs = rank_standards_for_requirement(default_extracted)
-        graph = get_standard_graph("is-2925-1984")
-        completeness = evaluate_specification_completeness(default_extracted)
-        
-        result = AnalysisResult(
-            id=analysis_id,
-            status="Completed",
-            extracted=default_extracted,
-            recommendations=recs,
-            related_standards=STANDARDS_KNOWLEDGE_BASE[0].related_standards,
-            completeness=completeness,
-            graph=graph,
-            summary_notice="AI-assisted recommendation: Final procurement determination rests with the officer."
-        )
-        ANALYSIS_STORE[analysis_id] = result
-        
-    return result
+
+@router.get('/{analysis_id}', response_model=AnalysisResult)
+def get_analysis_result(analysis_id: str, user=Depends(require_session)):
+    return load('analysis', analysis_id, user, AnalysisResult)

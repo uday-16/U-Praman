@@ -1,3 +1,4 @@
+import { escapeHtml } from '../utils/api.js';
 import { Storage } from '../utils/storage.js';
 import { bindLanguageSelects } from '../utils/translator.js';
 
@@ -11,6 +12,7 @@ export function renderAppSidebar(activePage = 'dashboard') {
     { id: 'reports', label: 'Reports', url: '/pages/reports.html', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' }
   ];
 
+  if (Storage.isAdmin()) workspaceLinks.push({ id: 'admin', label: 'Admin console', url: '/pages/admin.html', icon: '<path d="M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z"/><path d="M9 12l2 2 4-4"/>' });
   const myWorkLinks = [
     { id: 'history', label: 'History', url: '/pages/history.html', icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' },
     { id: 'saved', label: 'Saved', url: '/pages/saved.html', icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>' }
@@ -118,10 +120,10 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = Stor
         </button>
 
         <a href="/pages/profile.html" class="user-profile-btn">
-          <div class="avatar-circle">U</div>
+          <div class="avatar-circle">${escapeHtml((user?.name || 'U').slice(0,1).toUpperCase())}</div>
           <div class="user-info">
-            <span class="user-name">Uday Kiran</span>
-            <span class="user-role">Administrator</span>
+            <span class="user-name">${escapeHtml(user?.name || 'Officer')}</span>
+            <span class="user-role">${escapeHtml(user?.role || 'Procurement Officer')}</span>
           </div>
         </a>
       </div>

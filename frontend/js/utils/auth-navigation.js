@@ -3,7 +3,6 @@ import { Storage } from './storage.js';
 const protectedPages = new Set([
   '/pages/dashboard.html',
   '/pages/analyze.html',
-  '/pages/standards.html',
   '/pages/standard-details.html',
   '/pages/compare.html',
   '/pages/review.html',

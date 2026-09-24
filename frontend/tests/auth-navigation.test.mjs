@@ -16,7 +16,7 @@ function setup(path = '/', user = null) {
 }
 
 test('guest actions retain exact destination through login', () => {
-  for (const target of ['/pages/analyze.html', '/pages/standards.html?category=Water%20%26%20Sanitation', '/pages/standard-details.html?id=STD-001', '/pages/compare.html?ids=STD-001,STD-002#matrix']) {
+  for (const target of ['/pages/analyze.html', '/pages/standard-details.html?id=STD-001', '/pages/compare.html?ids=STD-001,STD-002#matrix']) {
     setup();
     assert.equal(initAuthNavigation(), true);
     let prevented = false;
@@ -58,6 +58,6 @@ test('normal logins keep role defaults; explicit destinations take precedence', 
   assert.equal(getPostLoginDestination(), '/pages/dashboard.html');
   setup('/pages/login.html', {role: 'Admin'});
   assert.equal(getPostLoginDestination(), '/pages/admin.html');
-  setup('/pages/login.html?redirect=%2Fpages%2Fstandards.html', {role: 'Admin'});
-  assert.equal(getPostLoginDestination(), '/pages/standards.html');
+  setup('/pages/login.html?redirect=%2Fpages%2Fanalyze.html', {role: 'Admin'});
+  assert.equal(getPostLoginDestination(), '/pages/analyze.html');
 });

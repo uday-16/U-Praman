@@ -1,8 +1,10 @@
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse
+from app.services.corpus import get_corpus
 from app.schemas.standards import IndianStandard, StandardGraph, VersionItem
 from app.services.standards_db import (
-    STANDARDS_KNOWLEDGE_BASE, get_standard_by_id, get_standard_graph
+    get_all_standards, get_standard_by_id, get_standard_graph
 )
 
 router = APIRouter(prefix="/standards", tags=["Indian Standards Knowledge Base"])
@@ -13,7 +15,7 @@ def search_standards(
     category: Optional[str] = Query(None, description="Category filter"),
     status: Optional[str] = Query(None, description="Status filter")
 ):
-    results = STANDARDS_KNOWLEDGE_BASE
+    results = get_all_standards()
     
     if q:
         query_str = q.lower().strip()
@@ -33,6 +35,14 @@ def search_standards(
         results = [std for std in results if std.status.lower() == status.lower()]
         
     return results
+
+@router.get("/source/{filename}")
+def get_source(filename: str):
+    corpus = get_corpus()
+    if filename not in corpus.by_source:
+        raise HTTPException(404, 'Source document not found.')
+    return FileResponse(corpus.directory / filename, filename=filename, content_disposition_type='inline')
+
 
 @router.get("/{standard_id}", response_model=IndianStandard)
 def get_standard_detail(standard_id: str):

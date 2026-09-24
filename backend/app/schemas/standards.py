@@ -24,7 +24,11 @@ class SourceEvidence(BaseModel):
     clause: str
     text: str
     confidence: float
-    verified: bool = True
+    verified: bool = False
+    source: str = ""
+    page: int = 0
+    citation_id: str = ""
+    source_url: str = ""
 
 class RelatedStandardItem(BaseModel):
     id: str
@@ -54,7 +58,7 @@ class IndianStandard(BaseModel):
     is_number: str
     title: str
     category: str
-    status: Literal["Active", "Under Revision", "Reaffirmed", "Withdrawn"]
+    status: Literal["Active", "Under Revision", "Reaffirmed", "Withdrawn", "Local edition"]
     year: str
     scope: str
     key_requirements: List[str]

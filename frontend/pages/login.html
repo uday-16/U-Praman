@@ -238,7 +238,7 @@
                   <label class="form-label" for="signin-password"
                     style="margin-bottom: 0; font-weight: 600; color: var(--ink);">Password</label>
                   <a href="#"
-                    onclick="alert('Password reset link will be sent to your verified registered email address.'); return false;"
+                    id="forgot-password-link"
                     style="font-size: 0.8rem; color: var(--navy); font-weight: 600; text-decoration: none;">Forgot
                     password?</a>
                 </div>
@@ -712,6 +712,14 @@
       });
     });
   </script>
-</body>
+<dialog id="password-reset-dialog" style="margin:auto;width:min(95vw,460px);border:1px solid var(--line);border-radius:12px;padding:2rem">
+  <form id="password-reset-form" style="display:flex;flex-direction:column;gap:.8rem"><h2>Reset password</h2><p>Verify your registered email with a new code.</p>
+  <label for="reset-email">Registered email</label><input id="reset-email" type="email" class="form-input" required autocomplete="email">
+  <button id="send-reset-code" type="button" class="btn btn-secondary">Send verification code</button>
+  <label for="reset-code">Email verification code</label><input id="reset-code" class="form-input" inputmode="numeric" pattern="[0-9]{6}" required autocomplete="one-time-code">
+  <label for="reset-password">New password (at least 12 characters)</label><input id="reset-password" type="password" class="form-input" required minlength="12" autocomplete="new-password">
+  <label for="reset-confirm">Confirm new password</label><input id="reset-confirm" type="password" class="form-input" required minlength="12" autocomplete="new-password">
+  <p id="reset-status" role="status"></p><button type="submit" class="btn btn-primary">Reset password</button><button id="close-reset" type="button" class="btn btn-secondary">Close</button></form>
+</dialog><script type="module" src="/js/password-reset.js"></script></body>
 
 </html>
