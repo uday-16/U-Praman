@@ -61,3 +61,9 @@ test('normal logins keep role defaults; explicit destinations take precedence', 
   setup('/pages/login.html?redirect=%2Fpages%2Fanalyze.html', {role: 'Admin'});
   assert.equal(getPostLoginDestination(), '/pages/analyze.html');
 });
+
+test('direct admin visits use the dedicated login', () => {
+  setup('/pages/admin.html');
+  assert.equal(initAuthNavigation(), false);
+  assert.equal(navigated, '/pages/admin-login.html?redirect=%2Fpages%2Fadmin.html');
+});

@@ -15,6 +15,12 @@ def update_many(self,query,update):
     for doc in self.docs:
         if self.matches(doc,query): doc.update(update.get('$set',{}))
 Collection.update_many=update_many
+def delete_one(self, query):
+    for i, doc in enumerate(self.docs):
+        if self.matches(doc, query):
+            self.docs.pop(i)
+            break
+Collection.delete_one=delete_one
 database.is_mongo_online=False
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -37,7 +43,7 @@ class AdminTests(unittest.TestCase):
         token=auth.issue_login_session(user)
         return {'Authorization':'Bearer '+token}
     def test_every_admin_route_requires_admin(self):
-        for path in ['/admin/overview','/admin/users','/admin/audit','/admin/jobs','/auth/users','/auth/health/email']:
+        for path in ['/admin/dashboard','/admin/me','/admin/users/officer-1','/admin/standards/a.txt/source','/admin/health/email','/admin/overview','/admin/users','/admin/audit','/admin/jobs','/auth/users','/auth/health/email']:
             self.assertEqual(self.client.get(path).status_code,401,path)
             self.assertEqual(self.client.get(path,headers=self.headers('officer-1')).status_code,403,path)
         self.assertEqual(self.client.post('/admin/index/rebuild',headers=self.headers('officer-1')).status_code,403)
@@ -116,5 +122,126 @@ class AdminTests(unittest.TestCase):
         for _ in range(10):
             self.assertEqual(self.client.post('/auth/login',json={'email':'admin@example.test','password':'wrong'}).status_code,401)
         self.assertEqual(self.client.post('/auth/login',json={'email':'admin@example.test','password':'wrong'}).status_code,429)
+
+    def test_admin_login_is_separate_from_officer_login(self):
+        credentials={'email':'admin@example.test','password':'existing-password'}
+        self.assertEqual(self.client.post('/auth/login',json=credentials).status_code,403)
+        self.assertEqual(len(database.sessions_collection.docs),0)
+        response=self.client.post('/auth/admin/login',json=credentials)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(self.client.get('/admin/users',headers={'Authorization':'Bearer '+response.json()['access_token']}).status_code,200)
+        database.users_collection.docs[1].update(password_hash=database.hash_password('officer-password')[0],salt='test-salt')
+        self.assertEqual(self.client.post('/auth/admin/login',json={'email':'officer@example.test','password':'officer-password'}).status_code,403)
+
+    def test_missing_password_cannot_be_initialized_at_login(self):
+        response=self.client.post('/auth/login',json={'email':'officer@example.test','password':'attacker-password'})
+        self.assertEqual(response.status_code,401)
+        self.assertNotIn('password_hash',database.users_collection.docs[1])
+
+    def test_admin_signup_requires_approver_and_fresh_email_code(self):
+        data={'full_name':'New Admin','email':'new@example.test','department':'Operations','password':'new-password-123',
+              'email_otp':'123456','approving_email':'admin@example.test','approving_password':'wrong'}
+        self.assertEqual(self.client.post('/auth/admin/register',json=data).status_code,401)
+        data['approving_password']='existing-password'
+        with patch.object(auth,'_process_verify_email_otp',side_effect=auth.HTTPException(400,'Invalid code')):
+            self.assertEqual(self.client.post('/auth/admin/register',json=data).status_code,400)
+        with patch.object(auth,'_process_verify_email_otp',return_value=None) as otp:
+            response=self.client.post('/auth/admin/register',json=data)
+            self.assertEqual(response.status_code,201)
+            otp.assert_called_once_with('new@example.test','123456')
+        self.assertEqual(len(database.sessions_collection.docs),0)
+        self.assertEqual(database.users_collection.find_one({'email':'new@example.test'})['role'],'Administrator')
+        self.assertEqual(self.client.post('/auth/admin/register',json=data).status_code,409)
+        audit=self.client.get('/admin/audit',headers=self.headers()).json()['items']
+        self.assertEqual(audit[0]['action'],'administrator.create')
+        self.assertNotIn(data['password'],str(audit))
+
+    def test_officer_and_deactivated_admin_cannot_authorize_signup(self):
+        data={'full_name':'New Admin','email':'new@example.test','department':'Operations','password':'new-password-123',
+              'email_otp':'123456','approving_email':'officer@example.test','approving_password':'officer-password'}
+        database.users_collection.docs[1].update(password_hash=database.hash_password('officer-password')[0],salt='test-salt')
+        self.assertEqual(self.client.post('/auth/admin/register',json=data).status_code,403)
+        database.users_collection.docs[0]['status']='deactivated'
+        data.update(approving_email='admin@example.test',approving_password='existing-password')
+        self.assertEqual(self.client.post('/auth/admin/register',json=data).status_code,403)
+        self.assertEqual(len(database.users_collection.docs),2)
+
+    def test_create_update_delete_account_and_revoke_sessions(self):
+        data={'name':'Created Officer','email':'created@example.test','department':'Operations','password':'initial-password-123'}
+        self.assertEqual(self.client.post('/admin/users',json=data).status_code,401)
+        self.assertEqual(self.client.post('/admin/users',json=data,headers=self.headers('officer-1')).status_code,403)
+        headers=self.headers()
+        response=self.client.post('/admin/users',json=data,headers=headers)
+        self.assertEqual(response.status_code,201)
+        self.assertNotIn('password',response.text)
+        user_id=response.json()['id']
+        self.assertEqual(self.client.post('/admin/users',json=data,headers=headers).status_code,409)
+        session=self.headers(user_id)
+        self.assertEqual(self.client.patch('/admin/users/'+user_id,json={'name':'Changed Officer'},headers=headers).json()['name'],'Changed Officer')
+        self.assertEqual(self.client.delete('/admin/users/'+user_id,headers=self.headers('officer-1')).status_code,403)
+        self.assertEqual(self.client.delete('/admin/users/'+user_id,headers=headers).status_code,200)
+        self.assertEqual(self.client.get('/auth/me',headers=session).status_code,401)
+        self.assertEqual(self.client.delete('/admin/users/admin-1',headers=headers).status_code,409)
+        self.assertEqual(self.client.delete('/admin/users/'+user_id,headers=headers).status_code,404)
+
+    def test_public_registration_cannot_overwrite_admin(self):
+        before=copy.deepcopy(database.users_collection.docs[0])
+        with patch.object(auth,'is_email_verified',return_value=True):
+            response=self.client.post('/auth/register',json={'full_name':'Attacker','email':'admin@example.test','department':'Test','role':'Procurement Officer','password':'attack-password'})
+        self.assertEqual(response.status_code,409)
+        self.assertEqual(database.users_collection.docs[0],before)
+
+    def test_google_auth_requires_configured_verifier(self):
+        with patch('app.config.settings.google_client_id',''):
+            response=self.client.post('/auth/google',json={'credential':'forged','email':'admin@example.test','name':'Admin'})
+        self.assertEqual(response.status_code,503)
+
+    def test_dashboard_uses_saved_records_without_loading_index(self):
+        database.users_collection.docs[1].update(department='Public Works',cadre='Procurement Manager',gem_officer_id='OFF-101',jurisdiction_state='Telangana')
+        records=[{'id':'analysis-1','owner':'officer-1','product':'Safety equipment','created_at':admin.datetime.now(admin.timezone.utc).isoformat(),'status':'completed','recommendations':3}]
+        with patch.object(admin,'analyses',return_value=records), patch.object(admin,'get_corpus',side_effect=AssertionError('Dashboard must not initialize the index')):
+            data=self.client.get('/admin/dashboard',headers=self.headers()).json()
+        self.assertEqual(data['officers'],1)
+        self.assertEqual(data['active_officers'],1)
+        self.assertEqual(data['analyses'],1)
+        self.assertEqual(data['department_count'],1)
+        self.assertEqual(data['trend'][-1]['count'],1)
+        self.assertEqual(data['recent_officers'][0]['analyses'],1)
+        self.assertEqual(data['recent_officers'][0]['gem_officer_id'],'OFF-101')
+        self.assertEqual(data['recent_analyses'][0]['officer_name'],'Officer One')
+        self.assertNotIn('password_hash',str(data))
+
+    def test_extended_officer_profile_persists_and_sessions_are_counted(self):
+        headers=self.headers()
+        self.headers('officer-1')
+        stale=self.headers('officer-1')
+        self.client.post('/auth/logout',headers=stale)
+        fields={'department':'Public Works','mobile_number':'+91 9000000000','cadre':'Procurement Manager','gem_officer_id':'OFF-101','jurisdiction_state':'Telangana'}
+        self.assertEqual(self.client.patch('/admin/users/officer-1',headers=headers,json=fields).status_code,200)
+        detail=self.client.get('/admin/users/officer-1',headers=headers).json()
+        for key,value in fields.items(): self.assertEqual(detail[key],value)
+        self.assertEqual(detail['active_sessions'],1)
+        self.assertEqual(database.users_collection.find_one({'id':'officer-1'})['organization'],'Public Works')
+        self.assertNotIn('password_hash',str(detail))
+        self.assertEqual(self.client.get('/admin/users/missing',headers=headers).status_code,404)
+
+    def test_admin_identity_logout_and_fast_standards_listing(self):
+        headers=self.headers()
+        self.assertEqual(self.client.get('/admin/me',headers=headers).json()['role'],'Administrator')
+        with patch('app.services.corpus.peek_corpus',return_value=None), patch.object(admin,'get_corpus',side_effect=AssertionError('Listing must not initialize the index')):
+            response=self.client.get('/admin/standards',headers=headers)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.json()['report']['retrieval_mode'],'Awaiting index initialization')
+        self.assertEqual(self.client.post('/admin/logout',headers=headers).status_code,200)
+        self.assertEqual(self.client.get('/admin/me',headers=headers).status_code,401)
+
+    def test_legacy_accounts_receive_stable_management_ids(self):
+        database.users_collection.docs.append({'_id':'legacy-mongo-id','name':'Legacy Officer','email':'legacy@example.test','role':'Procurement Officer'})
+        headers=self.headers()
+        response=self.client.get('/admin/dashboard',headers=headers)
+        self.assertEqual(response.status_code,200)
+        user=database.users_collection.find_one({'email':'legacy@example.test'})
+        self.assertEqual(user['id'],'usr-legacy-mongo-id')
+        self.assertEqual(self.client.get('/admin/users/'+user['id'],headers=headers).json()['name'],'Legacy Officer')
 
 if __name__=='__main__':unittest.main()

@@ -49,7 +49,7 @@ export const Storage = {
     const user = this.getUser();
     if (!user) return false;
     const r = (user.role || '').toLowerCase();
-    return r === 'admin' || r === 'administrator' || user.email === 'admin@praman.gov.in';
+    return r === 'admin' || r === 'administrator';
   },
   getRememberedIdentifier() {
     return localStorage.getItem(KEYS.REMEMBERED_IDENTIFIER) || '';

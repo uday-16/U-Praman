@@ -31,6 +31,8 @@ export default defineConfig({
         login: resolve(__dirname, 'pages/login.html'),
         dashboard: resolve(__dirname, 'pages/dashboard.html'),
         admin: resolve(__dirname, 'pages/admin.html'),
+        adminLogin: resolve(__dirname, 'pages/admin-login.html'),
+        adminSignup: resolve(__dirname, 'pages/admin-signup.html'),
         analyze: resolve(__dirname, 'pages/analyze.html'),
         review: resolve(__dirname, 'pages/review.html'),
         results: resolve(__dirname, 'pages/results.html'),

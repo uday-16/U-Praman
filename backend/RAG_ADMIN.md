@@ -35,9 +35,9 @@ The Gemini model is configurable with `GEMINI_MODEL`. Calls have bounded timeout
 
 ## Administrator access
 
-Use the existing Login page with an administrator account, then open `/pages/admin.html`. All `/api/v1/admin` routes and the legacy user-management routes require a valid server-side session and an administrator role. Changing the browser's stored role does not grant access.
+Use `/pages/admin-login.html` with administrator credentials, then open `/pages/admin.html`. The public login rejects administrator accounts. Admin entry points are not linked from public navigation. URL separation is organizational; server authentication and authorization enforce access. All `/api/v1/admin` routes and the legacy user-management routes require a valid server-side session and an administrator role. Changing the browser's stored role does not grant access.
 
-Public signup creates verified procurement officer accounts only. An existing administrator can promote a verified officer from **Users & access**. Administrators can edit names/departments, deactivate/reactivate accounts and revoke sessions. Role and status changes revoke existing sessions. Self-demotion/deactivation and removal of the last active administrator are blocked.
+Public signup creates verified procurement officer accounts only and never overwrites existing accounts. `/pages/admin-signup.html` creates administrators only after verifying a fresh email OTP for the new account and the credentials of an active existing administrator. No approving administrator session token is issued. Admin creation is audited. The console can create officer accounts, list/search/filter accounts, update them and permanently delete accounts while retaining historical analyses and audit records. Deletion revokes sessions and prevents self-deletion or removal of the last active administrator. An existing administrator can promote a verified officer from **Users & access**. Administrators can edit names/departments, deactivate/reactivate accounts and revoke sessions. Role and status changes revoke existing sessions. Self-demotion/deactivation and removal of the last active administrator are blocked.
 
 New installations do not create an administrator with a hardcoded password. To provision the first administrator, set `BOOTSTRAP_ADMIN_EMAIL` and a unique `BOOTSTRAP_ADMIN_PASSWORD` of at least 12 characters in the backend environment, start the backend once, then remove the bootstrap values. Existing accounts are retained.
 
@@ -66,3 +66,13 @@ npm run build --prefix frontend
 ```
 
 Tests cover authentication, admin access denial, privilege escalation prevention, session revocation, password recovery/rotation, owner isolation, document validation, edition filtering, source citations, cache invalidation, no-evidence behavior and archive/restore jobs. Account mutations in the test suite use isolated fixtures, not real users. Live checks also exercised retrieval against the actual standards collection and the configured Gemini provider.
+
+## Dedicated administrator workspace
+
+`/pages/admin.html?section=overview` is the administrator dashboard. Its sidebar keeps all management sections on this page: `users`, `standards`, `activity`, `audit`, and `security`. Browser back/forward and reload preserve the selected section. The page uses `/api/v1/admin/me` for session validation; administrative logout, service checks and source downloads also use protected admin endpoints.
+
+`GET /api/v1/admin/dashboard` summarizes persisted accounts and analysis metadata, with officer counts, department coverage, seven-day UTC activity, recent officers, analyses, audit events and indexing jobs. It never initializes the retrieval index. The dashboard refreshes every 30 seconds only while visible and idle. No synthetic accounts are inserted by the dashboard.
+
+Officer creation and editing support phone, designation/cadre, officer/GeM ID and jurisdiction/state. `GET /api/v1/admin/users/{id}` returns these fields, registration/login dates, active session count and recent analysis summaries. Password hashes and tokens are never returned. Profile dialogs remain in the admin workspace.
+
+Standards listings read an already-loaded index snapshot and show pending index status when one is unavailable. Rebuild runs through the existing background job queue; opening the dashboard or standards list does not start OCR or embedding-model loading. Job status refreshes while the standards section is visible. After an indexing operation completes, use Refresh data to reload document metadata.

@@ -196,16 +196,16 @@
         </div>
       </div>
 
-      <!-- Right Column: Sign In & Registration Tabs Container -->
+      <!-- Right Column: Log In & Registration Tabs Container -->
       <div style="padding: 2.25rem 2rem; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
           <!-- Unified Auth Switcher Tabs -->
           <div style="display: flex; border-bottom: 1px solid var(--line); margin-bottom: 1.75rem;">
             <button type="button" id="tab-btn-signin" class="auth-tab-btn active">
-              Sign In
+              Log In
             </button>
             <button type="button" id="tab-btn-register" class="auth-tab-btn">
-              Create Account
+              Sign Up
             </button>
           </div>
 
@@ -216,7 +216,7 @@
 
           <!-- SIGN IN PANEL -->
           <div id="panel-signin">
-            <!-- Sign In Form -->
+            <!-- Log In Form -->
             <form id="login-form">
               <div class="form-group" id="group-signin-fullname" style="margin-bottom: 1.15rem;">
                 <label class="form-label" for="signin-fullname" style="font-weight: 600; color: var(--ink);">Full Name /
@@ -234,14 +234,7 @@
                 </div>
               </div>
 
-              <div class="form-group" id="group-signin-role" style="margin-bottom: 1.15rem;">
-                <label class="form-label" for="signin-role" style="font-weight: 600; color: var(--ink);">Account
-                  Role</label>
-                <select id="signin-role" class="form-input" style="height: 42px; font-weight: 600;">
-                  <option value="Procurement Officer">Procurement Officer</option>
-                  <option value="Administrator">System Administrator</option>
-                </select>
-              </div>
+              <input type="hidden" id="signin-role" value="Procurement Officer">
 
               <div class="form-group" id="group-signin-pwd" style="margin-bottom: 1.15rem;">
                 <div
@@ -283,7 +276,7 @@
 
               <button type="submit" id="btn-submit-signin" class="btn btn-primary"
                 style="width: 100%; height: 44px; font-size: 0.95rem; font-weight: 700; background: var(--gov-blue); border-radius: 8px;">
-                Sign In to Workspace &rarr;
+                Log In to Workspace &rarr;
               </button>
             </form>
           </div>
@@ -339,14 +332,7 @@
               </div>
 
               <!-- Account Role -->
-              <div class="form-group" id="group-reg-role" style="margin-bottom: 1rem;">
-                <label class="form-label" for="reg-role" style="font-weight: 600; color: var(--ink);">Account
-                  Role</label>
-                <select id="reg-role" class="form-input" style="height: 42px; font-weight: 600;">
-                  <option value="Procurement Officer">Procurement Officer</option>
-                  <option value="Administrator">Administrator</option>
-                </select>
-              </div>
+              <input type="hidden" id="reg-role" value="Procurement Officer">
 
               <!-- Password -->
               <div class="form-group" id="group-reg-password" style="margin-bottom: 1rem;">
@@ -388,7 +374,7 @@
 
               <button type="submit" id="btn-submit-register" class="btn btn-primary"
                 style="width: 100%; height: 44px; font-size: 0.95rem; font-weight: 700; background: var(--gov-blue); border-radius: 8px;">
-                Create Account &amp; Proceed &rarr;
+                Sign Up &amp; Proceed &rarr;
               </button>
           </div>
         </div>
@@ -620,7 +606,7 @@
 
 
 
-    // Sign In Form Submission
+    // Log In Form Submission
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAlert();
@@ -644,7 +630,7 @@
 
       const res = await Storage.loginUser({ fullName, role, password });
       btnSubmit.disabled = false;
-      btnSubmit.innerText = 'Sign In to Workspace →';
+      btnSubmit.innerText = 'Log In to Workspace →';
 
       if (res.success) {
         const chkRemember = document.getElementById('signin-remember');
@@ -721,7 +707,7 @@
       });
 
       btnSubmit.disabled = false;
-      btnSubmit.innerText = 'Create Account & Proceed →';
+      btnSubmit.innerText = 'Sign Up & Proceed →';
 
 
       if (res.success) {

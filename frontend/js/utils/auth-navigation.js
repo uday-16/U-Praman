@@ -37,7 +37,8 @@ export function getPostLoginDestination() {
 }
 
 export function loginUrl(destination) {
-  return '/pages/login.html?redirect=' + encodeURIComponent(destination);
+  const page = destination?.split('?')[0].split('#')[0] === '/pages/admin.html' ? '/pages/admin-login.html' : '/pages/login.html';
+  return page + '?redirect=' + encodeURIComponent(destination);
 }
 
 export function initAuthNavigation() {

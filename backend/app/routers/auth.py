@@ -314,6 +314,11 @@ def verify_otp(req: VerifyOtpRequest):
 
 @router.post("/register", response_model=AuthResponse)
 def register(req: RegisterRequest):
+    from app.routers.admin import USER_LOCK
+    with USER_LOCK:
+        return register_officer(req)
+
+def register_officer(req: RegisterRequest):
     if normalize_role(req.role) != "Procurement Officer":
         raise HTTPException(403, "Administrator access must be granted by an existing administrator.")
     full_name = req.full_name.strip()
@@ -341,65 +346,41 @@ def register(req: RegisterRequest):
         )
     
     existing_user = users_collection.find_one({"email": email})
+    if existing_user:
+        raise HTTPException(409, "This email is already registered. Log in or reset your password.")
     pwd_hash, salt = hash_password(password)
     now_utc = datetime.now(timezone.utc)
     cadre = "Class I Executive"
     jurisdiction = "All India / Central"
     access = "Full Admin" if role == "Administrator" else "Officer Access"
 
-    if existing_user:
-        user_id = existing_user.get("id") or f"usr-{str(existing_user.get('_id'))[-8:]}"
-        gem_id = existing_user.get("gem_officer_id") or f"GEM-{user_id[-6:].upper()}"
-        users_collection.update_one(
-            {"_id": existing_user["_id"]},
-            {"$set": {
-                "id": user_id,
-                "full_name": full_name,
-                "mobile_number": mobile or existing_user.get("mobile_number") or None,
-                "department": department,
-                "organization": department,
-                "role": role,
-                "cadre": cadre,
-                "gem_officer_id": gem_id,
-                "jurisdiction_state": jurisdiction,
-                "portal_access": access,
-                "password_hash": pwd_hash,
-                "salt": salt,
-                "auth_provider": "local",
-                "status": "active",
-                "is_email_verified": 1,
-                "updated_at": now_utc,
-                "last_login_at": now_utc
-            }}
-        )
-        logger.info(f"Existing account activated and updated via Email OTP: {full_name} ({_mask_email(email)})")
-    else:
-        user_id = f"usr-{secrets.token_hex(6)}"
-        gem_id = f"GEM-{user_id[-6:].upper()}"
-        user_doc = {
-            "id": user_id,
-            "full_name": full_name,
-            "email": email,
-            "mobile_number": mobile,
-            "department": department,
-            "organization": department,
-            "role": role,
-            "cadre": cadre,
-            "gem_officer_id": gem_id,
-            "jurisdiction_state": jurisdiction,
-            "portal_access": access,
-            "password_hash": pwd_hash,
-            "salt": salt,
-            "auth_provider": "local",
-            "status": "active",
-            "is_email_verified": 1,
-            "created_at": now_utc,
-            "updated_at": now_utc,
-            "last_login_at": now_utc
-        }
-        users_collection.insert_one(user_doc)
-        logger.info(f"New user registered and activated via Email OTP: {full_name} ({_mask_email(email)})")
-    
+
+    user_id = f"usr-{secrets.token_hex(6)}"
+    gem_id = f"GEM-{user_id[-6:].upper()}"
+    user_doc = {
+        "id": user_id,
+        "full_name": full_name,
+        "email": email,
+        "mobile_number": mobile,
+        "department": department,
+        "organization": department,
+        "role": role,
+        "cadre": cadre,
+        "gem_officer_id": gem_id,
+        "jurisdiction_state": jurisdiction,
+        "portal_access": access,
+        "password_hash": pwd_hash,
+        "salt": salt,
+        "auth_provider": "local",
+        "status": "active",
+        "is_email_verified": 1,
+        "created_at": now_utc,
+        "updated_at": now_utc,
+        "last_login_at": now_utc
+    }
+    users_collection.insert_one(user_doc)
+    logger.info(f"New user registered and activated via Email OTP: {full_name} ({_mask_email(email)})")
+
     user_profile = UserProfile(
         id=user_id,
         name=full_name,
@@ -425,8 +406,14 @@ def register(req: RegisterRequest):
 
 @router.post("/login", response_model=AuthResponse)
 def login(req: LoginRequest, request: Request):
+    return authenticate(req, request, admin_portal=False)
+
+@router.post("/admin/login", response_model=AuthResponse)
+def admin_login(req: LoginRequest, request: Request):
+    return authenticate(req, request, admin_portal=True)
+
+def authenticate(req: LoginRequest, request: Request, admin_portal=False, create_session=True):
     identifier = (req.full_name or req.email or "").strip()
-    req_role = normalize_role(req.role) if req.role else None
     password = req.password
     
     if not identifier:
@@ -464,25 +451,11 @@ def login(req: LoginRequest, request: Request):
         users_collection.update_one({"_id": user_doc["_id"]}, {"$set": {"id": user_id}})
         user_doc["id"] = user_id
 
-    if not user_doc.get("password_hash") or not user_doc.get("salt"):
-        pwd_hash, salt = hash_password(password)
-        now_utc = datetime.now(timezone.utc)
-        users_collection.update_one(
-            {"_id": user_doc["_id"]},
-            {"$set": {
-                "password_hash": pwd_hash,
-                "salt": salt,
-                "auth_provider": "local",
-                "status": "active",
-                "is_email_verified": 1,
-                "updated_at": now_utc
-            }}
-        )
-        user_doc["password_hash"] = pwd_hash
-        user_doc["salt"] = salt
-        logger.info(f"Password initialized and set for account on login: {user_doc.get('email')}")
-    elif not verify_password(password, user_doc["password_hash"], user_doc["salt"]):
+    if not user_doc.get("password_hash") or not user_doc.get("salt") or not verify_password(password, user_doc["password_hash"], user_doc["salt"]):
         raise HTTPException(status_code=401, detail="Incorrect password. Please verify and try again.")
+
+    if (user_db_role == 'Administrator') != admin_portal:
+        raise HTTPException(403, 'These credentials cannot access this portal.')
     
     now_utc = datetime.now(timezone.utc)
     users_collection.update_one({"_id": user_doc["_id"]}, {"$set": {"last_login_at": now_utc}})
@@ -505,12 +478,44 @@ def login(req: LoginRequest, request: Request):
     )
     
     login_attempt(identifier, address, success=True)
-    token = issue_login_session(user_profile.id)
+    token = issue_login_session(user_profile.id) if create_session else ''
     return AuthResponse(
         access_token=token,
         token_type="bearer",
         user=user_profile
     )
+
+class AdminRegisterRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    email: str = Field(max_length=254)
+    department: str = Field(min_length=2, max_length=160)
+    password: str = Field(min_length=12, max_length=256)
+    email_otp: str = Field(min_length=6, max_length=6)
+    approving_email: str = Field(max_length=254)
+    approving_password: str = Field(min_length=1, max_length=256)
+
+@router.post('/admin/register', status_code=201)
+def register_admin(req: AdminRegisterRequest, request: Request):
+    from app.routers.admin import USER_LOCK
+    from app.services.admin_store import audit
+    email = req.email.strip().lower()
+    if not EMAIL_REGEX.fullmatch(email) or not req.full_name.strip() or not req.department.strip():
+        raise HTTPException(422, 'Enter a valid name, email and department.')
+    with USER_LOCK:
+        approver = authenticate(LoginRequest(email=req.approving_email, password=req.approving_password),
+                                request, admin_portal=True, create_session=False).user
+        if users_collection.find_one({'email': email}):
+            raise HTTPException(409, 'This email is already registered.')
+        _process_verify_email_otp(email, req.email_otp)
+        hashed, salt = hash_password(req.password)
+        user_id = 'usr-' + secrets.token_hex(12)
+        users_collection.insert_one({'id': user_id, 'full_name': req.full_name.strip(), 'email': email,
+            'department': req.department.strip(), 'organization': req.department.strip(),
+            'role': 'Administrator', 'portal_access': 'Full Admin', 'status': 'active',
+            'password_hash': hashed, 'salt': salt, 'is_email_verified': 1, 'auth_provider': 'local',
+            'created_at': datetime.now(timezone.utc).isoformat()})
+        audit(approver.id, 'administrator.create', user_id)
+    return {'success': True, 'message': 'Administrator account created. Log in with your new credentials.'}
 
 class PasswordResetRequest(BaseModel):
     email: str = Field(max_length=254)
@@ -553,6 +558,8 @@ def google_auth(req: GoogleAuthRequest):
 
     if not req.credential:
         raise HTTPException(status_code=401, detail="A verified Google credential is required.")
+    if role != 'Procurement Officer':
+        raise HTTPException(403, 'Only officer accounts can use public sign-up.')
 
     if settings.google_client_id:
         try:
@@ -564,8 +571,7 @@ def google_auth(req: GoogleAuthRequest):
         except Exception:
             raise HTTPException(status_code=401, detail="Invalid Google credential.")
     else:
-        email = (req.email or "").strip().lower()
-        name = (req.name or email).strip()
+        raise HTTPException(503, 'Google authentication is not configured.')
 
     if not email:
         raise HTTPException(status_code=400, detail="Google authentication failed: Email missing.")
@@ -574,6 +580,8 @@ def google_auth(req: GoogleAuthRequest):
     now_utc = datetime.now(timezone.utc)
 
     if user_doc:
+        if normalize_role(user_doc.get('role')) == 'Administrator':
+            raise HTTPException(403, 'These credentials cannot access this portal.')
         if user_doc.get("status") == "deactivated":
             raise HTTPException(status_code=403, detail="Your account has been deactivated.")
         user_id = user_doc.get("id", str(user_doc.get("_id")))

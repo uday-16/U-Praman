@@ -277,8 +277,7 @@ def seed_default_admin():
     admin_email = os.getenv("BOOTSTRAP_ADMIN_EMAIL", "").strip().lower()
     admin_password = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "")
     if not admin_email or len(admin_password) < 12:
-        admin_email = "admin@praman.gov.in"
-        admin_password = "AdminPassword123!"
+        return
 
     existing = users_collection.find_one({"email": admin_email})
     if not existing:

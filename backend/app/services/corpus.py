@@ -118,9 +118,12 @@ class Corpus:
         cache_file = CACHE / (self.fingerprint + '.json')
         try:
             cached = json.loads(cache_file.read_text(encoding='utf-8'))
+            if not cached.get('chunks'):
+                raise ValueError('Corrupted or empty cache with 0 chunks; re-extracting.')
         except (OSError, ValueError):
             cached = self.extract(files)
-            atomic_json(cache_file, cached)
+            if cached.get('chunks'):
+                atomic_json(cache_file, cached)
         self.documents = cached['documents']
         self.chunks = cached['chunks']
         self.errors = cached['errors']
@@ -239,6 +242,10 @@ class Corpus:
                 'ocr_pages': sum(len(d.get('ocr_pages', [])) for d in self.documents),
                 'pages_needing_ocr': [{'source': d['source'], 'pages': d['empty_pages']} for d in self.documents if d['empty_pages']]}
 
+
+def peek_corpus():
+    """Return only an already-loaded index; management listings must not trigger OCR/model loading."""
+    return _corpus
 
 def get_corpus(download=False, force=False):
     global _corpus

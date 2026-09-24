@@ -13,6 +13,11 @@ test('cached profile alone and malformed profile do not count as login',()=>{
  setup();Storage.setUser(user);assert.equal(Storage.isLoggedIn(),false);
  values.set('praman_user','broken-json');assert.equal(Storage.isLoggedIn(),false);
 });
+
+test('administrator-like email does not grant an administrator role',()=>{
+ setup();Storage.setUser({...user,email:'admin@praman.gov.in'});
+ assert.equal(Storage.isAdmin(),false);
+});
 test('registration does not grant dashboard access',async()=>{
  setup();response({user,access_token:'registration-token'});
  const result=await Storage.registerUser({fullName:'Test Officer',email:'test@example.com',department:'Test',password:'test'});

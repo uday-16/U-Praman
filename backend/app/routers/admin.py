@@ -3,17 +3,19 @@ import json
 import os
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from collections import Counter
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from typing import Literal
 from filelock import FileLock, Timeout
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from app.config import settings
 from app.database import users_collection, sessions_collection, is_mongo_online, verify_password, hash_password
-from app.routers.auth import require_admin, normalize_role, issue_login_session
+from app.routers.auth import require_admin, normalize_role, issue_login_session, EMAIL_REGEX
 from app.services.admin_store import connection, audit
 from app.services.corpus import BACKEND, get_corpus, data_directory, parse_metadata
 from app.services.document_reader import MAX_UPLOAD_BYTES, read_document
@@ -32,16 +34,92 @@ class UserUpdate(BaseModel):
     department: str | None = Field(default=None, max_length=160)
     role: Literal['Administrator', 'Procurement Officer'] | None = None
     status: Literal['active', 'deactivated'] | None = None
+    mobile_number: str | None = Field(default=None, max_length=30)
+    cadre: str | None = Field(default=None, max_length=120)
+    gem_officer_id: str | None = Field(default=None, max_length=80)
+    jurisdiction_state: str | None = Field(default=None, max_length=120)
 
 class PasswordChange(BaseModel):
     current_password: str = Field(min_length=1, max_length=256)
     new_password: str = Field(min_length=12, max_length=256)
 
+class UserCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    email: str = Field(max_length=254)
+    department: str = Field(min_length=2, max_length=160)
+    password: str = Field(min_length=12, max_length=256)
+    mobile_number: str = Field(default='', max_length=30)
+    cadre: str = Field(default='', max_length=120)
+    gem_officer_id: str = Field(default='', max_length=80)
+    jurisdiction_state: str = Field(default='', max_length=120)
+
+@router.post('/users', status_code=201)
+def create_user(change: UserCreate, actor=Depends(require_admin)):
+    email = change.email.strip().lower()
+    if not EMAIL_REGEX.fullmatch(email) or not change.name.strip() or not change.department.strip():
+        raise HTTPException(422, 'Enter a valid name, email and department.')
+    with USER_LOCK:
+        if users_collection.find_one({'email': email}):
+            raise HTTPException(409, 'This email is already registered.')
+        hashed, salt = hash_password(change.password)
+        user = {'id': 'usr-' + uuid.uuid4().hex, 'full_name': change.name.strip(), 'email': email,
+                'department': change.department.strip(), 'organization': change.department.strip(),
+                'role': 'Procurement Officer', 'status': 'active', 'is_email_verified': 0,
+                'password_hash': hashed, 'salt': salt, 'auth_provider': 'local',
+                'created_at': datetime.now(timezone.utc).isoformat()}
+        for key in ('mobile_number', 'cadre', 'gem_officer_id', 'jurisdiction_state'):
+            user[key] = getattr(change, key).strip()
+        users_collection.insert_one(user)
+        audit(actor['id'], 'user.create', user['id'])
+        return user_view(user)
+
+@router.delete('/users/{user_id}')
+def delete_user(user_id: str, actor=Depends(require_admin)):
+    with USER_LOCK:
+        user = users_collection.find_one({'id': user_id})
+        if not user: raise HTTPException(404, 'User not found.')
+        if actor['id'] == user_id:
+            raise HTTPException(409, 'You cannot delete your own administrator account.')
+        if normalize_role(user.get('role')) == 'Administrator':
+            remaining = [u for u in users_collection.find({}) if u['id'] != user_id and u.get('status') == 'active' and normalize_role(u.get('role')) == 'Administrator']
+            if not remaining: raise HTTPException(409, 'At least one active administrator must remain.')
+        sessions_collection.update_many({'user_id': user_id}, {'$set': {'revoked': True}})
+        users_collection.delete_one({'id': user_id})
+        audit(actor['id'], 'user.delete', user_id)
+    return {'success': True}
+
 def user_view(user):
-    return {'id':user['id'], 'name':user['full_name'], 'email':user['email'],
+    if not user.get('id'):
+        user['id'] = 'usr-' + str(user['_id'])
+        users_collection.update_one({'_id':user['_id']},{'$set':{'id':user['id']}})
+    return {'id':user['id'], 'name':user.get('full_name') or user.get('name') or 'Officer', 'email':user.get('email',''),
             'department':user.get('department',''), 'role':normalize_role(user.get('role')),
             'status':user.get('status','active'), 'email_verified':bool(user.get('is_email_verified')),
-            'created_at':str(user.get('created_at','')), 'last_login_at':str(user.get('last_login_at',''))}
+            'created_at':str(user.get('created_at','')), 'last_login_at':str(user.get('last_login_at','')),
+            **{key:user.get(key,'') for key in ('mobile_number','cadre','gem_officer_id','jurisdiction_state')}}
+
+@router.get('/me')
+def admin_identity(actor=Depends(require_admin)):
+    from app.routers.auth import get_current_user
+    return get_current_user(actor)
+
+@router.post('/logout')
+def admin_logout(request: Request):
+    from app.routers.auth import logout
+    return logout(request)
+
+@router.get('/health/email')
+def admin_email_health(actor=Depends(require_admin)):
+    from app.routers.auth import health_email
+    return health_email(actor)
+
+@router.get('/standards/{filename}/source')
+def admin_source(filename: str):
+    if Path(filename).name != filename or Path(filename).suffix.lower() not in {'.pdf','.docx','.txt'}:
+        raise HTTPException(404, 'Document not found.')
+    path = data_directory() / filename
+    if not path.is_file(): raise HTTPException(404, 'Document not found.')
+    return FileResponse(path, filename=filename)
 
 def page(items, offset, limit):
     return {'items':items[offset:offset+limit], 'total':len(items), 'offset':offset, 'limit':limit}
@@ -67,6 +145,44 @@ def overview():
             'llm_configured':bool(settings.gemini_api_key), 'llm_model':settings.gemini_model,
             'semantic_enabled':settings.rag_semantic_enabled, 'embedding_model':settings.embedding_model}
 
+@router.get('/dashboard')
+def dashboard():
+    # Read only lightweight account/analysis metadata; never initialize the retrieval index here.
+    accounts = [user_view(u) for u in users_collection.find({})]
+    records = analyses()
+    counts = Counter(r['owner'] for r in records)
+    officers = [dict(u, analyses=counts[u['id']]) for u in accounts if u['role']=='Procurement Officer']
+    departments = Counter(u['department'] or 'Unassigned' for u in officers)
+    today = datetime.now(timezone.utc).date()
+    trend = []
+    for i in range(6,-1,-1):
+        day = (today-timedelta(days=i)).isoformat()
+        trend.append({'date':day, 'count':sum(str(r['created_at']).startswith(day) for r in records)})
+    names = {u['id']:u['name'] for u in accounts}
+    with connection() as db:
+        recent = [dict(r) for r in db.execute('SELECT at,actor,action,target FROM audit ORDER BY id DESC LIMIT 5')]
+        jobs = [dict(r) for r in db.execute('SELECT id,kind,status,message,at FROM jobs ORDER BY at DESC LIMIT 5')]
+    for event in recent: event['actor_name'] = names.get(event['actor'], 'Removed account')
+    for record in records: record['officer_name'] = names.get(record['owner'], 'Removed account')
+    return {'generated_at':datetime.now(timezone.utc).isoformat(),
+            'officers':len(officers), 'active_officers':sum(u['status']=='active' for u in officers),
+            'users':len(accounts), 'administrators':sum(u['role']=='Administrator' and u['status']=='active' for u in accounts),
+            'documents':sum(p.is_file() and p.suffix.lower() in {'.pdf','.docx','.txt'} for p in data_directory().glob('*')),
+            'analyses':len(records), 'unverified':sum(not u['email_verified'] for u in officers),
+            'department_count':len(departments),
+            'departments':[{'name':name,'count':count} for name,count in departments.most_common(5)],
+            'recent_officers':sorted(officers,key=lambda u:u['created_at'],reverse=True)[:5],
+            'recent_analyses':records[:5], 'trend':trend, 'audit':recent, 'jobs':jobs}
+
+@router.get('/users/{user_id}')
+def user_detail(user_id: str):
+    user = users_collection.find_one({'id':user_id})
+    if not user: raise HTTPException(404, 'User not found.')
+    records = [r for r in analyses() if r['owner']==user_id]
+    now = datetime.now(timezone.utc).isoformat()
+    sessions = sum(not s.get('revoked') and s.get('expires_at','')>now for s in sessions_collection.find({'user_id':user_id}))
+    return dict(user_view(user), analyses=len(records), recent_analyses=records[:5], active_sessions=sessions)
+
 @router.get('/users')
 def list_users(q: str='', role: str='', status: str='', offset: int=Query(0,ge=0), limit: int=Query(20,ge=1,le=100)):
     users=[user_view(u) for u in users_collection.find({})]
@@ -87,6 +203,8 @@ def update_user(user_id: str, change: UserUpdate, actor=Depends(require_admin)):
         if change.role=='Administrator' and not user.get('is_email_verified'):
             raise HTTPException(409,'Verify this user’s email before granting administrator access.')
         fields=change.model_dump(exclude_none=True)
+        fields={k:v.strip() if isinstance(v,str) else v for k,v in fields.items()}
+        if 'department' in fields: fields['organization']=fields['department']
         if 'name' in fields: fields['full_name']=fields.pop('name').strip()
         if fields.get('full_name')=='': raise HTTPException(422,'Name is required.')
         fields['updated_at']=datetime.now(timezone.utc).isoformat()
@@ -117,7 +235,9 @@ def change_password(change: PasswordChange, actor=Depends(require_admin)):
 
 @router.get('/analyses')
 def list_analyses(q: str='', offset: int=Query(0,ge=0), limit: int=Query(20,ge=1,le=100)):
-    return page([r for r in analyses() if q.lower() in (r['product']+' '+r['owner']).lower()],offset,limit)
+    names={u['id']:u.get('full_name','') for u in users_collection.find({})}
+    records=[dict(r,officer_name=names.get(r['owner'],'Removed account')) for r in analyses()]
+    return page([r for r in records if q.lower() in (r['product']+' '+r['owner']+' '+r['officer_name']).lower()],offset,limit)
 
 @router.get('/audit')
 def list_audit(offset: int=Query(0,ge=0), limit: int=Query(30,ge=1,le=100)):
@@ -129,19 +249,21 @@ def list_audit(offset: int=Query(0,ge=0), limit: int=Query(30,ge=1,le=100)):
 @router.get('/standards')
 def standard_files():
     try:
-        corpus=get_corpus()
+        from app.services.corpus import peek_corpus
+        corpus=peek_corpus()
+        if corpus is None: raise ValueError('Index not initialized.')
         indexed={d['source']:d for d in corpus.documents}
         report=corpus.report()
     except (ValueError, OSError):
         indexed={}
-        report={'documents':0,'chunks':0,'ocr_pages':0,'retrieval_mode':'unavailable',
-                'errors':[{'error':'No usable index. Add or restore a readable document, then rebuild.'}], 'pages_needing_ocr':[]}
+        report={'documents':0,'chunks':0,'ocr_pages':0,'retrieval_mode':'Awaiting index initialization',
+                'errors':[], 'pages_needing_ocr':[]}
     files=[]
     for directory, status in [(data_directory(),'indexed'),(ARCHIVE,'archived')]:
         for path in sorted(directory.glob('*')):
             if path.suffix.lower() not in {'.pdf','.docx','.txt'}: continue
             meta=indexed.get(path.name,{}) if status=='indexed' else {}
-            files.append({'filename':path.name,'status':status if meta or status=='archived' else 'error',
+            files.append({'filename':path.name,'status':status if meta or status=='archived' else 'pending index',
                           'size':path.stat().st_size,'title':meta.get('title',''), 'is_number':meta.get('is_number',''),
                           'pages':meta.get('pages',0),'ocr_pages':len(meta.get('ocr_pages',[])),
                           'amendment':meta.get('amendment',''),'id':meta.get('id','')})

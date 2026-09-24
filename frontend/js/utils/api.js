@@ -1,3 +1,4 @@
+import { loginUrl } from './auth-navigation.js';
 import { Storage } from './storage.js';
 import { API_BASE } from './api-config.js';
 export { API_BASE };
@@ -17,7 +18,7 @@ export async function api(path, { method = 'GET', body, timeout = 120000 } = {})
     if (!response.ok) {
       if (response.status === 401) {
         Storage.setToken(null); Storage.setUser(null);
-        window.location.assign('/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+        window.location.assign(loginUrl(window.location.pathname + window.location.search));
       }
       throw new Error(typeof data.detail === 'string' ? data.detail : `Request failed (${response.status}). Please check your input and try again.`);
     }

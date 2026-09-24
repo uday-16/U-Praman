@@ -120,7 +120,6 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null
           <input type="text" placeholder="Search Indian Standards..." id="topbar-search-input" />
         </div>
 
-<<<<<<< HEAD
         <!-- Interactive Notifications -->
         <div class="topbar-notif-wrapper">
           <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" title="Procurement Notifications" aria-expanded="false">
@@ -174,18 +173,6 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null
             <div class="notif-footer">
               <a href="/pages/history.html" class="notif-view-all">View All Procurement History &rarr;</a>
             </div>
-=======
-        <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" title="Notifications">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span class="notification-badge"></span>
-        </button>
-
-        <a href="/pages/profile.html" class="user-profile-btn" title="View & Edit Officer Profile">
-          <div class="avatar-circle">${initial}</div>
-          <div class="user-info">
-            <span class="user-name">${escapeHtml(officerName)}</span>
-            <span class="user-role">${escapeHtml(officerRole)}</span>
->>>>>>> 8301a287f085226825277702ef5a285ae4371d2f
           </div>
         </div>
 
@@ -313,8 +300,9 @@ export function initTopbarEvents() {
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
+      const admin = Storage.isAdmin();
       Storage.logout();
-      window.location.href = '/pages/login.html';
+      window.location.href = admin ? '/pages/admin-login.html' : '/pages/login.html';
     });
   }
 
