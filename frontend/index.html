@@ -8,14 +8,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,600&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var saved = localStorage.getItem('praman_lang') || localStorage.getItem('standardsai_lang');
+      if (saved && saved !== 'en') {
+        document.cookie = 'googtrans=/en/' + saved + '; path=/;';
+        if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          document.cookie = 'googtrans=/en/' + saved + '; domain=' + window.location.hostname + '; path=/;';
+        }
+      }
+    })();
+  </script>
   <style>
     .goog-te-banner-frame,
     .goog-te-banner-frame.skiptranslate,
     iframe.goog-te-banner-frame,
     iframe[class*="goog-te-banner-frame"],
     iframe[id*="goog-te-banner-frame"],
-    iframe[src*="translate.google"],
-    iframe[src*="translate.googleapis"],
     .VIpgJd-ZVi9od-ORHb-OEVmcd,
     .VIpgJd-ZVi9od-ORHb-OEVmcd-tiAv2c,
     .VIpgJd-ZVi9od-a9145-aoyky2,
@@ -29,7 +38,6 @@
     .goog-gt-tt,
     .goog-te-spinner-pos,
     .goog-te-spinner,
-    div[id*="goog-gt-"],
     .goog-text-highlight {
       display: none !important;
       visibility: hidden !important;
@@ -43,6 +51,16 @@
       position: absolute !important;
       top: -9999px !important;
       left: -9999px !important;
+    }
+    #google_translate_element {
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      opacity: 0.01 !important;
+      pointer-events: none !important;
     }
     .goog-te-gadget {
       font-size: 0 !important;

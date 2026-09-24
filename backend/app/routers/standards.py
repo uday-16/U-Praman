@@ -1,13 +1,19 @@
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends, Body
 from fastapi.responses import FileResponse
-from app.services.corpus import get_corpus
+from app.routers.auth import require_session, normalize_role
 from app.schemas.standards import IndianStandard, StandardGraph, VersionItem
+from app.services.corpus import get_corpus
 from app.services.standards_db import (
     get_all_standards, get_standard_by_id, get_standard_graph
 )
 
 router = APIRouter(prefix="/standards", tags=["Indian Standards Knowledge Base"])
+
+def require_admin(user=Depends(require_session)):
+    if normalize_role(user.get("role")) != "Administrator":
+        raise HTTPException(status_code=403, detail="Administrator access is required.")
+    return user
 
 @router.get("", response_model=List[IndianStandard])
 def search_standards(
@@ -42,7 +48,6 @@ def get_source(filename: str):
     if filename not in corpus.by_source:
         raise HTTPException(404, 'Source document not found.')
     return FileResponse(corpus.directory / filename, filename=filename, content_disposition_type='inline')
-
 
 @router.get("/{standard_id}", response_model=IndianStandard)
 def get_standard_detail(standard_id: str):

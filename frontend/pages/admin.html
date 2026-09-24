@@ -4,6 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Console — PRAMAN</title>
+  <script>
+    (function() {
+      var saved = localStorage.getItem('praman_lang') || localStorage.getItem('standardsai_lang');
+      if (saved && saved !== 'en') {
+        document.cookie = 'googtrans=/en/' + saved + '; path=/;';
+        if (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+          document.cookie = 'googtrans=/en/' + saved + '; domain=' + window.location.hostname + '; path=/;';
+        }
+      }
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +31,8 @@
 
   <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
   <script type="module" src="/js/utils/workspace-guard.js"></script>
-<link rel="stylesheet" href="/css/admin.css"></head>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
 <body style="background: var(--paper);">
   <div class="app-layout">
     <div id="sidebar-root"></div>
@@ -28,10 +40,25 @@
       <div id="topbar-root"></div>
 
       <main class="app-content admin-console" id="admin-content">
-        <div class="admin-heading"><div><span class="admin-eyebrow">PORTAL ADMINISTRATION</span><h1 class="page-title">Administrator console</h1><p class="page-subtitle">Manage access, maintain standards, and monitor the portal.</p></div><div class="admin-actions"><button id="admin-refresh" class="btn btn-secondary">Refresh data</button><button id="admin-signout" class="btn btn-primary">Sign out</button></div></div>
+        <div class="admin-heading">
+          <div>
+            <span class="admin-eyebrow">PORTAL ADMINISTRATION</span>
+            <h1 class="page-title">Administrator console</h1>
+            <p class="page-subtitle">Manage access, maintain standards, and monitor the portal.</p>
+          </div>
+          <div class="admin-actions">
+            <button id="admin-refresh" class="btn btn-secondary">Refresh data</button>
+            <button id="admin-signout" class="btn btn-primary">Sign out</button>
+          </div>
+        </div>
         <div id="admin-metrics" class="admin-metrics" aria-live="polite"></div>
         <nav id="admin-tabs" class="admin-tabs" aria-label="Administration sections">
-          <button data-tab="overview" class="active" aria-current="page">Overview</button><button data-tab="users">Users & access</button><button data-tab="standards">Standards library</button><button data-tab="activity">Analysis activity</button><button data-tab="audit">Audit log</button><button data-tab="security">Security & services</button>
+          <button data-tab="overview" class="active" aria-current="page">Overview</button>
+          <button data-tab="users">Users & access</button>
+          <button data-tab="standards">Standards library</button>
+          <button data-tab="activity">Analysis activity</button>
+          <button data-tab="audit">Audit log</button>
+          <button data-tab="security">Security & services</button>
         </nav>
         <p id="admin-message" role="status" aria-live="polite"></p>
         <section id="admin-panel" aria-live="polite"><p>Loading administrator data…</p></section>
@@ -39,14 +66,32 @@
     </div>
   </div>
   <dialog id="user-dialog" class="admin-dialog" aria-labelledby="user-dialog-title">
-    <form id="user-edit-form" class="admin-form"><div class="admin-heading"><h2 id="user-dialog-title">Edit account</h2><button type="button" data-close-dialog class="btn btn-secondary btn-sm">Close</button></div>
-      <input type="hidden" id="edit-user-id"><label for="edit-user-name">Full name</label><input id="edit-user-name" class="form-input" required minlength="2" maxlength="120">
-      <label for="edit-user-department">Department / organization</label><input id="edit-user-department" class="form-input" maxlength="160">
-      <label for="edit-user-role">Role</label><select id="edit-user-role" class="form-select"><option>Procurement Officer</option><option>Administrator</option></select>
-      <label for="edit-user-status">Account status</label><select id="edit-user-status" class="form-select"><option value="active">Active</option><option value="deactivated">Deactivated</option></select>
-      <p class="admin-muted">Changing a role or status signs the account out of existing sessions.</p><p id="user-edit-error" role="alert"></p><button type="submit" class="btn btn-primary">Save account</button>
+    <form id="user-edit-form" class="admin-form">
+      <div class="admin-heading">
+        <h2 id="user-dialog-title">Edit account</h2>
+        <button type="button" data-close-dialog class="btn btn-secondary btn-sm">Close</button>
+      </div>
+      <input type="hidden" id="edit-user-id">
+      <label for="edit-user-name">Full name</label>
+      <input id="edit-user-name" class="form-input" required minlength="2" maxlength="120">
+      <label for="edit-user-department">Department / organization</label>
+      <input id="edit-user-department" class="form-input" maxlength="160">
+      <label for="edit-user-role">Role</label>
+      <select id="edit-user-role" class="form-select">
+        <option>Procurement Officer</option>
+        <option>Administrator</option>
+      </select>
+      <label for="edit-user-status">Account status</label>
+      <select id="edit-user-status" class="form-select">
+        <option value="active">Active</option>
+        <option value="deactivated">Deactivated</option>
+      </select>
+      <p class="admin-muted">Changing a role or status signs the account out of existing sessions.</p>
+      <p id="user-edit-error" role="alert"></p>
+      <button type="submit" class="btn btn-primary">Save account</button>
     </form>
   </dialog>
+
   <script type="module" src="/js/main.js"></script>
   <script type="module" src="/js/admin.js"></script>
 </body>

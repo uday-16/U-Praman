@@ -144,8 +144,6 @@ body.app-page,
 iframe.goog-te-banner-frame,
 iframe[class*="goog-te-banner-frame"],
 iframe[id*="goog-te-banner-frame"],
-iframe[src*="translate.google"],
-iframe[src*="translate.googleapis"],
 .VIpgJd-ZVi9od-ORHb-OEVmcd,
 .VIpgJd-ZVi9od-ORHb-OEVmcd-tiAv2c,
 .VIpgJd-ZVi9od-a9145-aoyky2,
@@ -159,7 +157,6 @@ iframe[src*="translate.googleapis"],
 .goog-gt-tt,
 .goog-te-spinner-pos,
 .goog-te-spinner,
-div[id*="goog-gt-"],
 .goog-text-highlight {
   display: none !important;
   visibility: hidden !important;
@@ -173,6 +170,21 @@ div[id*="goog-gt-"],
   position: absolute !important;
   top: -9999px !important;
   left: -9999px !important;
+}
+#google_translate_element {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0.01 !important;
+  pointer-events: none !important;
+}
+html, body {
+  top: 0px !important;
+  position: static !important;
+  margin-top: 0px !important;
 }
 .goog-te-gadget {
   font-size: 0 !important;

@@ -79,9 +79,16 @@ export function renderPublicNavbar(activePath = '/') {
 
         <!-- Right Side Controls & CTAs -->
         <div class="navbar-actions">
-          <a href="/pages/login.html" class="navbar-cta" style="white-space: nowrap;">
-            Login
-          </a>
+          ${isLoggedIn ? `
+            <a href="/pages/dashboard.html" class="navbar-cta" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.25); font-size: 0.75rem; font-weight: 800;">${(user?.name || 'O').trim().charAt(0).toUpperCase()}</span>
+              <span>Officer Workspace &rarr;</span>
+            </a>
+          ` : `
+            <a href="/pages/login.html" class="navbar-cta" style="white-space: nowrap;">
+              Login
+            </a>
+          `}
         </div>
       </div>
     </header>

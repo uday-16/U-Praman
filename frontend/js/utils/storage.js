@@ -15,7 +15,8 @@ const KEYS = {
   ANALYSES_HISTORY: 'praman_analyses',
   REPORTS: 'praman_reports',
   SETTINGS: 'praman_settings',
-  SIDEBAR_COLLAPSED: 'praman_sidebar_collapsed'
+  SIDEBAR_COLLAPSED: 'praman_sidebar_collapsed',
+  REMEMBERED_IDENTIFIER: 'praman_remembered_id'
 };
 
 export const Storage = {
@@ -49,6 +50,16 @@ export const Storage = {
     if (!user) return false;
     const r = (user.role || '').toLowerCase();
     return r === 'admin' || r === 'administrator' || user.email === 'admin@praman.gov.in';
+  },
+  getRememberedIdentifier() {
+    return localStorage.getItem(KEYS.REMEMBERED_IDENTIFIER) || '';
+  },
+  setRememberedIdentifier(identifier) {
+    if (identifier) {
+      localStorage.setItem(KEYS.REMEMBERED_IDENTIFIER, identifier.trim());
+    } else {
+      localStorage.removeItem(KEYS.REMEMBERED_IDENTIFIER);
+    }
   },
 
   async sendOtp({ identifier, otpType }) {
@@ -187,6 +198,24 @@ export const Storage = {
     } catch (err) {
       console.error('Backend Google auth error:', err);
       return { success: false, error: 'Unable to authenticate. Please try signing in again.' };
+    }
+  },
+
+  async updateProfile(profileData) {
+    try {
+      const token = this.getToken();
+      const { ok, data } = await callAuthApi('/profile', profileData, 'PUT', token);
+      if (!ok) {
+        return { success: false, error: data.detail || 'Failed to update officer profile in database.' };
+      }
+      if (data && data.id) {
+        this.setUser(data);
+        return { success: true, user: data };
+      }
+      return { success: false, error: 'Failed to update profile.' };
+    } catch (err) {
+      console.error('Backend update profile error:', err);
+      return { success: false, error: 'Unable to connect to server to update profile.' };
     }
   },
 
