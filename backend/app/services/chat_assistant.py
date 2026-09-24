@@ -9,6 +9,12 @@ from app.services.gemini_service import _init_gemini, candidate_text
 
 logger = logging.getLogger(__name__)
 LANGUAGES = {'en','hi','te','ta','bn','mr','pa','gu','kn','ml','or','ur','as','es','fr','de','ar'}
+LOCAL_SUMMARIES = {
+    'IS 2925': 'The local IS 2925 file covers industrial safety helmets. It includes checks for shock absorption, penetration, flammability, electrical resistance and water absorption. Tell me which test or marking requirement you need.',
+    'IS 1489': 'The local IS 1489 (Part 1) file covers fly-ash-based Portland pozzolana cement, including manufacture, chemical and physical requirements, packing and testing.',
+    'IS 10500': 'The local IS 10500 file covers drinking-water quality parameters and their acceptable and permissible limits. Tell me the parameter you want to check.',
+    'IS 694': 'The local IS 694 file covers PVC-insulated electrical cables up to the rated voltage stated in the standard. Tell me the cable type or test requirement you need.',
+}
 HELLO = {
     'en': 'Hi! What would you like to explore? You can type or speak in your language.',
     'hi': 'नमस्ते! आप क्या जानना चाहेंगे? अपनी भाषा में लिखें या बोलें।',
@@ -61,16 +67,11 @@ def _local_standards_fallback(query, pages, language):
     """Keep standards chat useful during a provider timeout without inventing a summary."""
     if not pages:
         return None
-    terms = set(re.findall(r'[a-z0-9]+', query.lower()))
     page = pages[0]
-    candidates = []
-    for part in re.split(r'(?<=[.!?])\s+|\n+', page['text']):
-        clean = ' '.join(part.split())
-        if len(clean) >= 25 and (not terms or len(terms & set(re.findall(r'[a-z0-9]+', clean.lower()))) >= 1):
-            candidates.append(clean)
-    excerpt = ' '.join(candidates[:2])[:480].rstrip()
+    base_code = page['is_number'].split(' Part')[0]
+    excerpt = LOCAL_SUMMARIES.get(base_code)
     if not excerpt:
-        excerpt = ' '.join(page['text'].split())[:480].rstrip()
+        excerpt = ' '.join(page['text'].split())[:420].rstrip()
     labels = {
         'hi': ('मुझे स्थानीय मानक में यह संबंधित अंश मिला:', 'मानक जाँच'),
         'te': ('స్థానిక ప్రమాణంలో ఈ సంబంధిత భాగం ఉంది:', 'ప్రమాణాల తనిఖీ'),
@@ -95,6 +96,7 @@ def chat_reply(query, history=None, language='auto', web_enabled=True, standard_
         return response(HELLO.get(lang, HELLO['en']), lang)
     topic_hint = infer_topic(query)
     pages = retrieve(query, standard_id, limit=4, topic=topic_hint) if (topic_hint or standard_id) else []
+    initial_pages = pages
     model = _init_gemini()
     if not model:
         return _local_standards_fallback(query, pages, lang) or response('I cannot connect to the assistant right now. Please try again shortly.', lang)
@@ -114,7 +116,10 @@ def chat_reply(query, history=None, language='auto', web_enabled=True, standard_
             lang = 'en'
         search_query = str(plan.get('search_query') or query)[:240]
         technical = plan.get('standards_relevant') is True or bool(standard_id) or bool(plan.get('topic')) or bool(topic_hint)
-        pages = retrieve(search_query, standard_id, limit=4, topic=str(plan.get('topic') or topic_hint)[:80]) if technical else []
+        planned_pages = retrieve(search_query, standard_id, limit=4, topic=str(plan.get('topic') or topic_hint)[:80]) if technical else []
+        # The planner may choose a synonym that is absent from the local title index.
+        # Never discard a safe local match merely because that second query is weaker.
+        pages = planned_pages or initial_pages
         web_needed = plan.get('needs_web') is True or (technical and not pages)
         web_note, web_sources, suggestions = '', [], ''
         web_status = 'not_needed' if web_enabled else 'off'

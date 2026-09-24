@@ -125,7 +125,23 @@ class ConversationTests(unittest.TestCase):
             {'answer':'Limit is 999 NTU.','standards_note':'IS 10500 approves it.','evidence':[{'index':0,'quote':'Turbidity limit is 999 NTU for all water.'}]}]
         result=assistant.chat_reply('turbidity')
         self.assertNotIn('999',result['answer'])
-        self.assertEqual(result['citations'],[])
+        self.assertEqual(result['citations'][0]['is_number'],'IS 10500')
+        self.assertIn('source passage',result['standards_note'])
+
+    @patch.object(assistant, 'json_call')
+    @patch.object(assistant, '_init_gemini')
+    @patch.object(assistant, 'retrieve')
+    def test_planner_cannot_discard_initial_local_match(self, retrieve, init, generate):
+        citation={k:v for k,v in page().items() if k!='terms'}
+        retrieve.side_effect=[[citation], []]
+        generate.side_effect=[
+            {'search_query':'motorcycle helmet','topic':'motorcycle','standards_relevant':True,'language':'en'},
+            {'answer':'The local evidence covers the requested helmet safety checks.',
+             'standards_note':'Compare the intended use with the local helmet standard.',
+             'evidence':[{'index':0,'quote':citation['text']}]},
+        ]
+        result=assistant.chat_reply('Helmet standard')
+        self.assertEqual(result['citations'][0]['is_number'],'IS 10500')
 
     @patch.object(assistant, '_init_gemini')
     def test_search_sources_require_real_grounding_and_safe_urls(self, init):
