@@ -72,6 +72,18 @@ class MockCursor:
     def to_list(self):
         return list(self._items)
 
+class InsertResult:
+    def __init__(self, inserted_id: Any = None):
+        self.inserted_id = inserted_id
+
+class UpdateResult:
+    def __init__(self, modified_count: int = 0):
+        self.modified_count = modified_count
+
+class DeleteResult:
+    def __init__(self, deleted_count: int = 0):
+        self.deleted_count = deleted_count
+
 class FallbackCollection:
     """High-performance in-memory + JSON persisted MongoDB-compatible collection fallback."""
     def __init__(self, name: str, filepath: str):
@@ -137,7 +149,7 @@ class FallbackCollection:
                     return False
         return True
 
-    def find_one(self, query: Dict[str, Any] = None, sort=None) -> Optional[Dict[str, Any]]:
+    def find_one(self, query: Optional[Dict[str, Any]] = None, sort=None) -> Optional[Dict[str, Any]]:
         matches = [d for d in self._docs if self._matches(d, query or {})]
         if not matches:
             return None
@@ -147,24 +159,22 @@ class FallbackCollection:
             return copy.deepcopy(cursor._items[0])
         return copy.deepcopy(matches[0])
 
-    def find(self, query: Dict[str, Any] = None, sort=None) -> MockCursor:
+    def find(self, query: Optional[Dict[str, Any]] = None, sort=None) -> MockCursor:
         matches = [copy.deepcopy(d) for d in self._docs if self._matches(d, query or {})]
         cursor = MockCursor(matches)
         if sort:
             cursor.sort(sort)
         return cursor
 
-    def insert_one(self, doc: Dict[str, Any]) -> Any:
+    def insert_one(self, doc: Dict[str, Any]) -> InsertResult:
         item = copy.deepcopy(doc)
         if "_id" not in item:
             item["_id"] = f"doc-{secrets.token_hex(8)}"
         self._docs.append(item)
         self._save()
-        class Result:
-            inserted_id = item["_id"]
-        return Result()
+        return InsertResult(inserted_id=item["_id"])
 
-    def update_one(self, query: Dict[str, Any], update: Dict[str, Any]) -> Any:
+    def update_one(self, query: Dict[str, Any], update: Dict[str, Any]) -> UpdateResult:
         modified_count = 0
         for doc in self._docs:
             if self._matches(doc, query):
@@ -178,13 +188,9 @@ class FallbackCollection:
                 break
         if modified_count > 0:
             self._save()
-        class Result:
-            pass
-        r = Result()
-        r.modified_count = modified_count
-        return r
+        return UpdateResult(modified_count=modified_count)
 
-    def update_many(self, query: Dict[str, Any], update: Dict[str, Any]) -> Any:
+    def update_many(self, query: Dict[str, Any], update: Dict[str, Any]) -> UpdateResult:
         modified_count = 0
         for doc in self._docs:
             if self._matches(doc, query):
@@ -194,13 +200,9 @@ class FallbackCollection:
                 modified_count += 1
         if modified_count > 0:
             self._save()
-        class Result:
-            pass
-        r = Result()
-        r.modified_count = modified_count
-        return r
+        return UpdateResult(modified_count=modified_count)
 
-    def delete_one(self, query: Dict[str, Any]) -> Any:
+    def delete_one(self, query: Dict[str, Any]) -> DeleteResult:
         idx = -1
         for i, doc in enumerate(self._docs):
             if self._matches(doc, query):
@@ -209,11 +211,9 @@ class FallbackCollection:
         if idx >= 0:
             self._docs.pop(idx)
             self._save()
-        class Result:
-            deleted_count = 1 if idx >= 0 else 0
-        return Result()
+        return DeleteResult(deleted_count=1 if idx >= 0 else 0)
 
-    def count_documents(self, query: Dict[str, Any] = None) -> int:
+    def count_documents(self, query: Optional[Dict[str, Any]] = None) -> int:
         return sum(1 for d in self._docs if self._matches(d, query or {}))
 
     def create_index(self, *args, **kwargs):
@@ -223,10 +223,11 @@ class FallbackCollection:
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-is_mongo_online = False
-users_collection = None
-otps_collection = None
-client = None
+is_mongo_online: bool = False
+users_collection: Any = None
+otps_collection: Any = None
+sessions_collection: Any = None
+client: Any = None
 
 try:
     from pymongo import MongoClient, ASCENDING
@@ -252,6 +253,8 @@ except Exception as e:
 
 # Seed default admin account if not existing
 def seed_default_admin():
+    if users_collection is None:
+        return
     admin_email = "admin@praman.gov.in"
     existing = users_collection.find_one({"email": admin_email})
     if not existing:

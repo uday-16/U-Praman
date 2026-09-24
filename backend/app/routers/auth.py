@@ -27,6 +27,7 @@ from app.schemas.auth import (
     LoginRequest,
     GoogleAuthRequest,
     UserProfile,
+    UpdateProfileRequest,
     AuthResponse,
     ServiceHealthResponse
 )
@@ -65,6 +66,14 @@ def require_session(request: Request):
     except (KeyError, TypeError, ValueError):
         raise HTTPException(status_code=401, detail="Your session has expired. Please log in again.")
     user = users_collection.find_one({"id": session["user_id"]})
+    if not user:
+        try:
+            from bson import ObjectId
+            user = users_collection.find_one({"_id": ObjectId(session["user_id"])})
+        except Exception:
+            user = None
+    if not user:
+        user = users_collection.find_one({"_id": session["user_id"]})
     if not user or user.get("status") == "deactivated":
         raise HTTPException(status_code=401, detail="Please log in with an active account.")
     return user
@@ -306,7 +315,7 @@ def register(req: RegisterRequest):
     department = req.department.strip()
     role = normalize_role(req.role)
     password = req.password
-    mobile = (req.mobile_number or "").strip()
+    mobile = (req.mobile_number or "").strip() or None
     
     if not full_name:
         raise HTTPException(status_code=400, detail="Full Name is required.")
@@ -317,12 +326,6 @@ def register(req: RegisterRequest):
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters long.")
     
-    # Check if Email is already registered in MongoDB
-    if users_collection.find_one({"email": email}):
-        raise HTTPException(
-            status_code=400,
-            detail="An account with this Email Address is already registered. Please sign in."
-        )
     
     # Strictly require Email OTP verification
     email_ok = is_email_verified(email, req.email_otp)
@@ -332,29 +335,65 @@ def register(req: RegisterRequest):
             detail="Email verification required. Please verify the OTP sent to your work email before creating an account."
         )
     
-    user_id = f"usr-{secrets.token_hex(6)}"
+    existing_user = users_collection.find_one({"email": email})
     pwd_hash, salt = hash_password(password)
     now_utc = datetime.now(timezone.utc)
-    
-    user_doc = {
-        "id": user_id,
-        "full_name": full_name,
-        "email": email,
-        "mobile_number": mobile,
-        "department": department,
-        "role": role,
-        "password_hash": pwd_hash,
-        "salt": salt,
-        "auth_provider": "local",
-        "status": "active",
-        "is_email_verified": 1,
-        "created_at": now_utc,
-        "updated_at": now_utc,
-        "last_login_at": now_utc
-    }
-    
-    users_collection.insert_one(user_doc)
-    logger.info(f"New user registered and activated via Email OTP: {full_name} ({_mask_email(email)})")
+    cadre = "Class I Executive"
+    jurisdiction = "All India / Central"
+    access = "Full Admin" if role == "Administrator" else "Officer Access"
+
+    if existing_user:
+        user_id = existing_user.get("id") or f"usr-{str(existing_user.get('_id'))[-8:]}"
+        gem_id = existing_user.get("gem_officer_id") or f"GEM-{user_id[-6:].upper()}"
+        users_collection.update_one(
+            {"_id": existing_user["_id"]},
+            {"$set": {
+                "id": user_id,
+                "full_name": full_name,
+                "mobile_number": mobile or existing_user.get("mobile_number") or None,
+                "department": department,
+                "organization": department,
+                "role": role,
+                "cadre": cadre,
+                "gem_officer_id": gem_id,
+                "jurisdiction_state": jurisdiction,
+                "portal_access": access,
+                "password_hash": pwd_hash,
+                "salt": salt,
+                "auth_provider": "local",
+                "status": "active",
+                "is_email_verified": 1,
+                "updated_at": now_utc,
+                "last_login_at": now_utc
+            }}
+        )
+        logger.info(f"Existing account activated and updated via Email OTP: {full_name} ({_mask_email(email)})")
+    else:
+        user_id = f"usr-{secrets.token_hex(6)}"
+        gem_id = f"GEM-{user_id[-6:].upper()}"
+        user_doc = {
+            "id": user_id,
+            "full_name": full_name,
+            "email": email,
+            "mobile_number": mobile,
+            "department": department,
+            "organization": department,
+            "role": role,
+            "cadre": cadre,
+            "gem_officer_id": gem_id,
+            "jurisdiction_state": jurisdiction,
+            "portal_access": access,
+            "password_hash": pwd_hash,
+            "salt": salt,
+            "auth_provider": "local",
+            "status": "active",
+            "is_email_verified": 1,
+            "created_at": now_utc,
+            "updated_at": now_utc,
+            "last_login_at": now_utc
+        }
+        users_collection.insert_one(user_doc)
+        logger.info(f"New user registered and activated via Email OTP: {full_name} ({_mask_email(email)})")
     
     user_profile = UserProfile(
         id=user_id,
@@ -364,11 +403,15 @@ def register(req: RegisterRequest):
         role=role,
         organization=department,
         department=department,
+        cadre=cadre,
+        gem_officer_id=gem_id,
+        jurisdiction_state=jurisdiction,
+        portal_access=access,
         status="active",
         is_email_verified=True
     )
     
-    token = f"praman_jwt_{secrets.token_urlsafe(32)}"
+    token = issue_login_session(user_id)
     return AuthResponse(
         access_token=token,
         token_type="bearer",
@@ -405,16 +448,31 @@ def login(req: LoginRequest):
         raise HTTPException(status_code=403, detail="Your officer account has been deactivated by an Administrator.")
     
     user_db_role = normalize_role(user_doc.get("role"))
-    if req_role and req_role != user_db_role:
-        raise HTTPException(
-            status_code=401,
-            detail=f"This account is registered as '{user_db_role}'. Please select '{user_db_role}' as the role to sign in."
-        )
     
+    user_id = user_doc.get("id")
+    if not user_id:
+        user_id = f"usr-{str(user_doc.get('_id'))[-8:]}"
+        users_collection.update_one({"_id": user_doc["_id"]}, {"$set": {"id": user_id}})
+        user_doc["id"] = user_id
+
     if not user_doc.get("password_hash") or not user_doc.get("salt"):
-        raise HTTPException(status_code=401, detail="Please use Google Sign-In or reset your password.")
-        
-    if not verify_password(password, user_doc["password_hash"], user_doc["salt"]):
+        pwd_hash, salt = hash_password(password)
+        now_utc = datetime.now(timezone.utc)
+        users_collection.update_one(
+            {"_id": user_doc["_id"]},
+            {"$set": {
+                "password_hash": pwd_hash,
+                "salt": salt,
+                "auth_provider": "local",
+                "status": "active",
+                "is_email_verified": 1,
+                "updated_at": now_utc
+            }}
+        )
+        user_doc["password_hash"] = pwd_hash
+        user_doc["salt"] = salt
+        logger.info(f"Password initialized and set for account on login: {user_doc.get('email')}")
+    elif not verify_password(password, user_doc["password_hash"], user_doc["salt"]):
         raise HTTPException(status_code=401, detail="Incorrect password. Please verify and try again.")
     
     now_utc = datetime.now(timezone.utc)
@@ -422,12 +480,17 @@ def login(req: LoginRequest):
     
     user_profile = UserProfile(
         id=user_doc.get("id", str(user_doc.get("_id"))),
-        name=user_doc["full_name"],
+        name=user_doc.get("full_name", user_doc.get("name", "Officer")),
         email=user_doc["email"],
         mobile_number=user_doc.get("mobile_number"),
         role=user_db_role,
-        organization=user_doc.get("department", "Central Procurement Cell"),
-        department=user_doc.get("department", "Central Procurement Cell"),
+        organization=user_doc.get("organization", user_doc.get("department", "Central Procurement Division")),
+        department=user_doc.get("department", "Central Procurement Division"),
+        cadre=user_doc.get("cadre", "Class I Executive"),
+        gem_officer_id=user_doc.get("gem_officer_id") or f"GEM-{str(user_doc.get('id', 'IND'))[-6:].upper()}",
+        jurisdiction_state=user_doc.get("jurisdiction_state", "All India / Central"),
+        portal_access=user_doc.get("portal_access", "Full Admin" if user_db_role == "Administrator" else "Officer Access"),
+        preferred_language=user_doc.get("preferred_language", "English"),
         status=user_doc.get("status", "active"),
         is_email_verified=bool(user_doc.get("is_email_verified", 1))
     )
@@ -467,18 +530,33 @@ def google_auth(req: GoogleAuthRequest):
         user_id = user_doc.get("id", str(user_doc.get("_id")))
         user_role = normalize_role(user_doc.get("role"))
         dept = user_doc.get("department", "Central Procurement Division")
+        org = user_doc.get("organization", dept)
+        cadre = user_doc.get("cadre", "Class I Executive")
+        gem_id = user_doc.get("gem_officer_id") or f"GEM-{str(user_id)[-6:].upper()}"
+        jurisdiction = user_doc.get("jurisdiction_state", "All India / Central")
+        access = user_doc.get("portal_access", "Full Admin" if user_role == "Administrator" else "Officer Access")
         users_collection.update_one({"_id": user_doc["_id"]}, {"$set": {"last_login_at": now_utc}})
     else:
         user_id = f"usr-g-{secrets.token_hex(6)}"
         user_role = role
         dept = "Central Procurement Division"
+        org = dept
+        cadre = "Class I Executive"
+        gem_id = f"GEM-{str(user_id)[-6:].upper()}"
+        jurisdiction = "All India / Central"
+        access = "Full Admin" if user_role == "Administrator" else "Officer Access"
         new_doc = {
             "id": user_id,
             "full_name": name,
             "email": email,
             "mobile_number": "",
             "department": dept,
+            "organization": org,
             "role": user_role,
+            "cadre": cadre,
+            "gem_officer_id": gem_id,
+            "jurisdiction_state": jurisdiction,
+            "portal_access": access,
             "auth_provider": "google",
             "status": "active",
             "is_email_verified": 1,
@@ -494,13 +572,17 @@ def google_auth(req: GoogleAuthRequest):
         email=email,
         mobile_number=user_doc.get("mobile_number") if user_doc else None,
         role=user_role,
-        organization=dept,
+        organization=org,
         department=dept,
+        cadre=cadre,
+        gem_officer_id=gem_id,
+        jurisdiction_state=jurisdiction,
+        portal_access=access,
         status="active",
         is_email_verified=True
     )
     
-    token = f"praman_g_jwt_{secrets.token_urlsafe(32)}"
+    token = issue_login_session(user_id)
     return AuthResponse(
         access_token=token,
         token_type="bearer",
@@ -509,20 +591,83 @@ def google_auth(req: GoogleAuthRequest):
 
 @router.get("/me", response_model=UserProfile)
 def get_current_user(doc=Depends(require_session)):
+    role = normalize_role(doc.get("role"))
     return UserProfile(
         id=doc.get("id", str(doc.get("_id"))),
-        name=doc["full_name"],
+        name=doc.get("full_name", doc.get("name", "Officer")),
         email=doc["email"],
         mobile_number=doc.get("mobile_number"),
-        role=normalize_role(doc.get("role")),
-        organization=doc.get("department", "Central Procurement Cell"),
-        department=doc.get("department", "Central Procurement Cell"),
+        role=role,
+        organization=doc.get("organization", doc.get("department", "Central Procurement Division")),
+        department=doc.get("department", "Central Procurement Division"),
+        cadre=doc.get("cadre", "Class I Executive"),
+        gem_officer_id=doc.get("gem_officer_id") or f"GEM-{str(doc.get('id', 'IND'))[-6:].upper()}",
+        jurisdiction_state=doc.get("jurisdiction_state", "All India / Central"),
+        portal_access=doc.get("portal_access", "Full Admin" if role == "Administrator" else "Officer Access"),
+        preferred_language=doc.get("preferred_language", "English"),
         status=doc.get("status", "active"),
         is_email_verified=bool(doc.get("is_email_verified", 1))
     )
 
+@router.put("/profile", response_model=UserProfile)
+@router.patch("/profile", response_model=UserProfile)
+def update_profile(req: UpdateProfileRequest, user_doc=Depends(require_session)):
+    updates = {}
+    if req.name is not None and req.name.strip():
+        updates["full_name"] = req.name.strip()
+    if req.email is not None and req.email.strip() and EMAIL_REGEX.match(req.email.strip().lower()):
+        updates["email"] = req.email.strip().lower()
+    if req.mobile_number is not None:
+        updates["mobile_number"] = req.mobile_number.strip()
+    if req.role is not None and req.role.strip():
+        updates["role"] = normalize_role(req.role)
+    if req.organization is not None:
+        updates["organization"] = req.organization.strip()
+    if req.department is not None:
+        updates["department"] = req.department.strip()
+    if req.cadre is not None:
+        updates["cadre"] = req.cadre.strip()
+    if req.gem_officer_id is not None:
+        updates["gem_officer_id"] = req.gem_officer_id.strip()
+    if req.jurisdiction_state is not None:
+        updates["jurisdiction_state"] = req.jurisdiction_state.strip()
+    if req.portal_access is not None:
+        updates["portal_access"] = req.portal_access.strip()
+    if req.preferred_language is not None:
+        updates["preferred_language"] = req.preferred_language.strip()
+
+    updates["updated_at"] = datetime.now(timezone.utc)
+    
+    users_collection.update_one({"_id": user_doc["_id"]}, {"$set": updates})
+    
+    refreshed = users_collection.find_one({"_id": user_doc["_id"]}) or user_doc
+    for k, v in updates.items():
+        refreshed[k] = v
+        
+    role = normalize_role(refreshed.get("role"))
+    logger.info(f"Officer profile updated in database for: {refreshed.get('full_name')} ({refreshed.get('email')})")
+    
+    return UserProfile(
+        id=refreshed.get("id", str(refreshed.get("_id"))),
+        name=refreshed.get("full_name", refreshed.get("name", "Officer")),
+        email=refreshed["email"],
+        mobile_number=refreshed.get("mobile_number"),
+        role=role,
+        organization=refreshed.get("organization", refreshed.get("department", "Central Procurement Division")),
+        department=refreshed.get("department", "Central Procurement Division"),
+        cadre=refreshed.get("cadre", "Class I Executive"),
+        gem_officer_id=refreshed.get("gem_officer_id") or f"GEM-{str(refreshed.get('id', 'IND'))[-6:].upper()}",
+        jurisdiction_state=refreshed.get("jurisdiction_state", "All India / Central"),
+        portal_access=refreshed.get("portal_access", "Full Admin" if role == "Administrator" else "Officer Access"),
+        preferred_language=refreshed.get("preferred_language", "English"),
+        status=refreshed.get("status", "active"),
+        is_email_verified=bool(refreshed.get("is_email_verified", 1))
+    )
+
 @router.get("/users")
-def list_users():
+def list_users(_admin=Depends(require_session)):
+    if normalize_role(_admin.get("role")) != "Administrator":
+        raise HTTPException(status_code=403, detail="Administrator access is required.")
     cursor = users_collection.find({}, sort=[("created_at", -1)])
     docs = list(cursor)
     
@@ -542,7 +687,9 @@ def list_users():
     ]
 
 @router.post("/toggle-status/{user_id}")
-def toggle_user_status(user_id: str):
+def toggle_user_status(user_id: str, _admin=Depends(require_session)):
+    if normalize_role(_admin.get("role")) != "Administrator":
+        raise HTTPException(status_code=403, detail="Administrator access is required.")
     doc = users_collection.find_one({"id": user_id})
     if not doc:
         raise HTTPException(status_code=404, detail="User not found.")

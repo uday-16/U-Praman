@@ -355,11 +355,25 @@
       tabAnalytics.addEventListener('click', () => setActiveAdminTab(tabAnalytics, panelAnalytics));
 
       // Render Standards Table
-      let localStandards = [...mockStandards];
+      const API = (window.location.port && window.location.port !== '8000') ? 'http://127.0.0.1:8000' : '';
+      const adminHeaders = () => ({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + Storage.getToken() });
+      let localStandards = [];
+      async function loadStandards() {
+        try {
+          const response = await fetch(`${API}/api/v1/standards`, { headers: adminHeaders() });
+          if (!response.ok) throw new Error('Unable to load standards');
+          localStandards = await response.json();
+        } catch (error) {
+          localStandards = [...mockStandards];
+          showToast('Live catalogue unavailable; showing the bundled catalogue.', 'warning');
+        }
+        document.getElementById('stat-total-standards').innerText = localStandards.length;
+        renderStandardsTable();
+      }
       function renderStandardsTable() {
         const searchVal = document.getElementById('admin-search-standards').value.toLowerCase();
         const filtered = localStandards.filter(s =>
-          (s.isNumber || s.code || '').toLowerCase().includes(searchVal) ||
+          (s.is_number || s.isNumber || s.code || '').toLowerCase().includes(searchVal) ||
           (s.title || '').toLowerCase().includes(searchVal) ||
           (s.category || '').toLowerCase().includes(searchVal)
         );
@@ -368,24 +382,48 @@
         const tbody = document.getElementById('admin-standards-tbody');
         tbody.innerHTML = filtered.map(s => `
           <tr>
-            <td style="font-weight: 700; color: var(--navy);">${s.isNumber || s.code}</td>
+            <td style="font-weight: 700; color: var(--navy);">${s.is_number || s.isNumber || s.code}</td>
             <td style="font-weight: 500;">${s.title}</td>
             <td><span class="badge" style="background: var(--paper); border: 1px solid var(--line);">${s.category || 'General'}</span></td>
             <td>${s.year || '2011'}</td>
-            <td><span class="badge ${s.status === 'Current' ? 'badge-success' : 'badge-warning'}">${s.status || 'Active'}</span></td>
+            <td><span class="badge ${['Active', 'Current', 'Reaffirmed'].includes(s.status) ? 'badge-success' : 'badge-warning'}">${s.status || 'Active'}</span></td>
             <td>
               <button class="btn btn-secondary btn-sm" onclick="toggleStandardStatus('${s.id}')" style="font-weight: 600;">Toggle Status</button>
+              <button class="btn btn-secondary btn-sm" onclick="deleteStandard('${s.id}')" style="font-weight: 600; color: #DC2626;">Delete</button>
             </td>
           </tr>
         `).join('');
       }
 
-      window.toggleStandardStatus = function(id) {
+      window.toggleStandardStatus = async function(id) {
         const std = localStandards.find(s => s.id === id);
         if (std) {
-          std.status = std.status === 'Deactivated' ? 'Current' : 'Deactivated';
+          const nextStatus = std.status === 'Withdrawn' ? 'Active' : 'Withdrawn';
+          try {
+            const response = await fetch(`${API}/api/v1/standards/${encodeURIComponent(id)}`, { method: 'PATCH', headers: adminHeaders(), body: JSON.stringify({ status: nextStatus }) });
+            if (!response.ok) throw new Error('update failed');
+            Object.assign(std, await response.json());
+          } catch (error) {
+            showToast('Could not update this standard on the server.', 'error');
+            return;
+          }
           renderStandardsTable();
-          showToast(`Standard status updated for ${std.isNumber || std.code}`, 'info');
+          showToast(`Standard status updated for ${std.is_number || std.isNumber || std.code}`, 'info');
+        }
+      };
+
+      window.deleteStandard = async function(id) {
+        const std = localStandards.find(s => s.id === id);
+        if (!std || !window.confirm(`Delete ${std.is_number || std.isNumber}? This cannot be undone.`)) return;
+        try {
+          const response = await fetch(`${API}/api/v1/standards/${encodeURIComponent(id)}`, { method: 'DELETE', headers: adminHeaders() });
+          if (!response.ok) throw new Error('delete failed');
+          localStandards = localStandards.filter(item => item.id !== id);
+          renderStandardsTable();
+          document.getElementById('stat-total-standards').innerText = localStandards.length;
+          showToast('Standard deleted from the catalogue.', 'success');
+        } catch (error) {
+          showToast('Could not delete this standard on the server.', 'error');
         }
       };
 
@@ -431,7 +469,7 @@
       document.getElementById('close-modal-btn').addEventListener('click', () => modal.classList.remove('active'));
       document.getElementById('btn-cancel-modal').addEventListener('click', () => modal.classList.remove('active'));
 
-      document.getElementById('add-standard-form').addEventListener('submit', (e) => {
+      document.getElementById('add-standard-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const isNum = document.getElementById('std-is-number').value.trim();
         const title = document.getElementById('std-title').value.trim();
@@ -447,17 +485,25 @@
           category: cat,
           year: rev,
           status: 'Current',
-          certification: cert
+          certification: cert,
+          scope: title,
+          key_requirements: [], clauses: [], related_standards: [], versions: [], certifications: [], sources: []
         };
-
-        localStandards.unshift(newStd);
+        try {
+          const response = await fetch(`${API}/api/v1/standards`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify(newStd) });
+          if (!response.ok) throw new Error('create failed');
+          localStandards.unshift(await response.json());
+        } catch (error) {
+          showToast('Could not save the standard. Check the form and server connection.', 'error');
+          return;
+        }
         renderStandardsTable();
         modal.classList.remove('active');
         showToast(`Added standard ${isNum} to database`, 'success');
       });
 
-      // Initial render
-      renderStandardsTable();
+      // Initial render from the live catalogue
+      loadStandards();
 
     });
   </script>

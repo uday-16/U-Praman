@@ -12,11 +12,11 @@ NOT_FOUND = 'I could not find information supporting an answer to this question 
 
 class GeminiClient:
     def request(self, parts, *, system='', search=False, json_mode=False, model=None, config=None):
-        generation = {'temperature': 0.2}
+        generation: Dict[str, Any] = {'temperature': 0.2}
         if json_mode:
             generation['responseMimeType'] = 'application/json'
         generation.update(config or {})
-        payload = {'contents': [{'role': 'user', 'parts': parts}], 'generationConfig': generation}
+        payload: Dict[str, Any] = {'contents': [{'role': 'user', 'parts': parts}], 'generationConfig': generation}
         if system:
             payload['systemInstruction'] = {'parts': [{'text': system}]}
         if search:

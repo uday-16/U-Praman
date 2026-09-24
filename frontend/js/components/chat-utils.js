@@ -23,12 +23,62 @@ const keys = ['tagline','language','web','placeholder','send','mic','recordStop'
 export function copy(language) { return Object.fromEntries(keys.map((key,i)=>[key,(labels[language] || labels.en)[i]])); }
 export function escapeHTML(text) { return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 export function formatReply(text) {
-  const inline = value => escapeHTML(value).replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`\n]+)`/g,'<code>$1</code>');
-  return String(text).split(/\n{2,}/).map(block=>{
-    const lines=block.split('\n');
-    if (lines.every(line=>/^[-*] /.test(line))) return '<ul>'+lines.map(line=>'<li>'+inline(line.slice(2))+'</li>').join('')+'</ul>';
-    return '<p>'+lines.map(line=>inline(line.replace(/^#{1,3} /,''))).join('<br>')+'</p>';
-  }).join('');
+  if (!text) return '';
+  const inline = val => escapeHTML(val)
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+    .replace(/`([^`\n]+)`/g, '<code class="pc-inline-code">$1</code>');
+
+  return String(text).split(/\n{2,}/).map(block => {
+    const trimmed = block.trim();
+    if (!trimmed) return '';
+    
+    // Headings
+    if (/^###\s+/.test(trimmed)) {
+      return `<h4 class="pc-msg-h4">${inline(trimmed.replace(/^###\s+/, ''))}</h4>`;
+    }
+    if (/^##\s+/.test(trimmed)) {
+      return `<h3 class="pc-msg-h3">${inline(trimmed.replace(/^##\s+/, ''))}</h3>`;
+    }
+    if (/^#\s+/.test(trimmed)) {
+      return `<h2 class="pc-msg-h2">${inline(trimmed.replace(/^#\s+/, ''))}</h2>`;
+    }
+
+    // Code block
+    if (trimmed.startsWith('```') && trimmed.endsWith('```')) {
+      const content = trimmed.slice(3, -3).replace(/^[a-z]*\n/, '');
+      return `<pre class="pc-code-block"><code>${escapeHTML(content)}</code></pre>`;
+    }
+
+    // Blockquote
+    if (/^>\s+/.test(trimmed)) {
+      const quoteLines = trimmed.split('\n').map(l => inline(l.replace(/^>\s*/, ''))).join('<br>');
+      return `<blockquote class="pc-quote">${quoteLines}</blockquote>`;
+    }
+
+    const lines = trimmed.split('\n');
+
+    // Bullet lists
+    if (lines.every(line => /^[-*•]\s+/.test(line))) {
+      return '<ul class="pc-list">' + lines.map(line => '<li>' + inline(line.replace(/^[-*•]\s+/, '')) + '</li>').join('') + '</ul>';
+    }
+
+    // Numbered lists
+    if (lines.every(line => /^\d+\.\s+/.test(line))) {
+      return '<ol class="pc-list">' + lines.map(line => '<li>' + inline(line.replace(/^\d+\.\s+/, '')) + '</li>').join('') + '</ol>';
+    }
+
+    // Mixed lines or standard paragraph
+    return '<p>' + lines.map(line => {
+      if (/^[-*•]\s+/.test(line)) {
+        return '<span class="pc-bullet-line">• ' + inline(line.replace(/^[-*•]\s+/, '')) + '</span>';
+      }
+      if (/^\d+\.\s+/.test(line)) {
+        return '<span class="pc-num-line">' + inline(line) + '</span>';
+      }
+      return inline(line);
+    }).join('<br>') + '</p>';
+  }).filter(Boolean).join('');
 }
 export function safeURL(value) { try { const u=new URL(value); return u.protocol === 'https:' ? u.href : null; } catch { return null; } }
 export function apiRoot(value='/api/v1') { const root=value.replace(/\/+$/,''); return root.endsWith('/api') ? root+'/v1' : root; }

@@ -62,10 +62,27 @@ class UserProfile(BaseModel):
     role: str
     organization: Optional[str] = None
     department: Optional[str] = "Central Procurement Division"
+    cadre: Optional[str] = "Class I Executive"
+    gem_officer_id: Optional[str] = None
+    jurisdiction_state: Optional[str] = "All India / Central"
+    portal_access: Optional[str] = "Officer Access"
     preferred_language: Optional[str] = "English"
     notifications_enabled: bool = True
     status: str = "active"
     is_email_verified: bool = True
+
+class UpdateProfileRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    mobile_number: Optional[str] = None
+    role: Optional[str] = None
+    organization: Optional[str] = None
+    department: Optional[str] = None
+    cadre: Optional[str] = None
+    gem_officer_id: Optional[str] = None
+    jurisdiction_state: Optional[str] = None
+    portal_access: Optional[str] = None
+    preferred_language: Optional[str] = None
 
 class AuthResponse(BaseModel):
     access_token: str

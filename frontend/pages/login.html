@@ -447,12 +447,32 @@
       alertBox.innerText = '';
     }
 
-    if (getLoginDestination()) {
-      if (Storage.isLoggedIn()) {
-        window.location.replace(getPostLoginDestination());
-      } else {
-        showAlert('Please log in to continue to the page you selected.', 'info');
+    // Auto-fill remembered login identifier
+    const rememberedId = Storage.getRememberedIdentifier();
+    if (rememberedId) {
+      const inputFullname = document.getElementById('signin-fullname');
+      if (inputFullname) {
+        inputFullname.value = rememberedId;
+        const chkRemember = document.getElementById('signin-remember');
+        if (chkRemember) chkRemember.checked = true;
       }
+    }
+
+    // Active session handling
+    if (Storage.isLoggedIn()) {
+      Storage.validateSession().then(valid => {
+        if (valid) {
+          const user = Storage.getUser();
+          showAlert(`Welcome back, ${user.name || 'Officer'}! Active session found. Redirecting to workspace...`, 'success');
+          setTimeout(() => {
+            window.location.replace(getPostLoginDestination());
+          }, 600);
+        } else if (getLoginDestination()) {
+          showAlert('Please log in to continue to the page you selected.', 'info');
+        }
+      });
+    } else if (getLoginDestination()) {
+      showAlert('Please log in to continue to the page you selected.', 'info');
     }
 
     function switchToSignInTab(prefillName = '', prefillRole = '') {
@@ -627,6 +647,12 @@
       btnSubmit.innerText = 'Sign In to Workspace →';
 
       if (res.success) {
+        const chkRemember = document.getElementById('signin-remember');
+        if (chkRemember && chkRemember.checked) {
+          Storage.setRememberedIdentifier(fullName);
+        } else {
+          Storage.setRememberedIdentifier('');
+        }
         showToast(`Signed in successfully as ${res.user.role}`, 'success');
         setTimeout(() => {
           window.location.href = getPostLoginDestination();
@@ -699,10 +725,12 @@
 
 
       if (res.success) {
-        // Switch to Sign In Tab and prompt user to login with Full Name, Role and Password
-        switchToSignInTab(fullName, role);
-        showAlert(`Account created successfully! Please sign in with your Full Name (${fullName}), Role (${role}), and Password.`, 'success');
-        showToast(`Account registered for ${fullName}! Please sign in.`, 'success');
+        Storage.setRememberedIdentifier(email || fullName);
+        showAlert(`Account created successfully! Welcome to PRAMAN, ${fullName}. Entering workspace...`, 'success');
+        showToast(`Welcome to PRAMAN, ${fullName}!`, 'success');
+        setTimeout(() => {
+          window.location.href = getPostLoginDestination();
+        }, 600);
       } else {
         showAlert(res.error || 'Account creation failed. Please check your inputs.');
       }

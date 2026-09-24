@@ -80,5 +80,28 @@ class SessionTests(unittest.TestCase):
         token = self.login().json()['access_token']
         database.users_collection.docs[0]['status'] = 'deactivated'
         self.assertEqual(self.client.get('/api/v1/auth/me', headers=self.headers(token)).status_code, 401)
+    def test_login_role_autodetected_without_error(self):
+        response = self.client.post('/api/v1/auth/login', json={'email':'test@example.com', 'password':'correct-password', 'role':'Administrator'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['user']['role'], 'Procurement Officer')
+    def test_update_profile_persists_in_database(self):
+        token = self.login().json()['access_token']
+        update_data = {
+            'name': 'Updated Officer',
+            'mobile_number': '+91 9999988888',
+            'department': 'Central Public Works',
+            'cadre': 'Chief Technical Cadre',
+            'gem_officer_id': 'GEM-IND-777',
+            'jurisdiction_state': 'Maharashtra'
+        }
+        res = self.client.put('/api/v1/auth/profile', json=update_data, headers=self.headers(token))
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data['name'], 'Updated Officer')
+        self.assertEqual(data['gem_officer_id'], 'GEM-IND-777')
+        self.assertEqual(data['jurisdiction_state'], 'Maharashtra')
+        me = self.client.get('/api/v1/auth/me', headers=self.headers(token)).json()
+        self.assertEqual(me['name'], 'Updated Officer')
+        self.assertEqual(me['gem_officer_id'], 'GEM-IND-777')
 
 if __name__ == '__main__': unittest.main()

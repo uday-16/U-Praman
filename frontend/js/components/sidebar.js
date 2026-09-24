@@ -76,7 +76,12 @@ export function renderAppSidebar(activePage = 'dashboard') {
   `;
 }
 
-export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = Storage.getUser()) {
+export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null) {
+  const activeUser = user || Storage.getUser() || { name: 'Officer', role: 'Procurement Officer' };
+  const officerName = activeUser.name || activeUser.full_name || 'Officer';
+  const officerRole = activeUser.role || 'Procurement Officer';
+  const initial = officerName.trim().charAt(0).toUpperCase() || 'O';
+
   return `
     <header class="app-topbar">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -117,11 +122,11 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = Stor
           <span class="notification-badge"></span>
         </button>
 
-        <a href="/pages/profile.html" class="user-profile-btn">
-          <div class="avatar-circle">U</div>
+        <a href="/pages/profile.html" class="user-profile-btn" title="View & Edit Officer Profile">
+          <div class="avatar-circle">${initial}</div>
           <div class="user-info">
-            <span class="user-name">Uday Kiran</span>
-            <span class="user-role">Administrator</span>
+            <span class="user-name">${officerName}</span>
+            <span class="user-role">${officerRole}</span>
           </div>
         </a>
       </div>
