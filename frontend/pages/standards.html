@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Standards Explorer — PRAMAN Workspace</title>
+  <title>Explore Indian Standards — PRAMAN प्रमाण</title>
+  <meta name="description" content="Search, filter, and inspect applicable Indian Standards (IS), Quality Control Orders (QCOs), and test specifications across all procurement domains.">
   <script>
     (function() {
       var saved = localStorage.getItem('praman_lang') || localStorage.getItem('standardsai_lang');
@@ -16,186 +17,387 @@
     })();
   </script>
   <link rel="icon" type="image/svg+xml" href="/assets/brand/praman-mark.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,600;0,8..60,700;1,8..60,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/reset.css">
   <link rel="stylesheet" href="/css/variables.css">
   <link rel="stylesheet" href="/css/typography.css">
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/layout.css">
-  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/navbar.css">
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/forms.css">
   <link rel="stylesheet" href="/css/standards.css">
   <link rel="stylesheet" href="/css/responsive.css">
-  <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
-  <script type="module" src="/js/utils/workspace-guard.js"></script>
+  <style>
+    .standards-hero-banner {
+      background: linear-gradient(180deg, #FFFFFF 0%, var(--bg-main) 100%);
+      padding: 4rem 0 3rem 0;
+      border-bottom: 1px solid var(--border-color);
+      text-align: center;
+    }
+    .standards-stats-strip {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 1.75rem;
+    }
+    .standards-stat-pill {
+      background: white;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #082B4C;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: var(--shadow-xs);
+    }
+    .standards-stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .category-pills-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+      scrollbar-width: thin;
+    }
+    .category-pill {
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.4rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .category-pill:hover, .category-pill.active {
+      background: var(--primary-blue);
+      color: white;
+      border-color: var(--primary-blue);
+    }
+    .standards-control-card {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(11, 31, 58, 0.04);
+      margin-bottom: 2rem;
+    }
+    .standards-control-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1fr auto;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    @media (max-width: 900px) {
+      .standards-control-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-<body>
-  <div class="app-layout">
-    <div id="sidebar-root"></div>
-    <div class="app-main-wrapper">
-      <div id="topbar-root"></div>
+<body style="background: var(--bg-main);">
 
-      <main class="app-content standards-workspace">
-        <div class="standards-page-header">
-          <div>
-            <span class="standards-eyebrow">STANDARDS LIBRARY</span>
-            <h1 class="page-title">Standards explorer</h1>
-            <p class="page-subtitle">Search, filter, and compare available Indian Standards records.</p>
-          </div>
-          <a href="/pages/compare.html" class="btn standards-compare-btn">Compare standards &rarr;</a>
-        </div>
+  <!-- Sticky Public Navbar -->
+  <div id="navbar-root"></div>
 
-        <div class="standards-filters" role="search" aria-label="Filter standards">
-          <div class="standards-search-field">
-            <label for="standards-search-input">Find a standard</label>
-            <input type="search" id="standards-search-input" class="form-input" placeholder="Search by code, title, or category..." />
-          </div>
-          <div>
-            <label for="filter-category">Category</label>
-            <select id="filter-category" class="form-select">
-              <option value="All">All categories</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-status">Status</label>
-            <select id="filter-status" class="form-select">
-              <option value="All">All statuses</option>
-              <option value="Active">Active</option>
-              <option value="Replaced">Superseded</option>
-            </select>
-          </div>
-        </div>
+  <!-- Page Header Banner -->
+  <section class="standards-hero-banner">
+    <div class="container" style="max-width: 960px;">
+      <span class="badge badge-primary mb-2" style="font-weight: 800; letter-spacing: 0.06em;">STANDARDS CATALOG</span>
+      <h1 class="page-title" style="font-size: 2.5rem; font-weight: 900; color: #082B4C; margin-bottom: 0.75rem;">
+        Explore Indian Standards
+      </h1>
+      <p style="font-size: 1.1rem; color: var(--text-secondary); max-width: 720px; margin: 0 auto; line-height: 1.6;">
+        Search, filter, and inspect applicable Indian Standards across all procurement domains, materials, and mega infrastructure projects.
+      </p>
 
-        <div class="standards-results-summary">
-          <h2>Available standards</h2>
-          <span id="results-count" role="status" aria-live="polite"></span>
+      <div class="standards-stats-strip">
+        <div class="standards-stat-pill">
+          <span class="standards-stat-dot" style="background: #FF9933;"></span>
+          <span>20,000+ BIS Standards</span>
         </div>
-
-        <!-- Standards Table -->
-        <div class="data-table-wrapper standards-table-wrapper" role="region" aria-label="Standards results" tabindex="0">
-          <table class="data-table standards-table">
-            <thead>
-              <tr>
-                <th scope="col">Standard Code</th>
-                <th scope="col">Title</th>
-                <th scope="col">Category</th>
-                <th scope="col">Status</th>
-                <th scope="col">Year</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody id="standards-tbody">
-              <!-- Dynamically rendered -->
-            </tbody>
-          </table>
+        <div class="standards-stat-pill">
+          <span class="standards-stat-dot" style="background: var(--primary-blue);"></span>
+          <span>16 Major Sectors</span>
         </div>
-
-        <!-- Empty State -->
-        <div id="empty-state" style="display: none; text-align: center; padding: 4rem 2rem; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-top: 1rem;">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom: 1rem;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.5rem;">No standards match search</h3>
-          <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Try adjusting query or filter selection.</p>
-          <button id="reset-search-btn" class="btn btn-secondary btn-sm" style="font-weight: 700;">Reset search</button>
+        <div class="standards-stat-pill">
+          <span class="standards-stat-dot" style="background: var(--indian-green);"></span>
+          <span>Active QCO Compliance</span>
         </div>
-      </main>
+        <div class="standards-stat-pill">
+          <span class="standards-stat-dot" style="background: #0B5CAD;"></span>
+          <span>Clause-Level Traceability</span>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
+
+  <!-- Main Standards Explorer Section -->
+  <main class="container section-spacer" style="padding-top: 2.5rem; padding-bottom: 5rem;">
+    
+    <!-- Controls & Filters Card -->
+    <div class="standards-control-card">
+      <div class="category-pills-wrapper" aria-label="Sector Quick Filters">
+        <button class="category-pill active" data-category="all">All Sectors</button>
+        <button class="category-pill" data-category="Construction">Construction</button>
+        <button class="category-pill" data-category="Electrical">Electrical</button>
+        <button class="category-pill" data-category="Mechanical">Mechanical</button>
+        <button class="category-pill" data-category="Information Technology">IT &amp; Telecom</button>
+        <button class="category-pill" data-category="Transport">Transport</button>
+        <button class="category-pill" data-category="Water & Sanitation">Water &amp; Sanitation</button>
+        <button class="category-pill" data-category="Energy">Energy</button>
+        <button class="category-pill" data-category="Agriculture">Agriculture</button>
+        <button class="category-pill" data-category="Food">Food</button>
+        <button class="category-pill" data-category="Healthcare">Healthcare</button>
+        <button class="category-pill" data-category="Textiles">Textiles</button>
+        <button class="category-pill" data-category="Safety">Safety &amp; PPE</button>
+      </div>
+
+      <div class="standards-control-grid">
+        <div>
+          <label for="standards-search-input" style="display: block; font-size: 0.8rem; font-weight: 800; color: #475569; margin-bottom: 0.4rem;">
+            Search Standards
+          </label>
+          <div style="position: relative;">
+            <input 
+              type="text" 
+              id="standards-search-input" 
+              placeholder="Search by code (e.g. IS 2925), title, keyword..." 
+              style="width: 100%; padding: 0.65rem 1rem 0.65rem 2.4rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.9rem; background: #F8FAFC;" 
+            />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+          </div>
+        </div>
+
+        <div>
+          <label for="standards-category-select" style="display: block; font-size: 0.8rem; font-weight: 800; color: #475569; margin-bottom: 0.4rem;">
+            Category
+          </label>
+          <select id="standards-category-select" style="width: 100%; padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.875rem; background: #F8FAFC; font-weight: 700; color: #082B4C;">
+            <option value="all">All Categories</option>
+            <option value="Safety">Safety &amp; PPE</option>
+            <option value="Electrical">Electrical</option>
+            <option value="Construction">Construction</option>
+            <option value="Mechanical">Mechanical</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Telecommunications">Telecommunications</option>
+            <option value="Transport">Transport</option>
+            <option value="Water & Sanitation">Water &amp; Sanitation</option>
+            <option value="Energy">Energy</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="Food">Food</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Textiles">Textiles</option>
+            <option value="Environment">Environment</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Civil Engineering">Civil Engineering</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="standards-status-select" style="display: block; font-size: 0.8rem; font-weight: 800; color: #475569; margin-bottom: 0.4rem;">
+            Status
+          </label>
+          <select id="standards-status-select" style="width: 100%; padding: 0.65rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.875rem; background: #F8FAFC; font-weight: 700; color: #082B4C;">
+            <option value="all">All Statuses</option>
+            <option value="Current">Active / Current</option>
+            <option value="Amended">Amended</option>
+            <option value="Revised">Revised</option>
+          </select>
+        </div>
+
+        <div>
+          <button id="standards-reset-btn" class="btn btn-secondary" style="font-weight: 700; height: 42px; padding: 0 1.25rem; white-space: nowrap; width: 100%;">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Count Bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+      <h2 style="font-size: 1.15rem; font-weight: 800; color: #082B4C; margin: 0;">
+        Available Indian Standards
+      </h2>
+      <span id="standards-count" style="font-size: 0.85rem; font-weight: 700; color: #64748B;" role="status" aria-live="polite">
+        Loading standards...
+      </span>
+    </div>
+
+    <!-- Dynamic Standards Grid -->
+    <div id="standards-explorer-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3.5rem;">
+      <!-- Populated dynamically by js/standards.js -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="standards-empty-state" style="display: none; padding: 4rem 2rem; text-align: center; background: white; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 3rem;">
+      <div style="width: 56px; height: 56px; margin: 0 auto 1.25rem auto; background: #F1F5F9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.5rem;">No Indian Standards match your search</h3>
+      <p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 480px; margin: 0 auto 1.5rem auto;">Try checking spelling, using standard numbers like "IS 2925", or selecting "All Categories".</p>
+    </div>
+
+    <!-- Sector Coverage Quick Browse -->
+    <div style="margin-top: 3.5rem; padding-top: 3rem; border-top: 1px solid var(--border-color);">
+      <div style="text-align: center; max-width: 720px; margin: 0 auto 2.5rem auto;">
+        <span class="badge badge-primary mb-2" style="font-weight: 700; letter-spacing: 0.05em;">SECTOR DIRECTORY</span>
+        <h2 class="section-title" style="font-size: 1.85rem; font-weight: 800; color: #082B4C;">Browse by Major Sector</h2>
+        <p class="page-subtitle" style="color: #64748B;">Explore published standards grouped by primary procurement domains.</p>
+      </div>
+
+      <div class="category-card-grid">
+        <a href="/pages/standards.html?category=Construction" class="category-card">
+          <div class="category-icon-box">
+            <svg viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+          </div>
+          <div class="category-info">
+            <div class="category-title">Construction</div>
+            <div class="category-count">3,200+ Standards</div>
+          </div>
+        </a>
+        <a href="/pages/standards.html?category=Electrical" class="category-card">
+          <div class="category-icon-box">
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="category-info">
+            <div class="category-title">Electrical</div>
+            <div class="category-count">2,850+ Standards</div>
+          </div>
+        </a>
+        <a href="/pages/standards.html?category=Mechanical" class="category-card">
+          <div class="category-icon-box">
+            <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="category-info">
+            <div class="category-title">Mechanical</div>
+            <div class="category-count">2,400+ Standards</div>
+          </div>
+        </a>
+        <a href="/pages/standards.html?category=Information%20Technology" class="category-card">
+          <div class="category-icon-box">
+            <svg viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+          </div>
+          <div class="category-info">
+            <div class="category-title">Information Technology</div>
+            <div class="category-count">1,900+ Standards</div>
+          </div>
+        </a>
+        <a href="/pages/standards.html?category=Transport" class="category-card">
+          <div class="category-icon-box">
+            <svg viewBox="0 0 24 24"><rect width="10" height="8" x="2" y="6" rx="1"/><path d="M12 10h4l3 3v5h-7V10z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="16.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <div class="category-info">
+            <div class="category-title">Transport</div>
+            <div class="category-count">1,800+ Standards</div>
+          </div>
+        </a>
+        <a href="/pages/standards.html?category=Energy" class="category-card">
+          <div class="category-icon-box">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </div>
+          <div class="category-info">
+            <div class="category-title">Energy</div>
+            <div class="category-count">2,100+ Standards</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Pre-Footer Banner -->
+  <section style="position: relative; padding: 4rem 0; background: var(--deep-navy); color: white; border-top: 1px solid rgba(255,255,255,0.1);">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2rem;">
+      <div style="max-width: 600px;">
+        <div style="font-size: 1.4rem; font-style: italic; font-weight: 800; color: #FFFFFF; font-family: Georgia, serif; line-height: 1.4; margin-bottom: 0.5rem;">
+          “Standards build quality. Quality builds a stronger India.”
+        </div>
+        <p style="font-size: 0.95rem; opacity: 0.85; margin: 0;">
+          PRAMAN turns procurement requirements into verified standards-based decisions.
+        </p>
+      </div>
+      <div>
+        <a href="/pages/analyze.html" class="btn btn-primary" style="font-weight: 800; padding: 0.85rem 1.75rem; font-size: 1rem; border-radius: 8px;">
+          Analyze Your Requirement &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Indian Blue Footer with Tricolor Line -->
+  <footer style="background-color: var(--deep-navy); color: white; border-top: 1px solid rgba(255,255,255,0.1); padding: 3.5rem 0 2rem 0; position: relative;">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 2.5rem; margin-bottom: 2.5rem;">
+        <div>
+          <div style="font-size: 1.5rem; font-weight: 900; color: white; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+            PRAMAN <span style="font-size: 1.25rem; font-weight: 600; opacity: 0.85;">प्रमाण</span>
+          </div>
+          <p style="font-size: 0.875rem; color: rgba(255,255,255,0.75); max-width: 320px; line-height: 1.6;">
+            “Find the Right Standard. Make the Right Decision.”
+          </p>
+        </div>
+        <div>
+          <h4 style="font-size: 0.875rem; font-weight: 800; color: white; margin-bottom: 0.875rem;">Platform</h4>
+          <ul style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.75); list-style: none; padding: 0;">
+            <li><a href="/pages/analyze.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">Analyze Requirement</a></li>
+            <li><a href="/pages/standards.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">Standards</a></li>
+            <li><a href="/pages/reports.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">Reports</a></li>
+            <li><a href="/pages/how-it-works.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">How It Works</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size: 0.875rem; font-weight: 800; color: white; margin-bottom: 0.875rem;">Resources</h4>
+          <ul style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.75); list-style: none; padding: 0;">
+            <li><a href="/pages/guidance.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">Guidance</a></li>
+            <li><a href="/pages/help.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">Help</a></li>
+            <li><a href="/pages/about.html" style="text-decoration: none; color: rgba(255,255,255,0.75);">About</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size: 0.875rem; font-weight: 800; color: white; margin-bottom: 0.875rem;">Legal</h4>
+          <ul style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem; color: rgba(255,255,255,0.75); list-style: none; padding: 0;">
+            <li><a href="#" style="text-decoration: none; color: rgba(255,255,255,0.75);">Privacy Policy</a></li>
+            <li><a href="#" style="text-decoration: none; color: rgba(255,255,255,0.75);">Terms of Use</a></li>
+            <li><a href="#" style="text-decoration: none; color: rgba(255,255,255,0.75);">Accessibility</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.5rem; text-align: center; font-size: 0.8rem; color: rgba(255,255,255,0.6);">
+        PRAMAN is an independent standards decision-support platform.
+      </div>
+    </div>
+
+    <!-- Tricolor Line Accent at Bottom Edge -->
+    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%); opacity: 0.85;"></div>
+  </footer>
 
   <script type="module" src="/js/main.js"></script>
   <script type="module">
-    import { workspaceReady } from '/js/utils/workspace-guard.js';
-    import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
-    import { mockStandards } from '/js/data/standards.js';
-    import { Storage } from '/js/utils/storage.js';
-    import { showToast } from '/js/components/toast.js';
-    workspaceReady.then(allowed => {
-      if (!allowed) return;
+    import { renderPublicNavbar, initNavbarEvents } from '/js/components/navbar.js';
+    import { initStandardsExplorer } from '/js/standards.js';
+    import { initGlobalSearchModal } from '/js/components/search-modal.js';
 
-      document.getElementById('sidebar-root').innerHTML = renderAppSidebar('standards');
-      document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Standards explorer');
-
-      const searchInput = document.getElementById('standards-search-input');
-      const filterCat = document.getElementById('filter-category');
-      const filterStatus = document.getElementById('filter-status');
-      const tbody = document.getElementById('standards-tbody');
-      const countEl = document.getElementById('results-count');
-      const emptyState = document.getElementById('empty-state');
-
-      // Dynamically populate category dropdown from ingested standards
-      const uniqueCategories = [...new Set(mockStandards.map(s => s.category).filter(Boolean))].sort();
-      uniqueCategories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.innerText = cat;
-        filterCat.appendChild(opt);
-      });
-
-      function renderTable() {
-        const q = searchInput.value.toLowerCase().trim();
-        const cat = filterCat.value;
-        const stat = filterStatus.value;
-
-        const filtered = mockStandards.filter(s => {
-          const matchesQuery = !q || s.isNumber.toLowerCase().includes(q) || s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q) || s.scope.toLowerCase().includes(q);
-          const matchesCat = cat === 'All' || s.category === cat;
-          const matchesStat = stat === 'All' || s.status === stat;
-
-          return matchesQuery && matchesCat && matchesStat;
-        });
-
-        countEl.innerText = `Showing ${filtered.length} Indian Standard${filtered.length === 1 ? '' : 's'}`;
-
-        if (filtered.length === 0) {
-          tbody.innerHTML = '';
-          emptyState.style.display = 'block';
-        } else {
-          emptyState.style.display = 'none';
-          tbody.innerHTML = filtered.map(s => {
-            const isSaved = Storage.isStandardSaved(s.id);
-            return `
-              <tr>
-                <td class="standard-code">${s.isNumber}</td>
-                <td class="standard-title">${s.title}</td>
-                <td><span class="badge badge-neutral">${s.category}</span></td>
-                <td><span class="badge ${s.status === 'Active' ? 'badge-success' : 'badge-neutral'}">${s.status}</span></td>
-                <td>${s.year}</td>
-                <td>
-                  <div class="standard-row-actions">
-                    <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-secondary btn-sm standard-view-btn">View</a>
-                    <button class="btn btn-secondary btn-sm save-toggle-btn" data-id="${s.id}" style="font-weight:700;">
-                      ${isSaved ? 'Saved' : 'Save'}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join('');
-        }
-      }
-
-      searchInput.addEventListener('input', renderTable);
-      filterCat.addEventListener('change', renderTable);
-      filterStatus.addEventListener('change', renderTable);
-
-      document.getElementById('reset-search-btn').addEventListener('click', () => {
-        searchInput.value = '';
-        filterCat.value = 'All';
-        filterStatus.value = 'All';
-        renderTable();
-      });
-
-      document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('save-toggle-btn')) {
-          const id = e.target.dataset.id;
-          const saved = Storage.toggleSaveStandard(id);
-          e.target.innerText = saved ? 'Saved' : 'Save';
-          showToast(saved ? 'Standard saved' : 'Standard removed', saved ? 'success' : 'info');
-        }
-      });
-
-      renderTable();
-
-    });
+    document.getElementById('navbar-root').innerHTML = renderPublicNavbar('/pages/standards.html');
+    initNavbarEvents();
+    initStandardsExplorer();
+    initGlobalSearchModal();
   </script>
 </body>
 </html>

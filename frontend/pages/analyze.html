@@ -108,7 +108,7 @@
               </div>
               <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem;">Upload Tender Specification PDF</h3>
               <p style="font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 1.25rem;">Tesseract OCR extraction enabled for PDF tender documents up to 25MB</p>
-              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('file-input').click()" style="font-weight: 600;">Browse Tender Files</button>
+              <button class="btn btn-secondary btn-sm" style="font-weight: 600;">Browse Tender Files</button>
               <input type="file" id="file-input" style="display: none;" accept=".pdf,.docx,.txt" />
             </div>
 
@@ -118,7 +118,7 @@
           </div>
 
           <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-            <button id="start-analysis-btn" class="btn btn-primary btn-lg" style="font-weight: 600; background: var(--navy); padding: 0 2rem; height: 46px;">Start AI Semantic Search &rarr;</button>
+            <button id="start-analysis-btn" class="btn btn-primary btn-lg" style="font-weight: 600; background: var(--navy); padding: 0 2rem; height: 46px;">Extract and review requirements &rarr;</button>
           </div>
 
           <!-- Value Checklist Grid -->
@@ -169,6 +169,7 @@
   </div>
 
   <script type="module" src="/js/main.js"></script>
+<<<<<<< HEAD
   <script type="module">
     import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
@@ -399,5 +400,8 @@
 
     });
   </script>
+=======
+  <script type="module" src="/js/analysis-input.js"></script>
+>>>>>>> 8301a287f085226825277702ef5a285ae4371d2f
 </body>
 </html>

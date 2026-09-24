@@ -141,7 +141,7 @@
               <a href="/pages/analyze.html" class="btn-hero-primary">
                 Analyze Requirement &rarr;
               </a>
-              <a href="/#explore-standards" class="btn-hero-secondary">
+              <a href="/pages/standards.html" class="btn-hero-secondary">
                 Explore Standards
               </a>
             </div>
@@ -456,42 +456,6 @@
           <h4 style="font-size: 1.1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.35rem;">Superseded Version</h4>
           <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">Legacy standard replaced by newer revision or consolidated IS code.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Standards Explorer Section (Section 19) -->
-  <section id="explore-standards" class="section-spacer" style="background: var(--bg-main); padding: 3.5rem 0 4.5rem 0; scroll-margin-top: 120px;">
-    <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
-        <div>
-          <span class="badge badge-primary mb-2" style="font-weight: 700;">STANDARDS CATALOG</span>
-          <h2 class="section-title" style="font-size: 2rem; font-weight: 900;">Explore Indian Standards</h2>
-          <p class="page-subtitle" style="color: var(--text-secondary);">Browse, filter, and inspect applicable Indian Standards across all sectors.</p>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-          <input type="text" id="standards-search-input" placeholder="Search by Standard Number or Keyword..." style="padding: 0.6rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 280px; font-size: 0.85rem; background: white;" />
-          
-          <select id="standards-category-select" style="padding: 0.6rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.85rem; background: white; font-weight: 700;">
-            <option value="all">All Categories</option>
-            <option value="Electrical">Electrical</option>
-            <option value="Construction">Construction</option>
-            <option value="Mechanical">Mechanical</option>
-            <option value="IT">IT &amp; Telecom</option>
-          </select>
-
-          <select id="standards-status-select" style="padding: 0.6rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.85rem; background: white; font-weight: 700;">
-            <option value="all">All Statuses</option>
-            <option value="Current">Current</option>
-            <option value="Amended">Amended</option>
-            <option value="Revised">Revised</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="standards-explorer-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-        <!-- Populated dynamically by js/standards.js -->
       </div>
     </div>
   </section>

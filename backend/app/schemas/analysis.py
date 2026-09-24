@@ -20,12 +20,18 @@ class ExtractedRequirement(BaseModel):
     technical_parameters: Dict[str, str]
     safety_parameters: List[str]
     extracted_at: str
+    source_text: str = ""
+    extraction_mode: str = "source-text"
+    warning: str = ""
+    quantity: str = ""
 
 class ExtractionReviewRequest(BaseModel):
     product_name: str
     application: str
     purpose: str
     key_requirements: List[str]
+    technical_parameters: Optional[Dict[str, str]] = None
+    safety_parameters: Optional[List[str]] = None
 
 class MatchBreakdown(BaseModel):
     product_match: str  # High, Medium, Low
@@ -66,3 +72,7 @@ class AnalysisResult(BaseModel):
     completeness: SpecificationCompleteness
     graph: StandardGraph
     summary_notice: str
+    explanation: str = ""
+    generation_mode: str = "extractive"
+    retrieval_mode: str = ""
+    corpus_fingerprint: str = ""

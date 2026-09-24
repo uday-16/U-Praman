@@ -4,8 +4,7 @@ import { bindLanguageSelects } from '../utils/translator.js';
 export function renderPublicNavbar(activePath = '/') {
   const isLoggedIn = Storage.isLoggedIn();
   const user = isLoggedIn ? Storage.getUser() : null;
-  const currentHash = typeof window !== 'undefined' ? window.location.hash : '';
-  const isStandardsActive = activePath.includes('explore-standards') || currentHash === '#explore-standards';
+  const isStandardsActive = activePath.includes('/standards') || activePath.includes('standards.html');
   const isHomeActive = !isStandardsActive && (activePath === '/' || activePath === '/index.html' || activePath === '');
 
   return `
@@ -73,7 +72,7 @@ export function renderPublicNavbar(activePath = '/') {
         <!-- Center Navigation Links (Clean Direct Links) -->
         <nav class="navbar-links" aria-label="Main Navigation">
           <a href="/" class="nav-link ${isHomeActive ? 'active' : ''}">Home</a>
-          <a href="/#explore-standards" class="nav-link ${isStandardsActive ? 'active' : ''}">Standards</a>
+          <a href="/pages/standards.html" class="nav-link ${isStandardsActive ? 'active' : ''}">Standards</a>
           <a href="/pages/how-it-works.html" class="nav-link ${activePath.includes('/how-it-works') ? 'active' : ''}">How It Works</a>
           <a href="/pages/about.html" class="nav-link ${activePath.includes('/about') ? 'active' : ''}">About</a>
         </nav>
@@ -116,161 +115,6 @@ export function initNavbarEvents() {
         publicNavbar.classList.remove('navbar-scrolled');
       }
     });
-  }
-
-  // Navigation Links Active Underline and Hash Handler
-  const navLinks = document.querySelectorAll('.navbar-links .nav-link');
-  const homeLink = Array.from(navLinks).find(l => {
-    const h = l.getAttribute('href');
-    return h === '/' || h === '/index.html' || h === '';
-  });
-  const standardsLink = Array.from(navLinks).find(l => {
-    const h = l.getAttribute('href');
-    return h && h.includes('explore-standards');
-  });
-
-  function setHomeActive() {
-    if (homeLink) homeLink.classList.add('active');
-    if (standardsLink) standardsLink.classList.remove('active');
-    if (window.location.hash === '#explore-standards') {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
-  }
-
-  function setStandardsActive() {
-    if (standardsLink) standardsLink.classList.add('active');
-    if (homeLink) homeLink.classList.remove('active');
-  }
-
-  function updateActiveNavOnHash() {
-    const currentHash = window.location.hash;
-    const isStandardsHash = currentHash === '#explore-standards';
-    const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
-
-    if (homeLink && standardsLink && isHomePage) {
-      if (isStandardsHash) {
-        setStandardsActive();
-      } else if (!currentHash || currentHash === '#') {
-        setHomeActive();
-      }
-    }
-  }
-
-  updateActiveNavOnHash();
-  window.addEventListener('hashchange', updateActiveNavOnHash);
-
-  let isAutoScrolling = false;
-
-  function scrollToExploreStandards() {
-    const el = document.getElementById('explore-standards');
-    if (el) {
-      isAutoScrolling = true;
-      const navEl = document.getElementById('navbar-root');
-      const navHeight = navEl ? navEl.offsetHeight : 108;
-      const targetY = el.getBoundingClientRect().top + window.pageYOffset - (navHeight + 20);
-      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
-      setStandardsActive();
-      setTimeout(() => {
-        isAutoScrolling = false;
-      }, 800);
-    }
-  }
-
-  // Handle hash on initial load if directly navigated
-  if (window.location.hash === '#explore-standards') {
-    setTimeout(scrollToExploreStandards, 150);
-  }
-
-  if (standardsLink) {
-    standardsLink.addEventListener('click', (e) => {
-      const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
-      if (isHomePage) {
-        e.preventDefault();
-        scrollToExploreStandards();
-        history.pushState(null, '', '/#explore-standards');
-        setStandardsActive();
-      }
-    });
-  }
-
-  // Also handle Hero Section "Explore Standards" button
-  document.querySelectorAll('a[href*="explore-standards"], .btn-hero-secondary, #hero-btn-explore').forEach(btn => {
-    if (btn !== standardsLink) {
-      btn.addEventListener('click', (e) => {
-        const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
-        if (isHomePage) {
-          e.preventDefault();
-          scrollToExploreStandards();
-          history.pushState(null, '', '/#explore-standards');
-          setStandardsActive();
-        }
-      });
-    }
-  });
-
-  if (homeLink) {
-    homeLink.addEventListener('click', (e) => {
-      const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '';
-      if (isHomePage) {
-        if (window.location.hash || window.scrollY > 0) {
-          e.preventDefault();
-          isAutoScrolling = true;
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          history.pushState(null, '', '/');
-          setHomeActive();
-          setTimeout(() => {
-            isAutoScrolling = false;
-          }, 800);
-        }
-      }
-    });
-  }
-
-  if (window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname === '') {
-    const exploreSection = document.getElementById('explore-standards');
-
-    // Real-time scroll listener to ensure active state moves back to Home when scrolling up to Hero section
-    let scrollTicking = false;
-    window.addEventListener('scroll', () => {
-      if (isAutoScrolling) return;
-      if (!scrollTicking) {
-        window.requestAnimationFrame(() => {
-          if (exploreSection) {
-            const navEl = document.getElementById('navbar-root');
-            const navHeight = navEl ? navEl.offsetHeight : 100;
-            const exploreRect = exploreSection.getBoundingClientRect();
-
-            // When user scrolls back up into or towards the hero section
-            if (window.scrollY < 250 || exploreRect.top > navHeight + 200) {
-              setHomeActive();
-            } else if (exploreRect.top <= navHeight + 200 && exploreRect.bottom >= navHeight + 80) {
-              setStandardsActive();
-            }
-          }
-          scrollTicking = false;
-        });
-        scrollTicking = true;
-      }
-    }, { passive: true });
-
-    if (exploreSection && window.IntersectionObserver) {
-      const observer = new IntersectionObserver((entries) => {
-        if (isAutoScrolling) return;
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setStandardsActive();
-          } else {
-            const navEl = document.getElementById('navbar-root');
-            const navHeight = navEl ? navEl.offsetHeight : 100;
-            const exploreRect = exploreSection.getBoundingClientRect();
-            if (exploreRect.top > navHeight || window.scrollY < 250) {
-              setHomeActive();
-            }
-          }
-        });
-      }, { rootMargin: '-10% 0px -40% 0px', threshold: 0.1 });
-      observer.observe(exploreSection);
-    }
   }
 
   // Font Size Accessibility Controls

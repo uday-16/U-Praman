@@ -1,32 +1,10 @@
-const API_HOST = (typeof window !== 'undefined' && window.location.port !== '8000') 
-  ? 'http://127.0.0.1:8000' 
-  : '';
-
+import { API_BASE } from './api-config.js';
 async function callAuthApi(endpoint, body, method = 'POST', token = '') {
-  const primaryUrl = `${API_HOST}/api/v1/auth${endpoint}`;
-  const options = {
-    method,
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }
-  };
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-
-  try {
-    const res = await fetch(primaryUrl, options);
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, data };
-  } catch (err) {
-    try {
-      const fallbackUrl = `/api/v1/auth${endpoint}`;
-      const res = await fetch(fallbackUrl, options);
-      const data = await res.json().catch(() => ({}));
-      return { ok: res.ok, status: res.status, data };
-    } catch (fallbackErr) {
-      console.error(`Auth API connection error on ${endpoint}:`, err, fallbackErr);
-      throw fallbackErr;
-    }
-  }
+  const options = { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) } };
+  if (body) options.body = JSON.stringify(body);
+  const response = await fetch(`${API_BASE}/auth${endpoint}`, options);
+  const data = await response.json().catch(() => ({}));
+  return { ok: response.ok, status: response.status, data };
 }
 
 const KEYS = {
@@ -166,8 +144,6 @@ export const Storage = {
         return { success: false, error: data.detail || 'Account registration failed.' };
       }
       if (data.user && data.access_token) {
-        this.setUser(data.user);
-        this.setToken(data.access_token);
         return { success: true, user: data.user, token: data.access_token };
       }
       return { success: false, error: 'Unexpected response from server.' };
@@ -245,7 +221,7 @@ export const Storage = {
 
   async getRegisteredUsers() {
     try {
-      const { ok, data } = await callAuthApi('/users', null, 'GET');
+      const { ok, data } = await callAuthApi('/users', null, 'GET', this.getToken());
       if (ok && Array.isArray(data)) {
         localStorage.setItem(KEYS.REGISTERED_USERS, JSON.stringify(data));
         return data;
@@ -259,7 +235,7 @@ export const Storage = {
 
   async toggleUserStatus(userId) {
     try {
-      const { ok, data } = await callAuthApi(`/toggle-status/${userId}`, null, 'POST');
+      const { ok, data } = await callAuthApi(`/toggle-status/${encodeURIComponent(userId)}`, null, 'POST', this.getToken());
       if (ok) {
         return { success: true, status: data.status };
       }

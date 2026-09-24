@@ -4,6 +4,7 @@ import secrets
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
+from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Depends, Request
 
 from app.database import (
@@ -51,7 +52,6 @@ def issue_login_session(user_id: str) -> str:
     })
     return token
 
-
 def require_session(request: Request):
     scheme, _, token = request.headers.get("Authorization", "").partition(" ")
     if scheme.lower() != "bearer" or not token:
@@ -78,6 +78,10 @@ def require_session(request: Request):
         raise HTTPException(status_code=401, detail="Please log in with an active account.")
     return user
 
+def require_admin(user=Depends(require_session)):
+    if normalize_role(user.get('role')) != 'Administrator':
+        raise HTTPException(403, 'Administrator access is required.')
+    return user
 
 def normalize_role(role_str: Optional[str]) -> str:
     if not role_str:
@@ -310,6 +314,8 @@ def verify_otp(req: VerifyOtpRequest):
 
 @router.post("/register", response_model=AuthResponse)
 def register(req: RegisterRequest):
+    if normalize_role(req.role) != "Procurement Officer":
+        raise HTTPException(403, "Administrator access must be granted by an existing administrator.")
     full_name = req.full_name.strip()
     email = req.email.strip().lower()
     department = req.department.strip()
@@ -325,7 +331,6 @@ def register(req: RegisterRequest):
         raise HTTPException(status_code=400, detail="Department / Organization is required.")
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters long.")
-    
     
     # Strictly require Email OTP verification
     email_ok = is_email_verified(email, req.email_otp)
@@ -419,7 +424,7 @@ def register(req: RegisterRequest):
     )
 
 @router.post("/login", response_model=AuthResponse)
-def login(req: LoginRequest):
+def login(req: LoginRequest, request: Request):
     identifier = (req.full_name or req.email or "").strip()
     req_role = normalize_role(req.role) if req.role else None
     password = req.password
@@ -429,6 +434,10 @@ def login(req: LoginRequest):
     if not password:
         raise HTTPException(status_code=400, detail="Password is required.")
     
+    from app.services.admin_store import login_attempt
+    address = request.client.host if request.client else 'unknown'
+    if not login_attempt(identifier, address):
+        raise HTTPException(429, 'Too many login attempts. Please try again in 15 minutes.')
     query_conditions = [
         {"email": identifier.lower()},
         {"full_name": {"$regex": f"^{re.escape(identifier)}$", "$options": "i"}}
@@ -495,12 +504,35 @@ def login(req: LoginRequest):
         is_email_verified=bool(user_doc.get("is_email_verified", 1))
     )
     
+    login_attempt(identifier, address, success=True)
     token = issue_login_session(user_profile.id)
     return AuthResponse(
         access_token=token,
         token_type="bearer",
         user=user_profile
     )
+
+class PasswordResetRequest(BaseModel):
+    email: str = Field(max_length=254)
+    otp_code: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=12, max_length=256)
+
+@router.post('/reset-password')
+def reset_password(req: PasswordResetRequest):
+    from pathlib import Path
+    from filelock import FileLock
+    from app.services.admin_store import audit
+    email=req.email.strip().lower()
+    lock_path=Path(__file__).resolve().parents[2]/'data'/('reset-'+hashlib.sha256(email.encode()).hexdigest()+'.lock')
+    with FileLock(str(lock_path),timeout=10):
+        _process_verify_email_otp(email,req.otp_code)
+        user=users_collection.find_one({'email':email})
+        if not user: raise HTTPException(400,'No registered account could be reset with these details.')
+        hashed,salt=hash_password(req.new_password)
+        users_collection.update_one({'id':user['id']},{'$set':{'password_hash':hashed,'salt':salt,'is_email_verified':1,'updated_at':datetime.now(timezone.utc).isoformat()}})
+        sessions_collection.update_many({'user_id':user['id']},{'$set':{'revoked':True}})
+        audit(user['id'],'password.reset',user['id'])
+    return {'success':True,'message':'Password reset. Sign in with your new password.'}
 
 @router.post("/logout")
 def logout(request: Request):
@@ -512,18 +544,35 @@ def logout(request: Request):
         )
     return {"success": True, "message": "Signed out successfully."}
 
-@router.post("/google", response_model=AuthResponse)
+@router.post('/google', response_model=AuthResponse)
 def google_auth(req: GoogleAuthRequest):
-    email = req.email.strip().lower()
-    name = req.name.strip()
-    role = normalize_role(req.role)
-    
+    from app.config import settings
+    email = ""
+    name = "Officer"
+    role = normalize_role(req.role) if req.role else "Procurement Officer"
+
+    if not req.credential:
+        raise HTTPException(status_code=401, detail="A verified Google credential is required.")
+
+    if settings.google_client_id:
+        try:
+            from google.oauth2 import id_token
+            from google.auth.transport.requests import Request as GoogleRequest
+            identity = id_token.verify_oauth2_token(req.credential, GoogleRequest(), settings.google_client_id)
+            email = identity.get('email', '').lower()
+            name = identity.get('name', req.name or email)
+        except Exception:
+            raise HTTPException(status_code=401, detail="Invalid Google credential.")
+    else:
+        email = (req.email or "").strip().lower()
+        name = (req.name or email).strip()
+
     if not email:
         raise HTTPException(status_code=400, detail="Google authentication failed: Email missing.")
-        
+
     user_doc = users_collection.find_one({"email": email})
     now_utc = datetime.now(timezone.utc)
-    
+
     if user_doc:
         if user_doc.get("status") == "deactivated":
             raise HTTPException(status_code=403, detail="Your account has been deactivated.")
@@ -565,23 +614,23 @@ def google_auth(req: GoogleAuthRequest):
             "last_login_at": now_utc
         }
         users_collection.insert_one(new_doc)
-    
+
     user_profile = UserProfile(
         id=user_id,
         name=name,
         email=email,
         mobile_number=user_doc.get("mobile_number") if user_doc else None,
         role=user_role,
-        organization=org,
-        department=dept,
-        cadre=cadre,
+        organization=org if not user_doc else user_doc.get("organization", "Central Procurement Division"),
+        department=dept if not user_doc else user_doc.get("department", "Central Procurement Division"),
+        cadre=cadre if not user_doc else user_doc.get("cadre", "Class I Executive"),
         gem_officer_id=gem_id,
-        jurisdiction_state=jurisdiction,
+        jurisdiction_state=jurisdiction if not user_doc else user_doc.get("jurisdiction_state", "All India / Central"),
         portal_access=access,
         status="active",
         is_email_verified=True
     )
-    
+
     token = issue_login_session(user_id)
     return AuthResponse(
         access_token=token,
@@ -665,9 +714,7 @@ def update_profile(req: UpdateProfileRequest, user_doc=Depends(require_session))
     )
 
 @router.get("/users")
-def list_users(_admin=Depends(require_session)):
-    if normalize_role(_admin.get("role")) != "Administrator":
-        raise HTTPException(status_code=403, detail="Administrator access is required.")
+def list_users(actor=Depends(require_admin)):
     cursor = users_collection.find({}, sort=[("created_at", -1)])
     docs = list(cursor)
     
@@ -687,19 +734,15 @@ def list_users(_admin=Depends(require_session)):
     ]
 
 @router.post("/toggle-status/{user_id}")
-def toggle_user_status(user_id: str, _admin=Depends(require_session)):
-    if normalize_role(_admin.get("role")) != "Administrator":
-        raise HTTPException(status_code=403, detail="Administrator access is required.")
-    doc = users_collection.find_one({"id": user_id})
+def toggle_user_status(user_id: str, actor=Depends(require_admin)):
+    from app.routers.admin import update_user, UserUpdate
+    doc = users_collection.find_one({'id': user_id})
     if not doc:
-        raise HTTPException(status_code=404, detail="User not found.")
-    
-    new_status = "deactivated" if doc.get("status") == "active" else "active"
-    users_collection.update_one({"id": user_id}, {"$set": {"status": new_status}})
-    return {"success": True, "status": new_status}
+        raise HTTPException(404, 'User not found.')
+    return update_user(user_id, UserUpdate(status='active' if doc.get('status') == 'deactivated' else 'deactivated'), actor)
 
 @router.get("/health/email", response_model=ServiceHealthResponse)
-def health_email():
+def health_email(actor=Depends(require_admin)):
     """Verify SMTP connection and authentication status without exposing credentials."""
     result = EmailService.verify_smtp_configuration()
     return ServiceHealthResponse(

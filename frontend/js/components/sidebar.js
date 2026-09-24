@@ -1,3 +1,4 @@
+import { escapeHtml } from '../utils/api.js';
 import { Storage } from '../utils/storage.js';
 import { bindLanguageSelects } from '../utils/translator.js';
 
@@ -11,6 +12,7 @@ export function renderAppSidebar(activePage = 'dashboard') {
     { id: 'reports', label: 'Reports', url: '/pages/reports.html', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' }
   ];
 
+  if (Storage.isAdmin()) workspaceLinks.push({ id: 'admin', label: 'Admin console', url: '/pages/admin.html', icon: '<path d="M12 2l8 4v6c0 5-8 10-8 10S4 17 4 12V6z"/><path d="M9 12l2 2 4-4"/>' });
   const myWorkLinks = [
     { id: 'history', label: 'History', url: '/pages/history.html', icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' },
     { id: 'saved', label: 'Saved', url: '/pages/saved.html', icon: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>' }
@@ -118,6 +120,7 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null
           <input type="text" placeholder="Search Indian Standards..." id="topbar-search-input" />
         </div>
 
+<<<<<<< HEAD
         <!-- Interactive Notifications -->
         <div class="topbar-notif-wrapper">
           <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" title="Procurement Notifications" aria-expanded="false">
@@ -171,6 +174,18 @@ export function renderAppTopbar(pageTitle = 'Procurement Workspace', user = null
             <div class="notif-footer">
               <a href="/pages/history.html" class="notif-view-all">View All Procurement History &rarr;</a>
             </div>
+=======
+        <button class="topbar-icon-btn" id="notif-btn" aria-label="Notifications" title="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notification-badge"></span>
+        </button>
+
+        <a href="/pages/profile.html" class="user-profile-btn" title="View & Edit Officer Profile">
+          <div class="avatar-circle">${initial}</div>
+          <div class="user-info">
+            <span class="user-name">${escapeHtml(officerName)}</span>
+            <span class="user-role">${escapeHtml(officerRole)}</span>
+>>>>>>> 8301a287f085226825277702ef5a285ae4371d2f
           </div>
         </div>
 

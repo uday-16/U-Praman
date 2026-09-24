@@ -53,3 +53,8 @@ backend/data/*.db
 *.sqlite
 *.sqlite3
 backend/data/sessions_store.json
+backend/data/rag/
+backend/data/models/
+backend/data/analyses/
+backend/data/standards-archive/
+backend/data/*.lock

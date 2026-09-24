@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import auth, analysis, standards, reports, chat
+from app.routers import auth, analysis, standards, reports, chat, admin
 
 app = FastAPI(
     title=settings.app_name,
@@ -23,6 +23,7 @@ app.include_router(analysis.router, prefix=settings.api_prefix)
 app.include_router(standards.router, prefix=settings.api_prefix)
 app.include_router(reports.router, prefix=settings.api_prefix)
 app.include_router(chat.router, prefix=settings.api_prefix)
+app.include_router(admin.router, prefix=settings.api_prefix)
 
 @app.get("/")
 def root():

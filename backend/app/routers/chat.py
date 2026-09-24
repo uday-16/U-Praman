@@ -3,7 +3,7 @@ from typing import List, Optional, Literal
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from app.services.chat_assistant import chat_reply, LANGUAGES
 from app.services.chat_audio import transcribe_audio, synthesize_speech
 
@@ -13,15 +13,22 @@ router = APIRouter(prefix='/chat', tags=['chat'])
 
 class ChatTurn(BaseModel):
     role: Literal['user', 'assistant']
-    content: str = Field(min_length=1, max_length=2000)
+    content: str = Field(min_length=1, max_length=12000)
 
 
 class ChatRequest(BaseModel):
     query: str = Field(min_length=1, max_length=2000)
-    standard_id: Optional[str] = Field(default=None, max_length=80)
+    standard_id: Optional[str] = Field(default=None, max_length=100)
     history: List[ChatTurn] = Field(default_factory=list, max_length=12)
     language: str = Field(default='auto', max_length=12)
     web_enabled: bool = True
+
+    @field_validator('query')
+    @classmethod
+    def validate_query(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Query cannot be blank.')
+        return v
 
 
 class Citation(BaseModel):

@@ -1,5 +1,6 @@
 from typing import List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from app.routers.auth import require_session
 from fastapi.responses import JSONResponse
 from app.schemas.reports import ProcurementReport, ReportCreateRequest
 from app.services.report_generator import (
@@ -10,29 +11,32 @@ from app.routers.analysis import ANALYSIS_STORE, get_analysis_result
 router = APIRouter(prefix="/reports", tags=["Procurement Reports"])
 
 @router.post("", response_model=ProcurementReport)
-def create_report(req: ReportCreateRequest):
-    analysis = get_analysis_result(req.analysis_id)
+def create_report(req: ReportCreateRequest, user=Depends(require_session)):
+    analysis = get_analysis_result(req.analysis_id, user)
     return generate_procurement_report(req, analysis)
 
 @router.get("", response_model=List[ProcurementReport])
-def list_reports():
-    return list_all_reports()
+def list_reports(user=Depends(require_session)):
+    results = []
+    for report in list_all_reports():
+        try:
+            get_analysis_result(report.analysis.id, user)
+            results.append(report)
+        except HTTPException:
+            pass
+    return results
 
 @router.get("/{report_id}", response_model=ProcurementReport)
-def get_report_detail(report_id: str):
+def get_report_detail(report_id: str, user=Depends(require_session)):
     report = get_report_by_id(report_id)
     if not report:
-        # Fallback dummy report for direct URL navigation in demo mode
-        analysis = get_analysis_result(f"anl-demo-{report_id}")
-        report = generate_procurement_report(ReportCreateRequest(analysis_id=analysis.id), analysis)
+        raise HTTPException(404, 'Report not found.')
+    get_analysis_result(report.analysis.id, user)
     return report
 
 @router.get("/{report_id}/download")
-def download_pdf_report(report_id: str):
-    report = get_report_by_id(report_id)
-    if not report:
-        analysis = get_analysis_result(f"anl-demo-{report_id}")
-        report = generate_procurement_report(ReportCreateRequest(analysis_id=analysis.id), analysis)
+def download_pdf_report(report_id: str, user=Depends(require_session)):
+    report = get_report_detail(report_id, user)
         
     content = {
         "report_id": report.id,
