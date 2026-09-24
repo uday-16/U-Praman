@@ -119,10 +119,9 @@
   <script type="module">
     import { workspaceReady } from '/js/utils/workspace-guard.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
-    import { Storage } from '/js/utils/storage.js';
-    import { mockReports } from '/js/data/reports.js';
+    import { api, escapeHtml as esc } from '/js/utils/api.js';
 
-    workspaceReady.then(allowed => {
+    workspaceReady.then(async allowed => {
       if (!allowed) return;
 
       document.getElementById('sidebar-root').innerHTML = renderAppSidebar('reports');
@@ -130,43 +129,21 @@
       initSidebarEvents();
       initTopbarEvents();
 
-      const userAnalyses = Storage.getAnalyses();
-      let combined = [];
-
-      if (userAnalyses && userAnalyses.length > 0) {
-        userAnalyses.forEach(a => {
-          let title = a.product || a.title || 'Procurement Requirement';
-          if (/PRAMAN_Demo_Tender_Specification\.pdf/i.test(title)) {
-            title = 'Industrial Safety Helmet Procurement';
-          } else {
-            title = title.replace(/\.pdf$/i, '').replace(/_/g, ' ');
-          }
-          const id = a.id ? (a.id.startsWith('REQ-') || a.id.startsWith('REP-') ? a.id : `REP-PRAMAN-${a.id}`) : 'REP-PRAMAN-2026-001';
-          const standardsCount = a.standardsCount || (a.matchedStandards ? a.matchedStandards.length : (a.standards ? a.standards.length : 2));
-          combined.push({
-            id,
-            title,
-            standardsCount,
-            date: a.date || 'Today',
-            linkId: a.id || id
-          });
-        });
+      let reports = [];
+      try {
+        reports = await api('/reports');
+      } catch (err) {
+        console.warn('Could not load reports from API:', err);
       }
 
-      // Add mock reports if list is small so judge sees rich reports
-      if (combined.length < 3) {
-        mockReports.forEach(m => {
-          if (!combined.some(c => c.id === m.reportCode || c.id === m.id)) {
-            combined.push({
-              id: m.reportCode || m.id,
-              title: m.title,
-              standardsCount: (m.standardsRecommended && m.standardsRecommended.length) || 3,
-              date: m.date || 'Recent',
-              linkId: m.id
-            });
-          }
-        });
-      }
+      const combined = (reports || []).map(r => ({
+        id: r.id,
+        title: r.product_name || r.title || 'Procurement Standards Report',
+        standardsCount: (r.analysis && r.analysis.recommendations ? r.analysis.recommendations.length : 0),
+        date: r.created_at || 'Recent',
+        linkId: r.id
+      }));
+
 
       const tbody = document.getElementById('reports-table-body');
       if (combined.length > 0) {

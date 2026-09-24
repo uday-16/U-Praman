@@ -76,3 +76,34 @@ class AnalysisResult(BaseModel):
     generation_mode: str = "extractive"
     retrieval_mode: str = ""
     corpus_fingerprint: str = ""
+
+class AnalysisStageInfo(BaseModel):
+    id: str
+    label: str
+    status: Literal["pending", "active", "completed", "failed"]
+    description: str = ""
+
+class AnalysisJobState(BaseModel):
+    id: str
+    user_id: str
+    input_type: str = "text"
+    filename: Optional[str] = None
+    requirement_title: str = "Procurement Requirement"
+    status: Literal["QUEUED", "PROCESSING", "COMPLETED", "FAILED"] = "QUEUED"
+    current_stage: str = "QUEUED"
+    current_stage_label: str = "Job queued"
+    completed_stages: List[str] = []
+    total_stages: int = 8
+    progress_percent: int = 0
+    stages: List[AnalysisStageInfo] = []
+    result: Optional[AnalysisResult] = None
+    error: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+class AnalysisJobCreateRequest(BaseModel):
+    extraction_id: Optional[str] = None
+    review: Optional[ExtractionReviewRequest] = None
+    text: Optional[str] = None
+    product_name: Optional[str] = None
+

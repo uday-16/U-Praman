@@ -20,15 +20,16 @@ class CertificationItem(BaseModel):
     is_mandatory: bool = False
 
 class SourceEvidence(BaseModel):
-    section: str
-    clause: str
+    section: str = ""
+    clause: str = ""
     text: str
-    confidence: float
+    confidence: float = 1.0
     verified: bool = False
     source: str = ""
     page: int = 0
     citation_id: str = ""
     source_url: str = ""
+
 
 class RelatedStandardItem(BaseModel):
     id: str

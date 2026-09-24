@@ -1,17 +1,64 @@
-#analysis-content { max-width: 1440px; }
-#analysis-content .card { margin: 1.25rem 0; padding: 1.5rem; }
-#analysis-content h2 { font-size: 1.15rem; margin-bottom: .8rem; color: var(--navy); }
-#analysis-content h3 { font-size: 1rem; margin: 1rem 0 .5rem; }
-#analysis-content p, #analysis-content li { line-height: 1.7; overflow-wrap: anywhere; }
+#analysis-content { max-width: 1200px; margin: 0 auto; }
+#analysis-content .card { margin: 1.25rem 0; padding: 1.5rem; background: #ffffff; border: 1px solid var(--line, #dbe3eb); border-radius: 6px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04); }
+#analysis-content h2 { font-size: 1.15rem; margin-bottom: .8rem; color: var(--navy, #123F63); font-weight: 700; letter-spacing: -0.01em; }
+#analysis-content h3 { font-size: 0.98rem; margin: 1rem 0 .5rem; color: #1e293b; font-weight: 600; }
+#analysis-content p, #analysis-content li { line-height: 1.65; overflow-wrap: anywhere; color: #334155; font-size: 0.9rem; }
 #analysis-content ul { padding-left: 1.25rem; list-style: disc; }
+
 .rag-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
-.rag-form { display: flex; flex-direction: column; gap: .65rem; }
-.source-text { white-space: pre-wrap; font-family: inherit; font-size: .9rem; overflow-wrap: anywhere; }
-.input-preview { max-height: 650px; overflow: auto; }
-.source-evidence { padding: .9rem; margin: .75rem 0; background: var(--paper, #f8fafc); border: 1px solid var(--line, #dbe3eb); border-radius: 8px; }
-.source-evidence summary { cursor: pointer; font-weight: 600; }
-.source-evidence p { margin: .8rem 0; }
-.rag-notice { background: #fff8e7; border-left: 3px solid var(--gold, #c08a28); padding: 1rem; margin: 1rem 0; }
-.rag-meta { color: var(--ink-soft, #64748b); font-size: .8rem; }
-.rag-card-heading, .rag-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
-@media(max-width: 900px) { .rag-grid { grid-template-columns: 1fr; gap: 0; } }
+.rag-form { display: flex; flex-direction: column; gap: .75rem; }
+.source-text { white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: .84rem; overflow-wrap: anywhere; line-height: 1.6; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 0.85rem; color: #1e293b; }
+.input-preview { max-height: 500px; overflow: auto; }
+
+/* Progress Stage Tracker */
+.progress-card { border: 1px solid #cbd5e1; background: #ffffff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(18, 63, 99, 0.06); }
+.progress-header { margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.25rem; }
+.progress-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 4px; background: #e0f2fe; color: #0369a1; margin-bottom: 0.5rem; }
+.progress-bar-container { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin: 1rem 0 0.5rem; }
+.progress-bar-fill { background: var(--navy, #123F63); height: 100%; transition: width 0.4s ease; }
+.stage-list { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1.5rem; }
+.stage-item { display: flex; align-items: flex-start; gap: 1rem; padding: 0.75rem 1rem; border-radius: 6px; border: 1px solid transparent; transition: all 0.2s ease; }
+.stage-item.completed { background: #f8fafc; border-color: #e2e8f0; }
+.stage-item.active { background: #f0fdf4; border-color: #bbf7d0; box-shadow: 0 1px 3px rgba(19, 136, 8, 0.08); }
+.stage-item.pending { opacity: 0.65; }
+.stage-item.failed { background: #fef2f2; border-color: #fecaca; }
+
+.stage-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+.stage-item.completed .stage-icon { background: #dcfce7; color: #15803d; }
+.stage-item.active .stage-icon { background: #0284c7; color: #ffffff; animation: subtle-pulse 1.8s infinite; }
+.stage-item.pending .stage-icon { background: #e2e8f0; color: #64748b; }
+.stage-item.failed .stage-icon { background: #fee2e2; color: #dc2626; }
+
+@keyframes subtle-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.stage-details { flex: 1; }
+.stage-title { font-weight: 600; font-size: 0.92rem; color: #1e293b; margin-bottom: 0.2rem; }
+.stage-desc { font-size: 0.8rem; color: #64748b; }
+
+/* Evidence Styling */
+.source-evidence { padding: 0.85rem 1.1rem; margin: 0.75rem 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; }
+.source-evidence summary { cursor: pointer; font-weight: 600; color: #1e293b; font-size: 0.88rem; display: flex; align-items: center; gap: 0.5rem; }
+.source-evidence summary:hover { color: #123f63; }
+.source-evidence p { margin: 0.75rem 0 0.5rem; font-size: 0.84rem; color: #334155; }
+.source-evidence a { font-size: 0.8rem; font-weight: 600; color: #123f63; text-decoration: none; }
+.source-evidence a:hover { text-decoration: underline; }
+
+.rag-notice { background: #fffbeb; border-left: 4px solid #d97706; padding: 0.9rem 1.1rem; margin: 1rem 0; font-size: 0.86rem; color: #92400e; border-radius: 0 4px 4px 0; }
+.rag-meta { color: #64748b; font-size: 0.82rem; }
+.rag-card-heading, .rag-actions { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+/* Traceability Matrix Table */
+.trace-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; }
+.trace-table th { background: #f8fafc; color: #475569; font-weight: 600; text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid #cbd5e1; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.trace-table td { padding: 0.85rem 1rem; border-bottom: 1px solid #e2e8f0; color: #1e293b; vertical-align: top; }
+.trace-table tr:hover td { background: #f8fafc; }
+
+@media(max-width: 900px) {
+  .rag-grid { grid-template-columns: 1fr; gap: 0; }
+  .rag-card-heading, .rag-actions { flex-direction: column; align-items: flex-start; }
+}
+

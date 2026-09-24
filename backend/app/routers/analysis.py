@@ -2,6 +2,7 @@
 import json
 import re
 import uuid
+from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from app.routers.auth import require_session
 from app.schemas.analysis import RequirementInput, ExtractedRequirement, ExtractionReviewRequest, AnalysisResult
@@ -85,6 +86,68 @@ def confirm_and_analyze(extraction_id: str, review: ExtractionReviewRequest, use
     return result
 
 
+from app.schemas.analysis import AnalysisJobState, AnalysisJobCreateRequest
+from app.services.job_service import create_analysis_job, load_job
+
+
+@router.post('/jobs', response_model=AnalysisJobState)
+def create_job_endpoint(payload: AnalysisJobCreateRequest, user=Depends(require_session)):
+    uid = owner_id(user)
+    if payload.extraction_id:
+        extracted = load('extraction', payload.extraction_id, user, ExtractedRequirement)
+        if payload.review:
+            for key, value in payload.review.model_dump(exclude_none=True).items():
+                setattr(extracted, key, value)
+        job = create_analysis_job(
+            user_id=uid,
+            input_type='review',
+            requirement_title=extracted.product_name,
+            extracted=extracted
+        )
+        return job
+    elif payload.text:
+        req = RequirementInput(text=payload.text, product_name=payload.product_name)
+        job = create_analysis_job(
+            user_id=uid,
+            input_type='text',
+            requirement_title=payload.product_name or 'Procurement Requirement',
+            raw_input=req
+        )
+        return job
+    else:
+        raise HTTPException(422, 'Provide either an extraction_id with review or requirement text.')
+
+
+@router.post('/jobs/upload', response_model=AnalysisJobState)
+def upload_for_job_endpoint(file: UploadFile = File(...), user=Depends(require_session)):
+    uid = owner_id(user)
+    try:
+        contents = file.file.read(MAX_UPLOAD_BYTES + 1)
+        pages = read_document(contents, file.filename or '')
+        raw_text = '\n'.join(p['text'] for p in pages)
+        req = RequirementInput(text=raw_text)
+        job = create_analysis_job(
+            user_id=uid,
+            input_type=Path(file.filename or '').suffix.lower().lstrip('.') or 'pdf',
+            filename=file.filename,
+            requirement_title=file.filename or 'Tender Document',
+            raw_input=req
+        )
+        return job
+    except ValueError as error:
+        raise HTTPException(422, str(error))
+
+
+@router.get('/jobs/{job_id}', response_model=AnalysisJobState)
+def get_job_status(job_id: str, user=Depends(require_session)):
+    uid = owner_id(user)
+    job = load_job(job_id, uid)
+    if not job:
+        raise HTTPException(404, 'Analysis job not found.')
+    return job
+
+
 @router.get('/{analysis_id}', response_model=AnalysisResult)
 def get_analysis_result(analysis_id: str, user=Depends(require_session)):
     return load('analysis', analysis_id, user, AnalysisResult)
+

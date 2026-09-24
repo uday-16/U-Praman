@@ -97,8 +97,10 @@ class AnalysisApiTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory()
         self.store=patch.object(analysis,'STORE',Path(self.temp.name)); self.store.start()
-        app=FastAPI(); app.include_router(analysis.router); app.include_router(chat.router)
+        from app.routers import reports
+        app=FastAPI(); app.include_router(analysis.router); app.include_router(chat.router); app.include_router(reports.router)
         self.app=app; self.client=TestClient(app)
+
     def tearDown(self): self.store.stop(); self.temp.cleanup()
     def authorize(self, user='test-officer'):
         self.app.dependency_overrides[require_session]=lambda: {'id':user}
@@ -123,4 +125,79 @@ class AnalysisApiTests(unittest.TestCase):
         response=self.client.post('/analysis/upload',files={'file':('bad.pdf',b'not pdf','application/pdf')})
         self.assertEqual(response.status_code,422)
 
+    def test_analysis_job_lifecycle(self):
+        import time
+        self.authorize()
+        from app.services.job_service import create_analysis_job, load_job
+        from app.schemas.analysis import RequirementInput
+        # Create persistent job
+        job = create_analysis_job(
+            user_id='test-officer',
+            input_type='text',
+            requirement_title='Industrial Safety Helmets',
+            raw_input=RequirementInput(text='Supply industrial safety helmets with chin strap and shock absorption.')
+        )
+        self.assertTrue(job.id.startswith('job-'))
+        self.assertEqual(job.user_id, 'test-officer')
+        self.assertEqual(job.total_stages, 8)
+
+        # Query job via API
+        resp = self.client.get(f'/analysis/jobs/{job.id}')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['id'], job.id)
+        self.assertIn('stages', data)
+        self.assertEqual(len(data['stages']), 8)
+
+        # Wait briefly for background execution to complete or advance
+        for _ in range(30):
+            updated = load_job(job.id, 'test-officer')
+            if updated and updated.status in ('COMPLETED', 'FAILED'):
+                break
+            time.sleep(0.1)
+
+        final_job = load_job(job.id, 'test-officer')
+        self.assertIsNotNone(final_job)
+        if final_job.status == 'COMPLETED':
+            self.assertEqual(final_job.progress_percent, 100)
+            self.assertIsNotNone(final_job.result)
+            self.assertTrue(final_job.result.id.startswith('anl-'))
+            self.assertGreater(len(final_job.completed_stages), 0)
+
+        # Check owner isolation
+        self.authorize('other-officer')
+        self.assertEqual(self.client.get(f'/analysis/jobs/{job.id}').status_code, 404)
+
+    def test_report_and_pdf_generation(self):
+        self.authorize()
+        with patch('app.services.ai_extractor.extract_requirements_with_gemini', side_effect=gemini_service.GenerationUnavailable('offline')):
+            extract_res = self.client.post('/analysis/extract', json={'text': 'Supply industrial safety helmets with shock absorption.'})
+        self.assertEqual(extract_res.status_code, 200)
+        ext_id = extract_res.json()['id']
+
+        confirm_res = self.client.post(f'/analysis/confirm?extraction_id={ext_id}', json={
+            'product_name': 'Industrial safety helmets',
+            'application': 'Construction',
+            'purpose': 'Head protection',
+            'key_requirements': ['Shock absorption', 'Penetration resistance']
+        })
+        self.assertEqual(confirm_res.status_code, 200)
+        anl_id = confirm_res.json()['id']
+
+        # Create report
+        rep_res = self.client.post('/reports', json={'analysis_id': anl_id, 'officer_name': 'Test Officer'})
+        self.assertEqual(rep_res.status_code, 200)
+        report_data = rep_res.json()
+        report_id = report_data['id']
+        self.assertEqual(report_data['officer_name'], 'Test Officer')
+
+        # Download PDF
+        pdf_res = self.client.get(f'/reports/{report_id}/download')
+        self.assertEqual(pdf_res.status_code, 200)
+        self.assertEqual(pdf_res.headers['content-type'], 'application/pdf')
+        self.assertTrue(pdf_res.content.startswith(b'%PDF'))
+        self.assertGreater(len(pdf_res.content), 2000)
+
 if __name__ == '__main__': unittest.main()
+
+
