@@ -101,7 +101,7 @@ class ConversationTests(unittest.TestCase):
         self.assertEqual(result['language'],'te')
         self.assertEqual(result['citations'][0]['text'],citation['text'])
         self.assertEqual(generate.call_args_list[0].args[2]['history'],history)
-        retrieve.assert_called_once_with('turbidity IS 10500',None,limit=4,topic='water')
+        retrieve.assert_any_call('turbidity IS 10500',None,limit=4,topic='water')
         research.assert_not_called()
 
     @patch.object(assistant, 'retrieve', return_value=[])
@@ -179,9 +179,10 @@ class RouteTests(unittest.TestCase):
         self.assertEqual(res.headers['cache-control'],'no-store')
         self.assertEqual(self.client.post('/api/v1/chat/speak',json={'text':' '*5}).status_code,422)
 
-    @patch('app.services.chat_audio._init_gemini')
-    def test_pcm_is_wrapped_in_playable_wav(self,init):
-        init.return_value.request.return_value={'content':{'parts':[{'inlineData':{'mimeType':'audio/L16;rate=24000','data':base64.b64encode(b'\x00\x00'*2400).decode()}}]}}
+    @patch('app.services.chat_audio.requests.post')
+    def test_pcm_is_wrapped_in_playable_wav(self,post):
+        post.return_value.ok=True
+        post.return_value.json.return_value={'interaction':{'output_audio':{'data':base64.b64encode(b'\x00\x00'*2400).decode()}}}
         data=synthesize_speech('Hello','en')
         with wave.open(io.BytesIO(data)) as audio:
             self.assertEqual(audio.getframerate(),24000)

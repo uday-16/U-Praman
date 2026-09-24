@@ -4,6 +4,7 @@ import io
 import json
 import re
 import wave
+import requests
 from app.config import settings
 from app.services.gemini_service import _init_gemini, candidate_text
 
@@ -23,31 +24,40 @@ def transcribe_audio(data, mime, language):
 
 
 def synthesize_speech(text, language):
-    model = _init_gemini()
-    if model is None:
+    if not settings.gemini_api_key.strip():
         raise RuntimeError('Speech service unavailable')
-    result = model.request([{'text': f'Read the following text aloud in {language}, naturally and clearly. Read it exactly; add nothing:\n{text}'}],
-        model=settings.gemini_tts_model,
-        config={'responseModalities': ['AUDIO'], 'speechConfig': {
-            'voiceConfig': {'prebuiltVoiceConfig': {'voiceName': 'Kore'}}}})
-    for part in result.get('content', {}).get('parts', []):
-        inline = part.get('inlineData', {})
-        if not inline.get('data'):
-            continue
-        raw = base64.b64decode(inline['data'], validate=True)
-        if len(raw) > 12 * 1024 * 1024:
-            raise ValueError('Audio too large')
-        mime = inline.get('mimeType', '')
-        if mime in {'audio/wav', 'audio/x-wav'}:
-            return raw
-        if not mime.startswith(('audio/L16','audio/pcm')):
-            raise ValueError('Unexpected audio format')
-        match = re.search(r'rate=(\d+)', mime)
-        output = io.BytesIO()
-        with wave.open(output, 'wb') as stream:
-            stream.setnchannels(1)
-            stream.setsampwidth(2)
-            stream.setframerate(int(match[1]) if match else 24000)
-            stream.writeframes(raw)
-        return output.getvalue()
-    raise RuntimeError('No speech generated')
+    # Gemini TTS uses the Interactions endpoint. Its response is raw PCM, which is
+    # wrapped below as a browser-playable WAV file.
+    payload = {
+        'model': settings.gemini_tts_model,
+        'input': [{'type': 'user_input', 'content': [{
+            'type': 'text', 'text': f'Read this exactly in {language}, with a clear and friendly voice: {text}',
+            'annotations': [{'type': 'speech_metadata', 'style': 'clear, warm and professional'}]
+        }]}],
+        'response_format': {'type': 'audio', 'mime_type': 'audio/l16', 'sample_rate': 24000},
+        'generation_config': {'speech_config': [{'voice': 'Kore'}]},
+    }
+    response = requests.post(
+        'https://generativelanguage.googleapis.com/v1beta/interactions',
+        headers={'x-goog-api-key': settings.gemini_api_key}, json=payload, timeout=(10, 60))
+    if not response.ok:
+        raise RuntimeError(f'TTS returned HTTP {response.status_code}')
+    body = response.json()
+    output = body.get('interaction', body).get('output_audio', {})
+    encoded = output.get('data') if isinstance(output, dict) else None
+    if not encoded:
+        raise RuntimeError('No speech generated')
+    raw = base64.b64decode(encoded, validate=True)
+    if len(raw) > 12 * 1024 * 1024:
+        raise ValueError('Audio too large')
+    return _pcm_to_wav(raw, 24000)
+
+
+def _pcm_to_wav(raw, sample_rate):
+    output = io.BytesIO()
+    with wave.open(output, 'wb') as stream:
+        stream.setnchannels(1)
+        stream.setsampwidth(2)
+        stream.setframerate(sample_rate)
+        stream.writeframes(raw)
+    return output.getvalue()
