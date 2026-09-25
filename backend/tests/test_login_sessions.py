@@ -7,6 +7,7 @@ import types
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -28,7 +29,7 @@ class Collection:
             if self.matches(doc, query): doc.update(update.get('$set', {})); break
 
 # Import the actual router while keeping tests independent of MongoDB/local files.
-database = types.ModuleType('app.database')
+database: Any = types.ModuleType('app.database')
 for name in ['users_collection', 'otps_collection', 'sessions_collection']:
     setattr(database, name, Collection())
 database.hash_password = lambda password: (hashlib.sha256(password.encode()).hexdigest(), 'test-salt')

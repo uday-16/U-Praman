@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Dict
 from app.schemas.standards import IndianStandard, SourceEvidence, StandardGraph, RelatedStandardItem
 
@@ -24,6 +24,8 @@ class ExtractedRequirement(BaseModel):
     extraction_mode: str = "source-text"
     warning: str = ""
     quantity: str = ""
+    category: str = ""
+    source_name: str = "Entered requirement"
 
 class ExtractionReviewRequest(BaseModel):
     product_name: str
@@ -32,6 +34,35 @@ class ExtractionReviewRequest(BaseModel):
     key_requirements: List[str]
     technical_parameters: Optional[Dict[str, str]] = None
     safety_parameters: Optional[List[str]] = None
+    category: Optional[str] = None
+
+class TraceabilityItem(BaseModel):
+    requirement: str
+    standard_id: str = ""
+    is_number: str = ""
+    citation_id: str = ""
+    source: str = ""
+    page: int = 0
+    excerpt: str = ""
+    status: Literal["Supported", "Partial", "Review Required", "Not Found"] = "Review Required"
+    note: str = ""
+
+class VersionFinding(BaseModel):
+    standard_id: str
+    is_number: str
+    indexed_version: str
+    previous_versions: List[str] = Field(default_factory=list)
+    amendments: List[str] = Field(default_factory=list)
+    source: str = ""
+    status: str = "Not verified in the available knowledge base."
+
+class ApplicabilityFinding(BaseModel):
+    referenced_standard: str
+    standard_id: str = ""
+    product_scope: str = "Review Required"
+    application: str = "Review Required"
+    technical_characteristics: str = "Review Required"
+    overall: str = "Requires verification against the source scope."
 
 class MatchBreakdown(BaseModel):
     product_match: str  # High, Medium, Low
@@ -76,6 +107,14 @@ class AnalysisResult(BaseModel):
     generation_mode: str = "extractive"
     retrieval_mode: str = ""
     corpus_fingerprint: str = ""
+    analyzed_at: str = ""
+    source_name: str = "Entered requirement"
+    category: str = ""
+    traceability: List[TraceabilityItem] = Field(default_factory=list)
+    version_findings: List[VersionFinding] = Field(default_factory=list)
+    applicability: List[ApplicabilityFinding] = Field(default_factory=list)
+    gaps: List[str] = Field(default_factory=list)
+    review_flags: List[str] = Field(default_factory=list)
 
 class AnalysisStageInfo(BaseModel):
     id: str

@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="/css/responsive.css">
   <style>html:not([data-workspace-authenticated]) body { visibility: hidden; }</style>
   <script type="module" src="/js/utils/workspace-guard.js"></script>
+<link rel="stylesheet" href="/css/analysis-flow.css">
 </head>
 <body style="background: var(--bg-main);">
   <div class="app-layout">
@@ -34,137 +35,72 @@
     <div class="app-main-wrapper">
       <div id="topbar-root"></div>
 
-      <main class="app-content">
-        <div style="margin-bottom: 2rem;">
-          <h1 class="page-title">Analyze procurement requirement</h1>
-          <p class="page-subtitle">Upload tender specification documents or enter requirement text to extract parameters and match Indian Standards.</p>
+
+      <main class="app-content" id="analysis-content">
+        <header class="analysis-heading analysis-hero">
+          <div>
+            <span class="eyebrow">PROCUREMENT WORKSPACE · STEP 01</span>
+            <h1>Analyze Procurement Requirement</h1>
+            <p>Give PRAMAN a requirement, a technical specification, or the source document. It will identify the product domain and find relevant Indian Standards from the available evidence.</p>
+          </div>
+          <span class="hero-status"><span aria-hidden="true"></span> Source-backed analysis</span>
+        </header>
+
+        <div class="analysis-start-grid">
+          <section class="card input-workspace">
+            <div class="workspace-card-heading">
+              <div><span class="section-kicker">START WITH YOUR SOURCE</span><h2>How would you like to provide the requirement?</h2></div>
+              <span class="required-note">Required to continue</span>
+            </div>
+            <div class="input-tabs" role="tablist" aria-label="Input method">
+              <button id="tab-describe" class="input-tab" role="tab" aria-selected="true" aria-controls="section-describe"><span class="tab-number">01</span><span><b>Describe</b><small>Plain language</small></span></button>
+              <button id="tab-spec" class="input-tab" role="tab" aria-selected="false" aria-controls="section-spec"><span class="tab-number">02</span><span><b>Paste specification</b><small>Technical clauses</small></span></button>
+              <button id="tab-upload" class="input-tab" role="tab" aria-selected="false" aria-controls="section-upload"><span class="tab-number">03</span><span><b>Upload document</b><small>PDF, Word or image</small></span></button>
+            </div>
+
+            <div id="section-describe" role="tabpanel" aria-labelledby="tab-describe">
+              <label for="desc-prompt">Procurement requirement</label>
+              <textarea id="desc-prompt" class="form-textarea" rows="7" maxlength="100000" placeholder="Describe the product, intended use, technical requirements or procurement requirement..."></textarea>
+              <div class="textarea-meta"><span id="describe-hint">Include the product, intended use and any known performance or testing needs.</span><span id="describe-count">0 / 100,000</span></div>
+              <div class="example-row" aria-label="Example requirements"><span>Try an example</span><button type="button" class="example-chip" data-example="Procurement of hot rolled structural steel plates for bridge construction requiring high tensile strength and impact resistance.">Structural steel</button><button type="button" class="example-chip" data-example="Supply of industrial safety helmets with impact resistance, electrical insulation and chin strap requirements.">Safety helmets</button></div>
+              <details class="secondary-details"><summary>Add a tender title <span>(optional)</span></summary><label for="describe-title-input">Tender title</label><input id="describe-title-input" class="form-input" maxlength="180" placeholder="e.g. Structural steel plates for bridge works"></details>
+            </div>
+            <div id="section-spec" role="tabpanel" aria-labelledby="tab-spec" hidden>
+              <label for="spec-title-input">Specification title <span class="muted">(optional)</span></label>
+              <input id="spec-title-input" class="form-input" maxlength="180" placeholder="e.g. Technical specification for protective helmets">
+              <label for="spec-text-input">Technical specification</label>
+              <textarea id="spec-text-input" class="form-textarea" rows="8" maxlength="100000" placeholder="Paste the technical specification, schedule of requirements, acceptance criteria, standards and quantities here..."></textarea>
+              <div class="textarea-meta"><span>Paste clauses as written, including units, standards and acceptance criteria.</span><span id="spec-count">0 / 100,000</span></div>
+            </div>
+            <div id="section-upload" role="tabpanel" aria-labelledby="tab-upload" hidden>
+              <div id="dropzone" class="upload-zone" tabindex="0" role="button" aria-label="Choose procurement document">
+                <span class="upload-symbol" aria-hidden="true">↑</span><h2>Drop your procurement document here</h2>
+                <p>or select a file from your device</p><span class="btn btn-secondary">Browse files</span>
+                <input type="file" id="file-input" hidden accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
+              </div>
+              <p class="helper">PDF, DOC, DOCX, JPG, JPEG, PNG or TXT · Up to 20 MB. Scanned documents use OCR.</p>
+              <div id="file-card-wrapper" class="selected-document" style="display:none"></div>
+            </div>
+
+            <div class="input-footer">
+              <p id="input-status" role="status" aria-live="polite">Enter a procurement requirement, paste a specification, or upload a document to continue.</p>
+              <button id="start-analysis-btn" class="btn btn-primary" disabled><span>Analyze Requirement</span><span aria-hidden="true">→</span></button>
+            </div>
+          </section>
+
+          <aside class="analysis-guide" aria-label="What happens next">
+            <div class="guide-top"><span class="section-kicker">WHAT PRAMAN WILL DO</span><span class="guide-mark" aria-hidden="true">✓</span></div>
+            <h2>From source to review-ready findings</h2>
+            <ol class="guide-steps">
+              <li><span>01</span><div><b>Understand the requirement</b><p>Extract the product, application and technical parameters.</p></div></li>
+              <li><span>02</span><div><b>Search standards evidence</b><p>Retrieve relevant Indian Standards from the indexed source records.</p></div></li>
+              <li><span>03</span><div><b>Prepare an accountable review</b><p>Show recommendations, evidence, gaps and traceability for officer review.</p></div></li>
+            </ol>
+            <div class="guide-note"><b>Keep your source complete</b><p>More context produces better matches. Include material, intended use, quantity, testing and applicable standards when known.</p></div>
+          </aside>
         </div>
-
-        <div class="card" style="background: white; border: 1px solid var(--border-color); padding: 2rem; max-width: 960px;">
-          <!-- 3 Input Mode Tabs -->
-          <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid var(--line); padding-bottom: 1rem; flex-wrap: wrap;">
-            <button id="tab-describe" class="btn btn-primary btn-sm" style="font-weight: 600;">1. Describe Product</button>
-            <button id="tab-spec" class="btn btn-secondary btn-sm" style="font-weight: 600;">2. Paste Technical Spec</button>
-            <button id="tab-upload" class="btn btn-secondary btn-sm" style="font-weight: 600;">3. Upload Tender PDF</button>
-          </div>
-
-          <!-- Mode 1: Describe Product -->
-          <div id="section-describe">
-            <div class="form-group" style="margin-bottom: 1.25rem;">
-              <label class="form-label" for="desc-prompt" style="font-weight: 600; color: var(--ink);">Describe the product or equipment to procure</label>
-              <textarea id="desc-prompt" class="form-textarea" rows="4"></textarea>
-            </div>
-          </div>
-
-          <!-- Mode 2: Paste Technical Spec -->
-          <div id="section-spec" style="display: none;">
-            <div class="form-group" style="margin-bottom: 1.25rem;">
-              <label class="form-label" for="req-title-input" style="font-weight: 600; color: var(--ink);">Tender / Specification Title</label>
-              <input type="text" id="req-title-input" class="form-input" value="" />
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.25rem;">
-              <label class="form-label" for="req-category-select" style="font-weight: 600; color: #17324D;">Procurement Category</label>
-              <select id="req-category-select" class="form-select" style="height: 42px; font-size: 0.88rem;">
-                <option value="Personal protective equipment">Personal protective equipment (PPE)</option>
-                <option value="Construction materials">Construction materials</option>
-                <option value="Structural steel">Structural steel &amp; alloys</option>
-                <option value="Electrical equipment">Electrical equipment &amp; switchgear</option>
-                <option value="Electronics">Electronics &amp; IT hardware</option>
-                <option value="Mechanical equipment">Mechanical equipment</option>
-                <option value="Industrial machinery">Industrial machinery</option>
-                <option value="Chemicals">Chemicals &amp; petrochemicals</option>
-                <option value="Water and environmental products">Water &amp; environmental products</option>
-                <option value="Food and agricultural products">Food &amp; agricultural products</option>
-                <option value="Medical equipment">Medical equipment &amp; healthcare supplies</option>
-                <option value="Laboratory equipment">Laboratory &amp; testing equipment</option>
-                <option value="Automotive components">Automotive components</option>
-                <option value="Railway equipment">Railway equipment</option>
-                <option value="Telecommunications">Telecommunications equipment</option>
-                <option value="Energy equipment">Energy &amp; renewable equipment</option>
-                <option value="Fire and safety equipment">Fire &amp; safety equipment</option>
-                <option value="Packaging">Packaging materials</option>
-                <option value="Textiles">Textiles &amp; technical fabrics</option>
-                <option value="Petroleum and fuels">Petroleum and fuels</option>
-                <option value="Civil engineering materials">Civil engineering materials</option>
-                <option value="Manufacturing equipment">Manufacturing equipment</option>
-                <option value="Consumer products">Consumer products</option>
-                <option value="Other / Custom">Other / Custom category...</option>
-              </select>
-              <input type="text" id="req-custom-category-input" class="form-input" placeholder="Type custom procurement category..." style="display: none; margin-top: 0.65rem;" />
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.25rem;">
-              <label class="form-label" for="req-text-input" style="font-weight: 600; color: var(--ink);">Technical Specification Text</label>
-              <textarea id="req-text-input" class="form-textarea" rows="5"></textarea>
-            </div>
-          </div>
-
-          <!-- Mode 3: Upload Tender PDF -->
-          <div id="section-upload" style="display: none;">
-            <div id="dropzone" class="file-dropzone" style="border: 2px dashed var(--navy); background: var(--paper); padding: 3rem; text-align: center; border-radius: var(--radius-md); cursor: pointer;">
-              <div style="margin-bottom: 0.75rem; color: var(--navy); display: flex; justify-content: center;">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
-              </div>
-              <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem;">Upload Tender Specification PDF</h3>
-              <p style="font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 1.25rem;">Tesseract OCR extraction enabled for PDF tender documents up to 25MB</p>
-              <button class="btn btn-secondary btn-sm" style="font-weight: 600;">Browse Tender Files</button>
-              <input type="file" id="file-input" style="display: none;" accept=".pdf,.docx,.txt" />
-            </div>
-
-            <div id="file-card-wrapper" style="margin-top: 1.5rem; display: none;">
-              <!-- Dynamically populated by setupFileUpload -->
-            </div>
-          </div>
-
-          <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-            <button id="start-analysis-btn" class="btn btn-primary btn-lg" style="font-weight: 600; background: var(--navy); padding: 0 2rem; height: 46px;">Extract and review requirements &rarr;</button>
-          </div>
-
-          <!-- Value Checklist Grid -->
-          <div style="margin-top: 2.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem;">WHAT PRAMAN WILL IDENTIFY FROM YOUR SPECIFICATION:</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; font-size: 0.88rem; color: var(--text-secondary); font-weight: 600;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Product &amp; requirement category
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Applicable Indian Standards (IS codes)
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Related &amp; normative standards
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Active revisions &amp; gazette amendments
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Relevant certification guidelines
-              </div>
-              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-main); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                <span style="color: var(--indian-green); font-weight: 800;">✓</span> Supporting evidence &amp; match reasoning
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="analysis-assurance"><span aria-hidden="true">⌁</span><p><b>Decision support, with evidence.</b> PRAMAN identifies likely standards from available records. Verify the final applicability against authoritative BIS sources before procurement approval.</p></div>
       </main>
-    </div>
-  </div>
-
-  <!-- Animated Loading Progress Modal -->
-  <div class="modal-overlay" id="loading-modal">
-    <div class="modal-container" style="max-width: 500px; padding: 2.25rem;">
-      <div class="loading-steps-container">
-        <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--primary-blue); margin-bottom: 0.5rem;">Finding applicable standards</h3>
-        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">PRAMAN process execution in progress...</p>
-
-        <div class="loading-step-list" style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; font-weight: 600;">
-          <div class="loading-step-item" id="ls-1" style="color: var(--primary-blue); font-weight: 700;">● Understanding requirement</div>
-          <div class="loading-step-item" id="ls-2" style="color: var(--text-muted);">○ Identifying technical parameters</div>
-          <div class="loading-step-item" id="ls-3" style="color: var(--text-muted);">○ Searching standards</div>
-          <div class="loading-step-item" id="ls-4" style="color: var(--text-muted);">○ Checking relationships</div>
-          <div class="loading-step-item" id="ls-5" style="color: var(--text-muted);">○ Preparing recommendations</div>
-        </div>
-      </div>
     </div>
   </div>
 

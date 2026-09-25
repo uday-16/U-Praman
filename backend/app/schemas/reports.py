@@ -5,7 +5,7 @@ from app.schemas.analysis import AnalysisResult
 class ReportCreateRequest(BaseModel):
     analysis_id: str
     notes: Optional[str] = None
-    officer_name: Optional[str] = "Procurement Officer"
+    officer_name: Optional[str] = None
 
 class ProcurementReport(BaseModel):
     id: str

@@ -32,8 +32,8 @@ class Settings(BaseModel):
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     google_client_id: str = os.getenv("GOOGLE_CLIENT_ID", "")
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    gemini_fallback_model: str = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-1.5-flash")
-    gemini_tts_model: str = os.getenv("GEMINI_TTS_MODEL", "gemini-2.5-flash")
+    gemini_fallback_model: str = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-flash-lite-latest")
+    gemini_tts_model: str = os.getenv("GEMINI_TTS_MODEL", "gemini-flash-lite-latest")
     standards_data_dir: str = os.getenv("STANDARDS_DATA_DIR", "")
     embedding_model: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     rag_semantic_enabled: bool = os.getenv("RAG_SEMANTIC_ENABLED", "true").lower() == "true"

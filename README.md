@@ -2,12 +2,13 @@
 
 **AI-Powered Recommendation Engine for Identifying Applicable Indian Standards for Procurement Specifications.**
 
-This project is cleanly partitioned into two standalone, production-ready directories:
+This project is partitioned into two working directories:
 
 ```
 SIH26108/
-├── frontend/                   # Partitioned React 19 + TypeScript Frontend
-│   ├── src/                    # Components, pages, layouts, services, context
+├── frontend/                   # Vite multi-page workspace (HTML/CSS/ES modules)
+│   ├── pages/                  # Workspace pages
+│   ├── js/                     # Modular UI and analysis workflow
 │   ├── public/                 # Assets & static files
 │   ├── package.json            # Node dependencies & Vite scripts
 │   ├── vite.config.ts          # Vite configuration
@@ -35,23 +36,23 @@ python -m uvicorn app.main:app --reload --port 8000
 - Swagger Interactive Docs: `http://localhost:8000/docs`
 - Run Endpoint Test Suite: `python test_backend.py`
 
-### Running the Frontend (React + TypeScript + Vite)
+### Running the Frontend (Vite)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 - Local URL: `http://localhost:5173`
-- Pre-configured to connect to `http://localhost:8000/api/v1` with automatic mock fallback for offline hackathon demonstrations.
+- Connects to `http://localhost:8000/api/v1` through the Vite proxy.
 
 ---
 
 ## 2. Key Modules & Features
 
 ### Core Procurement Workflow
-`Requirement → Extraction → AI Understanding → Semantic Search → Recommendation → Related Standards → Version/Amendment → Certification → Evidence → Specification Check → Report`
+`Requirement → Validation → Extraction → RAG Retrieval → Evidence Review → Traceability → Report / PDF / Print`
 
-- **Tender Upload & Text Analysis**: Drag-and-drop PDF/DOCX tender parsing or natural language input.
+- **Tender Upload & Text Analysis**: Natural language, PDF, DOC/DOCX, TXT and image inputs where server OCR is available.
 - **Human-in-the-Loop AI Extraction Review**: Allows procurement officers to review and edit extracted parameters before running semantic matching.
 - **Semantic Vector Ranking Engine**: Matches and scores Indian Standards (IS 2925, IS 2062, IS 15652, IS 302, etc.) into match levels (`Very High`, `High`, `Medium`, `Needs Review`) with expandable **"Why recommended?"** match breakdowns.
 - **Interactive Relationship Graph**: Network visualization of main standards and related testing, safety, normative reference, and installation standards.
@@ -59,13 +60,13 @@ npm run dev
 - **Specification Completeness Checker**: Evaluates procurement specification coverage (%) and suggests improvement items.
 - **Procurement Standards Report**: Previews and downloads structured reports.
 
+Analysis jobs are persistent and owner-scoped. `POST /api/v1/analysis/jobs` returns a job identifier; `GET /api/v1/analysis/jobs/{id}` reports the real processing stage and the completed structured result. Retrieved evidence is source-linked and remains a review item unless its scope and conditions are verified by the officer.
+
 ---
 
-## 3. Demo Credentials
+## 3. Local Access
 
-- **Email:** `procurement.officer@gov.in`
-- **Password:** `demo123`
-- **Role:** Procurement Officer
+Create a Procurement Officer account through the registration flow, then sign in to the workspace. No shared demo credentials are provisioned by the application.
 
 ---
 

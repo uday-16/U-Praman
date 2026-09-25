@@ -322,11 +322,11 @@
   <script type="module" src="/js/main.js"></script>
   <script type="module">
     import { workspaceReady } from '/js/utils/workspace-guard.js';
+    import { api } from '/js/utils/api.js';
     import { Storage } from '/js/utils/storage.js';
-    import { mockStandards } from '/js/data/standards.js';
     import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
 
-    workspaceReady.then(allowed => {
+    workspaceReady.then(async allowed => {
       if (!allowed) return;
 
       if (!Storage.isLoggedIn()) {
@@ -383,7 +383,8 @@
       initTopbarEvents();
 
       // 4. Retrieve actual dynamic analyses and saved standards
-      const analyses = Storage.getAnalyses();
+      let analyses = [];
+      try { analyses = await api('/analysis'); } catch (error) { console.warn('Analysis history unavailable'); }
       const savedStandards = Storage.getSavedStandards();
 
       // Compute dynamic KPIs
@@ -413,18 +414,16 @@
             if (Array.isArray(data) && data.length > 0) {
               const liveCount = data.length;
               if (kbStandardsMeta) kbStandardsMeta.innerText = `${liveCount} Indian Standards Indexed`;
-              if (kbLastIndexed) kbLastIndexed.innerText = `Updated from BIS Records`;
+              if (kbLastIndexed) kbLastIndexed.innerText = `Indexed local source documents`;
               if (kpiStandardsEl) kpiStandardsEl.innerText = String(liveCount);
               return;
             }
           }
         } catch (e) {}
 
-        // Fallback to local verified knowledge base count
-        const count = (Array.isArray(mockStandards) && mockStandards.length > 0) ? mockStandards.length : 11;
-        if (kbStandardsMeta) kbStandardsMeta.innerText = `${count} Indian Standards Indexed`;
-        if (kbLastIndexed) kbLastIndexed.innerText = `Updated from BIS Records`;
-        if (kpiStandardsEl) kpiStandardsEl.innerText = String(count);
+        if (kbStandardsMeta) kbStandardsMeta.innerText = 'Knowledge base unavailable';
+        if (kbLastIndexed) kbLastIndexed.innerText = 'Unable to load source index';
+        if (kpiStandardsEl) kpiStandardsEl.innerText = '—';
       }
       updateKnowledgeBaseStatus();
 
@@ -441,10 +440,10 @@
             } else {
               rawTitle = rawTitle.replace(/\.pdf$/i, '').replace(/_/g, ' ');
             }
-            const matchCount = a.standardsCount || (a.matchedStandards ? a.matchedStandards.length : (a.standards ? a.standards.length : (rawTitle.includes('Helmet') ? 2 : 1)));
-            const stdCode = a.standards?.[0]?.isNumber || a.standards?.[0]?.code || (rawTitle.includes('Helmet') ? 'IS 2925:1984' : 'IS 2062:2011');
-            const category = a.category || (rawTitle.includes('Helmet') ? 'Safety Equipment' : 'Structural Steel');
-            const targetUrl = a.id ? `/pages/results.html?id=${encodeURIComponent(a.id)}` : '/pages/results.html';
+            const matchCount = a.standardsCount;
+            const stdCode = `${matchCount} candidate standards`;
+            const category = a.category || 'Not detected';
+            const targetUrl = a.id ? `/pages/results.html?analysis_id=${encodeURIComponent(a.id)}` : '/pages/results.html';
             const isReview = (a.status || '').toLowerCase().includes('review') || (a.status || '').toLowerCase().includes('flag');
 
             return `
@@ -457,7 +456,7 @@
                 </td>
                 <td>
                   <span class="std-chip">${escapeHtml(stdCode)}</span>
-                  ${matchCount > 1 ? `<span style="font-size: 0.78rem; color: #64748B; margin-left: 4px;">+${matchCount - 1} more</span>` : ''}
+
                 </td>
                 <td>
                   <span style="font-size: 0.82rem; color: #475569;">${escapeHtml(category)}</span>
@@ -471,7 +470,7 @@
                   ` : `
                     <span class="status-badge-verified">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                      <span>Verified & Active</span>
+                      <span>Analysis completed</span>
                     </span>
                   `}
                 </td>
@@ -485,36 +484,7 @@
             `;
           }).join('');
         } else {
-          // If no analyses in storage yet, show sample verified entry with prompt to run first analysis
-          recentTbody.innerHTML = `
-            <tr>
-              <td>
-                <div class="analysis-name-cell">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#123F63" stroke-width="2" style="flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  <span>Industrial Safety Helmet Procurement</span>
-                </div>
-              </td>
-              <td>
-                <span class="std-chip">IS 2925:1984</span>
-                <span style="font-size: 0.78rem; color: #64748B; margin-left: 4px;">+1 more</span>
-              </td>
-              <td>
-                <span style="font-size: 0.82rem; color: #475569;">Safety Equipment</span>
-              </td>
-              <td>
-                <span class="status-badge-verified">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  <span>Verified & Active</span>
-                </span>
-              </td>
-              <td style="text-align: right;">
-                <a href="/pages/report-view.html" class="recent-action-btn">
-                  <span>View Report</span>
-                  <span>&rarr;</span>
-                </a>
-              </td>
-            </tr>
-          `;
+          recentTbody.innerHTML = '<tr><td colspan="5">No analyses yet. <a href="/pages/analyze.html">Analyze your first procurement requirement</a>.</td></tr>';
         }
       }
 

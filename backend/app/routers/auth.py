@@ -599,7 +599,7 @@ def google_auth(req: GoogleAuthRequest):
         dept = "Central Procurement Division"
         org = dept
         cadre = "Class I Executive"
-        gem_id = f"GEM-{str(user_id)[-6:].upper()}"
+        gem_id = f"GEM-{user_id[-6:].upper()}"
         jurisdiction = "All India / Central"
         access = "Full Admin" if user_role == "Administrator" else "Officer Access"
         new_doc = {

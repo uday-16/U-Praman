@@ -10,11 +10,22 @@ from app.services.gemini_service import extract_requirements_with_gemini, Genera
 MAX_INPUT_CHARS = 100000
 
 
+def validate_requirement(text):
+    text = clean_text(text or '')
+    if not text:
+        raise ValueError('Enter a procurement requirement or upload a document to continue.')
+    if len(text) > MAX_INPUT_CHARS:
+        raise ValueError('Document exceeds 100,000 text characters. Upload the relevant specification sections.')
+    words = re.findall(r'[^\W\d_]+', text, re.UNICODE)
+    if len(text) < 10 or len(words) < 2 or len(set(w.lower() for w in words)) < 2 or re.fullmatch(r'[\W\d_]+', text) or re.search(r'\b(?:asdf\w*|qwerty\w*|lorem ipsum)\b', text, re.I):
+        raise ValueError('This does not appear to contain a procurement or technical requirement. Please provide a product, specification, intended use or tender document.')
+    return text
+
+
 def extract_requirements_from_input(req):
     text = clean_text('\n'.join(str(v) for v in [req.text, req.product_name, req.application, req.purpose,
                                                req.technical_specs, req.safety_specs, req.quantity] if v))
-    if len(text) < 10: raise ValueError('Describe the product and requirements in at least 10 characters.')
-    if len(text) > MAX_INPUT_CHARS: raise ValueError('Document exceeds 100,000 text characters. Upload the relevant specification sections.')
+    validate_requirement(text)
     lines = [line.strip() for line in re.split(r'\n|(?<=[.!?])\s+', text) if line.strip()]
     params = {}
     for line in lines:
@@ -28,11 +39,19 @@ def extract_requirements_from_input(req):
     try:
         extracted = extract_requirements_with_gemini(text, req.product_name or '')
         if not isinstance(extracted, dict): raise ValueError('Invalid extraction')
-        fields = {k: extracted[k] for k in ('product_name', 'application', 'purpose', 'key_requirements', 'technical_parameters', 'safety_parameters') if k in extracted}
+        if extracted.get('is_requirement') is False:
+            raise InvalidRequirement('This does not appear to contain a procurement or technical requirement. Please provide a product, specification, intended use or tender document.')
+        fields = {k: extracted[k] for k in ('product_name', 'application', 'purpose', 'key_requirements', 'technical_parameters', 'safety_parameters', 'category') if k in extracted}
         result = ExtractedRequirement.model_validate({**result.model_dump(), **fields, 'extraction_mode': 'gemini'})
         for key in ('product_name', 'application', 'purpose'):
             if getattr(req, key): setattr(result, key, getattr(req, key))
+    except InvalidRequirement:
+        raise
     except (GenerationUnavailable, ValidationError, ValueError, TypeError) as error:
         reason = str(error) if isinstance(error, GenerationUnavailable) else 'The AI extraction did not match the expected format.'
-        result.warning = reason + ' Fields contain source text only; review and edit before searching.'
+        result.warning = 'Requirement reasoning could not be completed. Fields contain source text only; review and edit or try again.'
     return result
+
+
+class InvalidRequirement(ValueError):
+    pass

@@ -83,11 +83,17 @@ def clean_text(text: str) -> str:
     return '\n'.join(re.sub(r'[ \t]+', ' ', line).strip() for line in text.splitlines()).strip()
 
 
-def read_document(data: bytes, filename: str) -> list[dict]:
+def validate_upload(data, filename):
     if not data:
         raise ValueError('The document is empty.')
     if len(data) > MAX_UPLOAD_BYTES:
         raise ValueError('The document exceeds the 20 MB limit.')
+    if Path(filename).suffix.lower() not in {'.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png'}:
+        raise ValueError('Unsupported file. Upload PDF, DOC, DOCX, JPG, JPEG, PNG or UTF-8 TXT.')
+
+
+def read_document(data: bytes, filename: str) -> list[dict]:
+    validate_upload(data, filename)
     extension = Path(filename).suffix.lower()
     try:
         if extension == '.pdf':
@@ -114,6 +120,26 @@ def read_document(data: bytes, filename: str) -> list[dict]:
                     if block_text:
                         blocks.append(str(block_text))
             pages = [{'page': 1, 'text': clean_text('\n'.join(blocks))}]
+        elif extension in {'.jpg', '.jpeg', '.png'}:
+            import pymupdf
+            with pymupdf.open(stream=data, filetype=extension.lstrip('.')) as image:
+                converted = image.convert_to_pdf()
+            pages = [{'page': 1, 'text': ''}]
+            ocr_scanned_pages(converted, pages)
+        elif extension == '.doc':
+            import shutil
+            import subprocess
+            import tempfile
+            converter = shutil.which('soffice') or shutil.which('libreoffice')
+            if not converter:
+                raise ValueError('Legacy DOC conversion is unavailable on this server. Save the document as DOCX or PDF and upload it again.')
+            with tempfile.TemporaryDirectory() as directory:
+                source = Path(directory) / 'document.doc'
+                source.write_bytes(data)
+                subprocess.run([converter, '-env:UserInstallation=' + (Path(directory) / 'profile').as_uri(),
+                    '--headless', '--convert-to', 'docx', '--outdir', directory, str(source)],
+                    check=True, timeout=60, capture_output=True)
+                return read_document((Path(directory) / 'document.docx').read_bytes(), 'document.docx')
         elif extension == '.txt':
             pages = [{'page': 1, 'text': clean_text(data.decode('utf-8-sig'))}]
         else:
@@ -121,7 +147,7 @@ def read_document(data: bytes, filename: str) -> list[dict]:
     except ValueError:
         raise
     except Exception as error:
-        raise ValueError('This document could not be read. Upload a valid PDF, DOCX, or UTF-8 TXT file.') from error
+        raise ValueError('Unable to extract text from this document. Upload a readable PDF, Word document, image or UTF-8 TXT file.') from error
     if sum(len(page['text'].strip()) for page in pages) < 20:
-        raise ValueError('No usable text was found. Scanned PDFs need OCR before analysis.')
+        raise ValueError('Unable to extract text from this document. Use a clearer scan or a document with selectable text.')
     return pages

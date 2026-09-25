@@ -6,14 +6,16 @@
   ],
   "extraPaths": [
     "./backend",
-    "./backend/app"
+    "./backend/app",
+    "./backend/tests"
   ],
   "executionEnvironments": [
     {
       "root": "backend",
       "extraPaths": [
         ".",
-        "app"
+        "app",
+        "tests"
       ]
     }
   ]

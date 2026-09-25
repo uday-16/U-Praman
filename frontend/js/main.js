@@ -29,7 +29,7 @@ function initializePage() {
   initStateSelector();
   initStandardsExplorer();
   initAnalyzer();
-  initChatbot();
+  if (!/\/(results|report-view|review|analyze)\.html$/.test(window.location.pathname)) initChatbot();
 
 }
 

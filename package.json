@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite frontend --port 5173 --host",
-    "build": "vite build frontend",
-    "preview": "vite preview frontend"
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

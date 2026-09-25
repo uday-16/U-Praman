@@ -61,22 +61,26 @@
   <script type="module" src="/js/main.js"></script>
   <script type="module">
     import { workspaceReady } from '/js/utils/workspace-guard.js';
-    import { renderAppSidebar, renderAppTopbar } from '/js/components/sidebar.js';
-    import { mockStandards } from '/js/data/standards.js';
+    import { renderAppSidebar, renderAppTopbar, initSidebarEvents, initTopbarEvents } from '/js/components/sidebar.js';
+    import { api, escapeHtml as esc } from '/js/utils/api.js';
     import { Storage } from '/js/utils/storage.js';
     import { showToast } from '/js/components/toast.js';
-    workspaceReady.then(allowed => {
+    workspaceReady.then(async allowed => {
       if (!allowed) return;
 
       document.getElementById('sidebar-root').innerHTML = renderAppSidebar('saved');
       document.getElementById('topbar-root').innerHTML = renderAppTopbar('Workspace / Saved');
 
+      initSidebarEvents(); initTopbarEvents();
       const grid = document.getElementById('saved-cards-grid');
       const empty = document.getElementById('saved-empty');
 
+      let catalog;
+      try { catalog = await api('/standards'); }
+      catch (error) { grid.innerHTML = '<p role="alert">'+esc(error.message)+'</p>'; return; }
       function renderSaved() {
         const savedIds = Storage.getSavedStandards();
-        const savedStandards = mockStandards.filter(s => savedIds.includes(s.id));
+        const savedStandards = catalog.filter(s => savedIds.some(id => id.toLowerCase() === s.id.toLowerCase()));
 
         if (savedStandards.length === 0) {
           grid.style.display = 'none';
@@ -88,16 +92,16 @@
             <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; background: white; border: 1px solid var(--border-color); padding: 1.5rem;">
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                  <span class="badge badge-primary">${s.category}</span>
-                  <button class="btn btn-secondary btn-sm remove-saved-btn" data-id="${s.id}" title="Remove Bookmark">✕ Remove</button>
+                  <span class="badge badge-primary">${esc(s.category)}</span>
+                  <button class="btn btn-secondary btn-sm remove-saved-btn" data-id="${esc(s.id)}" title="Remove Bookmark">✕ Remove</button>
                 </div>
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 0.25rem;">${s.isNumber}</h3>
-                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem;">${s.title}</div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">${s.scope}</p>
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 0.25rem;">${esc(s.is_number)}</h3>
+                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem;">${esc(s.title)}</div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1rem;">${esc(s.scope.replace(/\s+/g,' ').slice(0,220))}…</p>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.875rem;">
-                <span class="badge badge-success">${s.status} (${s.year})</span>
-                <a href="/pages/standard-details.html?id=${s.id}" class="btn btn-primary btn-sm" style="font-weight: 700;">View details →</a>
+                <span class="badge badge-success">${esc(s.status)} (${esc(s.year)})</span>
+                <a href="/pages/standard-details.html?id=${esc(s.id)}" class="btn btn-primary btn-sm" style="font-weight: 700;">View details →</a>
               </div>
             </div>
           `).join('');

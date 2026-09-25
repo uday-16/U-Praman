@@ -20,7 +20,7 @@ export async function api(path, { method = 'GET', body, timeout = 120000 } = {})
         Storage.setToken(null); Storage.setUser(null);
         window.location.assign(loginUrl(window.location.pathname + window.location.search));
       }
-      throw new Error(typeof data.detail === 'string' ? data.detail : `Request failed (${response.status}). Please check your input and try again.`);
+      throw new Error(typeof data.detail === 'string' ? data.detail : response.status === 503 ? 'The service is temporarily unavailable. Please try again.' : 'Unable to complete this request. Please check your input and try again.');
     }
     return data;
   } catch (error) {

@@ -1,7 +1,7 @@
 """High-fidelity A4 Procurement Standards PDF generation using ReportLab."""
 import io
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from reportlab.lib import colors
@@ -33,9 +33,12 @@ COLOR_RED = colors.HexColor("#991B1B")
 
 class NumberedCanvas(canvas.Canvas):
     """Two-pass canvas for dynamic 'Page X of Y' footers and official running headers."""
+    _startPage: Any
+    _pageNumber: int
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._saved_page_states = []
+        self._saved_page_states: List[Dict[str, Any]] = []
 
     def showPage(self):
         self._saved_page_states.append(dict(self.__dict__))
@@ -56,8 +59,8 @@ class NumberedCanvas(canvas.Canvas):
 
         # Header (Pages > 1)
         if self._pageNumber > 1:
-            self.drawString(40, 810, "PRAMAN — Standards Recommendation & Procurement Compliance Report")
-            self.drawRightString(A4[0] - 40, 810, "Confidential — Official Use Only")
+            self.drawString(40, 810, "PRAMAN - Procurement Standards Review")
+            self.drawRightString(A4[0] - 40, 810, "Decision support")
             self.setStrokeColor(COLOR_BORDER)
             self.setLineWidth(0.5)
             self.line(40, 804, A4[0] - 40, 804)
@@ -69,7 +72,7 @@ class NumberedCanvas(canvas.Canvas):
         
         self.drawString(
             40, 26,
-            "Government Procurement Standards Decision-Support Report · Conforms with GFR Rule 144 & BIS Act"
+            "PRAMAN - Verify source records before procurement approval"
         )
         page_str = f"Page {self._pageNumber} of {page_count}"
         self.drawRightString(A4[0] - 40, 26, page_str)
@@ -80,357 +83,141 @@ def clean_xml(text: str) -> str:
     """Escape XML special characters for ReportLab Paragraph elements."""
     if not text:
         return ""
-    text = str(text)
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     text = text.replace('"', "&quot;").replace("'", "&apos;")
     return text
 
 
 def build_pdf_document(report: ProcurementReport) -> bytes:
+    from pathlib import Path
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    # Embed a Unicode font when available; retain a portable PDF fallback.
+    regular, bold = 'Helvetica', 'Helvetica-Bold'
+    candidates = [
+        (Path('C:/Windows/Fonts/arial.ttf'), Path('C:/Windows/Fonts/arialbd.ttf')),
+        (Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'), Path('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'))]
+    for normal_path, bold_path in candidates:
+        if normal_path.exists() and bold_path.exists():
+            if 'PramanBody' not in pdfmetrics.getRegisteredFontNames():
+                pdfmetrics.registerFont(TTFont('PramanBody', str(normal_path)))
+                pdfmetrics.registerFont(TTFont('PramanBold', str(bold_path)))
+                pdfmetrics.registerFontFamily('PramanBody', normal='PramanBody', bold='PramanBold', italic='PramanBody', boldItalic='PramanBold')
+            regular, bold = 'PramanBody', 'PramanBold'
+            break
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        leftMargin=40,
-        rightMargin=40,
-        topMargin=48,
-        bottomMargin=48
-    )
-
-    styles = getSampleStyleSheet()
-    
-    # Custom styles
-    style_title = ParagraphStyle(
-        "ReportTitle",
-        fontName="Helvetica-Bold",
-        fontSize=18,
-        leading=22,
-        textColor=COLOR_NAVY,
-        spaceAfter=4
-    )
-    style_subtitle = ParagraphStyle(
-        "ReportSubtitle",
-        fontName="Helvetica",
-        fontSize=9,
-        leading=13,
-        textColor=COLOR_SLATE,
-        spaceAfter=12
-    )
-    style_h1 = ParagraphStyle(
-        "Heading1_Custom",
-        fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=16,
-        textColor=COLOR_NAVY,
-        spaceBefore=14,
-        spaceAfter=6,
-        keepWithNext=True
-    )
-    style_h2 = ParagraphStyle(
-        "Heading2_Custom",
-        fontName="Helvetica-Bold",
-        fontSize=10,
-        leading=14,
-        textColor=colors.HexColor("#1E293B"),
-        spaceBefore=8,
-        spaceAfter=4,
-        keepWithNext=True
-    )
-    style_body = ParagraphStyle(
-        "Body_Custom",
-        fontName="Helvetica",
-        fontSize=8.5,
-        leading=12,
-        textColor=colors.HexColor("#1E293B")
-    )
-    style_meta_label = ParagraphStyle(
-        "MetaLabel",
-        fontName="Helvetica-Bold",
-        fontSize=8,
-        leading=11,
-        textColor=COLOR_SLATE
-    )
-    style_meta_val = ParagraphStyle(
-        "MetaVal",
-        fontName="Helvetica",
-        fontSize=8.5,
-        leading=12,
-        textColor=colors.HexColor("#0F172A")
-    )
-    style_table_header = ParagraphStyle(
-        "TableHeader",
-        fontName="Helvetica-Bold",
-        fontSize=8,
-        leading=11,
-        textColor=COLOR_NAVY
-    )
-    style_table_cell = ParagraphStyle(
-        "TableCell",
-        fontName="Helvetica",
-        fontSize=8,
-        leading=11,
-        textColor=colors.HexColor("#1E293B")
-    )
-    style_evidence_box = ParagraphStyle(
-        "EvidenceBox",
-        fontName="Courier",
-        fontSize=7.5,
-        leading=10.5,
-        textColor=colors.HexColor("#1E293B")
-    )
-    style_disclaimer = ParagraphStyle(
-        "Disclaimer",
-        fontName="Helvetica-Oblique",
-        fontSize=7.5,
-        leading=11,
-        textColor=COLOR_SLATE
-    )
-
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=45, rightMargin=45, topMargin=52, bottomMargin=52,
+        title='Procurement Standards Review Report', author='PRAMAN')
+    width = A4[0] - 90
+    body = ParagraphStyle('Body', fontName=regular, fontSize=9, leading=14, textColor=COLOR_SLATE, spaceAfter=6)
+    heading = ParagraphStyle('Section', parent=body, fontName=bold, fontSize=12, leading=16,
+        textColor=COLOR_NAVY, spaceBefore=16, spaceAfter=9, keepWithNext=True)
+    subheading = ParagraphStyle('Subsection', parent=body, fontName=bold, fontSize=10, leading=14,
+        textColor=COLOR_NAVY, spaceBefore=9, spaceAfter=5, keepWithNext=True)
+    title = ParagraphStyle('Title', parent=heading, fontSize=23, leading=28, spaceBefore=12, spaceAfter=14)
+    cell = ParagraphStyle('Cell', parent=body, fontSize=8, leading=12, spaceAfter=0, splitLongWords=True)
+    small = ParagraphStyle('Small', parent=body, fontSize=8, leading=12)
     story = []
-
-    # 1. Header & Title Block
-    story.append(Paragraph("PRAMAN — STANDARDS RECOMMENDATION REPORT", style_title))
-    story.append(Paragraph(
-        "Official Technical Decision-Support Document for Public Procurement & Standards Identification",
-        style_subtitle
-    ))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=COLOR_NAVY, spaceBefore=0, spaceAfter=10))
-
-    # 2. Metadata Grid Table
-    analysis = report.analysis
-    extracted = analysis.extracted
-    created_at = report.created_at or datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-
-    meta_data = [
-        [
-            Paragraph("Report Reference ID:", style_meta_label),
-            Paragraph(clean_xml(report.id), style_meta_val),
-            Paragraph("Date Generated:", style_meta_label),
-            Paragraph(clean_xml(created_at), style_meta_val),
-        ],
-        [
-            Paragraph("Procurement Product:", style_meta_label),
-            Paragraph(clean_xml(extracted.product_name), style_meta_val),
-            Paragraph("Prepared By:", style_meta_label),
-            Paragraph(clean_xml(report.officer_name or "Procurement Officer"), style_meta_val),
-        ],
-        [
-            Paragraph("Retrieval Engine:", style_meta_label),
-            Paragraph(f"Hybrid RAG ({clean_xml(analysis.retrieval_mode or 'BM25 + Semantic')})", style_meta_val),
-            Paragraph("Verification Status:", style_meta_label),
-            Paragraph(clean_xml(report.status or "Completed"), style_meta_val),
-        ]
-    ]
-    meta_table = Table(meta_data, colWidths=[120, 160, 110, 125])
-    meta_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), COLOR_LIGHT_BG),
-        ('BOX', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 8),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(meta_table)
-    story.append(Spacer(1, 12))
-
-    # 3. Requirement & Extracted Specifications Section
-    story.append(Paragraph("1. Procurement Requirement & Extracted Specifications", style_h1))
-    
-    spec_rows = [
-        [Paragraph("Product / Commodity", style_table_header), Paragraph(clean_xml(extracted.product_name), style_table_cell)],
-        [Paragraph("Intended Application", style_table_header), Paragraph(clean_xml(extracted.application or "General procurement"), style_table_cell)],
-        [Paragraph("Procurement Purpose", style_table_header), Paragraph(clean_xml(extracted.purpose or "Industrial / Public works compliance"), style_table_cell)],
-        [Paragraph("Key Requirements", style_table_header), Paragraph("<br/>• " + "<br/>• ".join(clean_xml(r) for r in extracted.key_requirements[:6]) if extracted.key_requirements else "None specified", style_table_cell)],
-    ]
-    if extracted.technical_parameters:
-        tech_str = "<br/>".join(f"<b>{clean_xml(k)}:</b> {clean_xml(v)}" for k, v in list(extracted.technical_parameters.items())[:6])
-        spec_rows.append([Paragraph("Technical Specs", style_table_header), Paragraph(tech_str, style_table_cell)])
-    if extracted.safety_parameters:
-        safety_str = "<br/>• ".join(clean_xml(s) for s in extracted.safety_parameters[:5])
-        spec_rows.append([Paragraph("Safety Parameters", style_table_header), Paragraph(safety_str, style_table_cell)])
-
-    spec_table = Table(spec_rows, colWidths=[130, 385])
-    spec_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), COLOR_LIGHT_BG),
-        ('GRID', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-    ]))
-    story.append(spec_table)
-    story.append(Spacer(1, 12))
-
-    # 4. Recommended Indian Standards
-    story.append(Paragraph("2. Recommended Indian Standards (BIS)", style_h1))
-    if analysis.recommendations:
-        rec_headers = [
-            Paragraph("Standard Code", style_table_header),
-            Paragraph("Title & Specification", style_table_header),
-            Paragraph("Relevance", style_table_header),
-            Paragraph("Status & Edition", style_table_header),
-        ]
-        rec_rows = [rec_headers]
-        for rec in analysis.recommendations:
-            rec_rows.append([
-                Paragraph(f"<b>{clean_xml(rec.is_number)}</b>", style_table_cell),
-                Paragraph(f"<b>{clean_xml(rec.title)}</b><br/><font color='#64748B'>{clean_xml(rec.reasons[0] if rec.reasons else '')}</font>", style_table_cell),
-                Paragraph(f"{rec.score:.1f}%<br/><font size='7' color='#0369A1'>{clean_xml(rec.relevance.upper())}</font>", style_table_cell),
-                Paragraph(clean_xml(rec.latest_version), style_table_cell),
-            ])
-        rec_table = Table(rec_rows, colWidths=[95, 260, 65, 95])
-        rec_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), COLOR_LIGHT_BG),
-            ('GRID', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 5),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        story.append(rec_table)
-    else:
-        story.append(Paragraph("No sufficiently supported standard was identified in the available knowledge base.", style_body))
-    story.append(Spacer(1, 12))
-
-    # 5. Evidence Passages (Collapsible in UI, Structured in PDF)
-    story.append(Paragraph("3. Supporting Evidence & BIS Clause Citations", style_h1))
-    evidence_count = 0
-    for rec in analysis.recommendations[:3]:
-        if rec.evidence:
-            story.append(Paragraph(f"Evidence for {clean_xml(rec.is_number)} ({len(rec.evidence)} source passages):", style_h2))
-            for i, ev in enumerate(rec.evidence[:3], 1):
-                evidence_count += 1
-                ev_header = f"<b>Source [{i}]:</b> {clean_xml(ev.source)} · PDF Page {ev.page}"
-                ev_text = clean_xml(ev.text.strip()[:650] + ("..." if len(ev.text.strip()) > 650 else ""))
-                
-                box_data = [
-                    [Paragraph(ev_header, style_table_header)],
-                    [Paragraph(ev_text, style_evidence_box)]
-                ]
-                box_table = Table(box_data, colWidths=[515])
-                box_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), COLOR_LIGHT_BG),
-                    ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#FAFAFA")),
-                    ('BOX', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-                    ('TOPPADDING', (0, 0), (-1, -1), 3),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 6),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-                ]))
-                story.append(box_table)
-                story.append(Spacer(1, 4))
-    if evidence_count == 0:
-        story.append(Paragraph("No direct textual excerpts were retrieved for this query.", style_body))
-    story.append(Spacer(1, 10))
-
-    # 6. Specification Completeness & Gaps
-    story.append(Paragraph("4. Specification Completeness & Compliance Gaps", style_h1))
-    comp = analysis.completeness
-    story.append(Paragraph(f"<b>Overall Completeness Score:</b> {comp.score} / 100", style_body))
-    
-    if comp.items:
-        gap_headers = [
-            Paragraph("Check Item", style_table_header),
-            Paragraph("Category", style_table_header),
-            Paragraph("Status", style_table_header),
-            Paragraph("Review Details", style_table_header)
-        ]
-        gap_rows = [gap_headers]
-        for it in comp.items[:6]:
-            status_color = COLOR_GREEN if it.status == 'pass' else (COLOR_AMBER if it.status == 'warning' else COLOR_RED)
-            gap_rows.append([
-                Paragraph(clean_xml(it.label), style_table_cell),
-                Paragraph(clean_xml(it.category), style_table_cell),
-                Paragraph(f"<font color='{status_color.hexval()}'><b>{clean_xml(it.status.upper())}</b></font>", style_table_cell),
-                Paragraph(clean_xml(it.details), style_table_cell),
-            ])
-        gap_table = Table(gap_rows, colWidths=[120, 95, 60, 240])
-        gap_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), COLOR_LIGHT_BG),
-            ('GRID', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        story.append(gap_table)
-    story.append(Spacer(1, 10))
-
-    # 7. Traceability Matrix
-    story.append(Paragraph("5. Traceability Matrix (Requirement → Standard → Evidence)", style_h1))
-    trace_headers = [
-        Paragraph("Requirement Item", style_table_header),
-        Paragraph("Applicable Standard", style_table_header),
-        Paragraph("Verification Evidence", style_table_header),
-        Paragraph("Status", style_table_header)
-    ]
-    trace_rows = [trace_headers]
-    if analysis.recommendations:
-        top_rec = analysis.recommendations[0]
-        for req_item in extracted.key_requirements[:4]:
-            first_ev = top_rec.evidence[0] if top_rec.evidence else None
-            ev_summary = f"{first_ev.source} (Page {first_ev.page})" if first_ev else "Clause match"
-            trace_rows.append([
-                Paragraph(clean_xml(req_item[:80]), style_table_cell),
-                Paragraph(f"<b>{clean_xml(top_rec.is_number)}</b>", style_table_cell),
-                Paragraph(clean_xml(ev_summary), style_table_cell),
-                Paragraph("<font color='#166534'><b>VERIFIED</b></font>", style_table_cell)
-            ])
-    trace_table = Table(trace_rows, colWidths=[140, 110, 175, 90])
-    trace_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), COLOR_LIGHT_BG),
-        ('GRID', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-    ]))
-    story.append(trace_table)
-    story.append(Spacer(1, 14))
-
-    # 8. Dynamic Sign-Off & Official Authority Block (Phase 13)
+    def para(text, style=body):
+        return Paragraph(clean_xml(str(text or '')).replace('\n', '<br/>'), style)
+    def add(text, style=body):
+        story.append(para(text, style))
+    def table(headers, rows, ratios):
+        if not rows:
+            add('Not recorded in this analysis.')
+            return
+        values = [[para(h, subheading) for h in headers]] + [[para(v, cell) for v in row] for row in rows]
+        item = Table(values, colWidths=[width*r for r in ratios], repeatRows=1, splitByRow=1, splitInRow=1, hAlign='LEFT')
+        item.setStyle(TableStyle([
+            ('BACKGROUND',(0,0),(-1,0),COLOR_LIGHT_BG), ('GRID',(0,0),(-1,-1),.4,COLOR_BORDER),
+            ('VALIGN',(0,0),(-1,-1),'TOP'), ('LEFTPADDING',(0,0),(-1,-1),7),
+            ('RIGHTPADDING',(0,0),(-1,-1),7), ('TOPPADDING',(0,0),(-1,-1),7), ('BOTTOMPADDING',(0,0),(-1,-1),7)]))
+        story.append(item)
+    a, ext = report.analysis, report.analysis.extracted
+    created_at = report.created_at or datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    add('PRAMAN', ParagraphStyle('Brand',parent=title,fontSize=19,spaceBefore=0,spaceAfter=4))
+    add('INDIAN PROCUREMENT STANDARDS PLATFORM', small)
+    story.append(HRFlowable(width='100%', thickness=1.5, color=COLOR_NAVY, spaceAfter=8))
+    add('Procurement Standards\nReview Report', title)
+    add(ext.product_name, subheading)
+    table(['Report record','Details'], [
+        ['Report ID',report.id], ['Generated',created_at], ['Analysis ID',a.id],
+        ['Procurement officer',report.officer_name], ['Source',a.source_name or ext.source_name],
+        ['Analyzed',a.analyzed_at or ext.extracted_at]], [.25,.75])
+    add('1. Analysis summary', heading)
+    review_count = sum(row.status != 'Supported' for row in a.traceability) if a.traceability else len(ext.key_requirements)
+    add(f'{len(ext.key_requirements)} requirements | {len(a.recommendations)} candidate standards | '
+        f'{sum(bool(r.evidence) for r in a.recommendations)} recommendations with source evidence | {review_count} requirements to review.')
+    add(a.summary_notice)
+    add('2. Extracted procurement requirements', heading)
+    facts = [['Product',ext.product_name], ['Intended use',ext.application or 'Not specified'],
+        ['Purpose',ext.purpose or 'Not specified'], ['Quantity',ext.quantity or 'Not specified'],
+        ['Category',a.category or ext.category or 'Not detected'], *[[k,v] for k,v in ext.technical_parameters.items()],
+        ['Safety','; '.join(ext.safety_parameters) or 'Not specified']]
+    table(['Field','Supplied requirement'], facts, [.25,.75])
+    for requirement in ext.key_requirements:
+        add('- ' + requirement)
+    add('3. Recommended Indian Standards', heading)
+    for rec in a.recommendations:
+        add(rec.is_number + ' - ' + rec.title, subheading)
+        add('Relevance: ' + rec.relevance.replace('-', ' ') + '. ' + rec.status)
+        for reason in rec.reasons:
+            add(reason)
+    if not a.recommendations:
+        add('No sufficiently relevant standard was identified in the available knowledge base.')
+    add('4. Requirement to standard traceability', heading)
+    rows = [[t.requirement, t.is_number or 'Not mapped',
+        f'{t.source}, page {t.page}\n{t.excerpt}' if t.source else t.note, t.status] for t in a.traceability]
+    if not rows:
+        rows = [[r,'Not mapped','No verified source mapping recorded.','Review Required'] for r in ext.key_requirements]
+    table(['Requirement','Standard','Evidence','Status'], rows, [.29,.18,.35,.18])
+    add('5. Related standards', heading)
+    if not a.related_standards:
+        add('No explicit relationships were identified in the available source records.')
+    for item in a.related_standards:
+        add(item.is_number + ' - ' + item.title, subheading)
+        add(item.relationship.replace('-', ' ').title() + ': ' + item.description)
+    add('6. Version and amendment review', heading)
+    for version in a.version_findings:
+        add(version.indexed_version, subheading)
+        add('Source: ' + (version.source or 'Not recorded'))
+        add('Earlier local editions: ' + ('; '.join(version.previous_versions) or 'Not found in available records'))
+        add('Amendment files: ' + ('; '.join(version.amendments) or 'Not found in available records'))
+        add(version.status)
+    if not a.version_findings:
+        add('Not verified in the available knowledge base.')
+    add('7. Specification gaps and review flags', heading)
+    add('Specification gaps', subheading)
+    for gap in a.gaps or a.completeness.recommendations_to_improve:
+        add('- ' + gap)
+    if not (a.gaps or a.completeness.recommendations_to_improve):
+        add('No missing fields were identified. Adequacy still requires review.')
+    add('Review flags', subheading)
+    for flag in a.review_flags:
+        add('- ' + flag)
+    for item in a.applicability:
+        add(item.referenced_standard + ': ' + item.overall)
+    add('8. Source evidence', heading)
+    add('Full retrieved passages. Page references refer to source documents, not this report.', small)
+    index = 0
+    for rec in a.recommendations:
+        for ev in rec.evidence:
+            index += 1
+            add(f'Evidence {index} - {rec.is_number}', subheading)
+            add(f'{ev.source} | page {ev.page} | {ev.citation_id}', small)
+            # Flowable paragraphs split naturally across pages. No fixed-height evidence tables or truncation.
+            for block in re.split(r'\n\s*\n', ev.text):
+                add(block)
+    if not index:
+        add('No source passages were retrieved.')
     story.append(KeepTogether([
-        Paragraph("6. Procurement Authority Sign-Off", style_h1),
-        Table([
-            [
-                Paragraph(
-                    f"<b>Prepared &amp; Verified By:</b><br/>"
-                    f"{clean_xml(report.officer_name or 'Procurement Officer')}<br/>"
-                    f"<font color='#64748B'>Designation: Procurement Officer<br/>"
-                    f"Department: Central Procurement Division<br/>"
-                    f"Date: {clean_xml(created_at)}</font>",
-                    style_body
-                ),
-                Paragraph(
-                    "<b>Authorized Signature:</b><br/><br/><br/>"
-                    "____________________________________________<br/>"
-                    "<font size='7' color='#64748B'>Signature &amp; Official Stamp</font>",
-                    style_body
-                )
-            ]
-        ], colWidths=[260, 255], style=[
-            ('BOX', (0, 0), (-1, -1), 0.5, COLOR_BORDER),
-            ('BACKGROUND', (0, 0), (-1, -1), COLOR_LIGHT_BG),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-            ('TOPPADDING', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-            ('LEFTPADDING', (0, 0), (-1, -1), 10),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-        ]),
-        Spacer(1, 10),
-        Paragraph(
-            "<b>Disclaimer:</b> This report is generated by PRAMAN as a decision-support tool. "
-            "Referenced Indian Standards and gazette amendments are matched against available repository records. "
-            "Final compliance, mandatory QCO applicability, and procurement eligibility must be officially verified with the Bureau of Indian Standards (BIS). "
-            "Bureau of Indian Standards (BIS) marks and names are referenced for technical standard identification and do not imply official BIS certification of this report.",
-            style_disclaimer
-        )
-    ]))
-
+        para('9. Review and sign-off', heading),
+        para('Prepared for: ' + report.officer_name),
+        para('Reviewed by: ______________________________'),
+        para('Signature: _________________________________'),
+        para('Date: _____________________________________'),
+        Spacer(1,10),
+        para('PRAMAN provides decision support. This report does not certify compliance or establish current legal validity. '
+             'Verify standards, amendments and applicability against authoritative BIS records before final procurement approval.', small)]))
     doc.build(story, canvasmaker=NumberedCanvas)
     return buffer.getvalue()

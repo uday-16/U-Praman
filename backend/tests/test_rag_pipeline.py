@@ -100,8 +100,20 @@ class AnalysisApiTests(unittest.TestCase):
         from app.routers import reports
         app=FastAPI(); app.include_router(analysis.router); app.include_router(chat.router); app.include_router(reports.router)
         self.app=app; self.client=TestClient(app)
+        self.offline = patch('app.services.gemini_service.generate', side_effect=gemini_service.GenerationUnavailable('offline'))
+        self.offline.start()
+        self.selection_offline = patch('app.services.analysis_findings.generate', side_effect=gemini_service.GenerationUnavailable('offline'))
+        self.selection_offline.start()
+        self.jobs_store = patch('app.services.job_service.JOB_STORE', Path(self.temp.name)); self.jobs_store.start()
+        self.reports_store = patch('app.services.report_generator.REPORT_STORE', Path(self.temp.name)); self.reports_store.start()
+        from app.services.report_generator import REPORTS_CACHE
+        REPORTS_CACHE.clear()
 
-    def tearDown(self): self.store.stop(); self.temp.cleanup()
+    def tearDown(self):
+        from app.services.report_generator import REPORTS_CACHE
+        REPORTS_CACHE.clear()
+        self.offline.stop(); self.selection_offline.stop(); self.jobs_store.stop(); self.reports_store.stop()
+        self.store.stop(); self.temp.cleanup()
     def authorize(self, user='test-officer'):
         self.app.dependency_overrides[require_session]=lambda: {'id':user}
     def test_authentication_required(self):
@@ -139,7 +151,7 @@ class AnalysisApiTests(unittest.TestCase):
         )
         self.assertTrue(job.id.startswith('job-'))
         self.assertEqual(job.user_id, 'test-officer')
-        self.assertEqual(job.total_stages, 8)
+        self.assertEqual(job.total_stages, 10)
 
         # Query job via API
         resp = self.client.get(f'/analysis/jobs/{job.id}')
@@ -147,7 +159,7 @@ class AnalysisApiTests(unittest.TestCase):
         data = resp.json()
         self.assertEqual(data['id'], job.id)
         self.assertIn('stages', data)
-        self.assertEqual(len(data['stages']), 8)
+        self.assertEqual(len(data['stages']), 10)
 
         # Wait briefly for background execution to complete or advance
         for _ in range(30):
