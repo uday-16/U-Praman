@@ -48,10 +48,12 @@ export function initChatbot() {
 
   widget.innerHTML = `
     <button id="chatbot-toggle-btn" aria-label="Open PRAMAN Assistant" aria-expanded="false" aria-controls="chatbot-window">
-      <span class="pc-toggle-spark">${PRAMAN_LOGO_SVG(16)}</span>
+      <span class="pc-toggle-spark">${PRAMAN_LOGO_SVG(18)}</span>
       <span class="pc-toggle-text">PRAMAN Assistant</span>
+      <span class="pc-toggle-live-dot" title="Online AI"></span>
     </button>
     <section id="chatbot-window" aria-label="PRAMAN AI assistant" hidden>
+      <div class="pc-tricolor-accent"></div>
       <header class="pc-header">
         <div class="pc-brand-group">
           <div class="pc-brand">${PRAMAN_LOGO_SVG(26)}</div>
@@ -64,8 +66,8 @@ export function initChatbot() {
           </div>
         </div>
         <div class="pc-header-actions">
-          <button id="pc-reset" class="pc-icon" title="New conversation" aria-label="New conversation">${svg('reset', 17)}</button>
-          <button id="chatbot-close-btn" class="pc-icon" title="Close chat" aria-label="Close chat">${svg('close', 17)}</button>
+          <button id="pc-reset" class="pc-icon" title="New conversation" aria-label="New conversation">${svg('reset', 16)}</button>
+          <button id="chatbot-close-btn" class="pc-icon" title="Close chat" aria-label="Close chat">${svg('close', 16)}</button>
         </div>
       </header>
       <div class="pc-toolbar">
@@ -88,6 +90,7 @@ export function initChatbot() {
             <strong>Standards Changes</strong>
             <span>Revisions & QCO updates</span>
           </div>
+          <span class="pc-starter-arrow">→</span>
         </button>
         <button data-query="How does PRAMAN analyze procurement specifications and verify BIS compliance?">
           <span class="pc-starter-icon">📋</span>
@@ -95,6 +98,7 @@ export function initChatbot() {
             <strong>How PRAMAN Works</strong>
             <span>AI parsing & verification</span>
           </div>
+          <span class="pc-starter-arrow">→</span>
         </button>
         <button data-query="What are the BIS standards and mandatory QCO rules for plywood (IS 303 & IS 710)?">
           <span class="pc-starter-icon">🪵</span>
@@ -102,6 +106,7 @@ export function initChatbot() {
             <strong>Plywood & Timber</strong>
             <span>IS 303, IS 710 & QCO</span>
           </div>
+          <span class="pc-starter-arrow">→</span>
         </button>
         <button data-query="How does PRAMAN generate verifiable SHA-256 compliance certificates for GeM tenders?">
           <span class="pc-starter-icon">🛡️</span>
@@ -109,6 +114,7 @@ export function initChatbot() {
             <strong>SHA-256 Certificates</strong>
             <span>Tamper-proof audit trails</span>
           </div>
+          <span class="pc-starter-arrow">→</span>
         </button>
         <button data-query="Which product categories currently require mandatory Quality Control Orders (QCO) for government procurement?">
           <span class="pc-starter-icon">⚖️</span>
@@ -116,6 +122,7 @@ export function initChatbot() {
             <strong>Mandatory QCOs</strong>
             <span>Compulsory ISI/CRS check</span>
           </div>
+          <span class="pc-starter-arrow">→</span>
         </button>
         <button data-query="What are the key requirements for PVC insulated cables under IS 694?">
           <span class="pc-starter-icon">🔌</span>
@@ -123,13 +130,14 @@ export function initChatbot() {
             <strong>Electrical Cables</strong>
             <span>IS 694 test specs & limits</span>
           </div>
+          <span class="pc-starter-arrow">→</span>
         </button>
       </div>
       <div id="pc-status" role="status" aria-live="polite"></div>
       <form id="pc-form">
         <div class="pc-compose">
           <textarea id="chatbot-input" rows="1" maxlength="2000" dir="auto" placeholder="Ask PRAMAN AI about any standard, product, or tender..."></textarea>
-          <button type="button" id="pc-mic" class="pc-icon" title="Voice input">${svg('mic', 17)}</button>
+          <button type="button" id="pc-mic" class="pc-icon pc-mic-btn" title="Voice input">${svg('mic', 17)}</button>
           <button type="submit" id="chatbot-send-btn" title="Send message" aria-label="Send message">${svg('send', 17)}</button>
         </div>
         <div class="pc-footer">

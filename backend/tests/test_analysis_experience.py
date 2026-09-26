@@ -109,7 +109,7 @@ class FindingTests(unittest.TestCase):
         pages=read_document(stream.getvalue(),'tender.pdf')
         self.assertIn('structural steel',pages[0]['text'])
 
-    def test_long_evidence_survives_pdf_pagination(self):
+    def test_report_keeps_references_without_reprinting_long_evidence(self):
         import pymupdf
         ext=extraction()
         long_text=('Measured impact protection must be reviewed against the source conditions. '*1000)+' EVIDENCE-END-MARKER'
@@ -122,11 +122,13 @@ class FindingTests(unittest.TestCase):
         pdf=build_pdf_document(report)
         document=pymupdf.open(stream=pdf,filetype='pdf')
         text='\n'.join(page.get_text() for page in document)
-        self.assertIn('EVIDENCE-END-MARKER',text)
-        self.assertIn('Review Required',text)
+        self.assertNotIn('EVIDENCE-END-MARKER',text)
+        self.assertIn('is.2925.1984.pdf',text)
+        self.assertIn('Before approval',text)
+        self.assertIn('full coverage is not confirmed',text)
         self.assertNotIn('VERIFIED',text)
         self.assertNotIn('Conforms with',text)
-        self.assertGreater(len(document),5)
+        self.assertLessEqual(len(document),2)
         for page in document:
             self.assertAlmostEqual(page.rect.width,595.28,delta=1)
             self.assertIn('Page ',page.get_text())

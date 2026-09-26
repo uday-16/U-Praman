@@ -14,7 +14,7 @@ AI-Powered Recommendation Engine for Identifying Applicable Indian Standards for
 
 1. **Install dependencies**:
    ```bash
-   pip install -r backend/requirements.txt
+   python -m pip install -r backend/requirements.txt
    ```
 
 2. **Ingest Standards Data (Build RAG Database)**:
@@ -24,12 +24,21 @@ AI-Powered Recommendation Engine for Identifying Applicable Indian Standards for
 
 3. **Run the server**:
    ```bash
-   python -m uvicorn backend.app.main:app --reload --port 8000
+   python -m uvicorn app.main:app --app-dir backend --reload --port 8000
    ```
 
-3. **Interactive API Documentation**:
+4. **Interactive API Documentation**:
    - Swagger UI: `http://localhost:8000/docs`
    - ReDoc: `http://localhost:8000/redoc`
+
+Run these commands from the repository root, using the same Python environment
+for installation and startup. After pulling dependency changes, rerun the install
+command. PDF reports require `reportlab`, which is included in `requirements.txt`;
+a missing package prevents the API from starting and makes login unavailable.
+
+If MongoDB is unavailable, the backend automatically uses its local JSON datastore.
+The fallback notice alone is not a startup failure; check for a subsequent traceback
+and confirm that `http://localhost:8000/health` responds.
 
 ## API Endpoints Overview
 

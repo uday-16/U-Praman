@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from typing import List, Optional, Literal, Dict
 from app.schemas.standards import IndianStandard, SourceEvidence, StandardGraph, RelatedStandardItem
 
@@ -115,6 +115,12 @@ class AnalysisResult(BaseModel):
     applicability: List[ApplicabilityFinding] = Field(default_factory=list)
     gaps: List[str] = Field(default_factory=list)
     review_flags: List[str] = Field(default_factory=list)
+
+    @computed_field
+    @property
+    def brief(self) -> Dict[str, object]:
+        from app.services.analysis_brief import build_brief
+        return build_brief(self)
 
 class AnalysisStageInfo(BaseModel):
     id: str

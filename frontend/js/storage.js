@@ -72,20 +72,27 @@ export const PRAMANStorage = {
   },
 
   toggleSaveStandard(standardId) {
+    if (!standardId) return false;
+    const cleanId = String(standardId).trim();
     const saved = this.getSavedStandards();
-    const index = saved.indexOf(standardId);
+    const index = saved.findIndex(item => item.toLowerCase() === cleanId.toLowerCase());
+    let isSaved = false;
     if (index > -1) {
       saved.splice(index, 1);
+      isSaved = false;
     } else {
-      saved.push(standardId);
+      saved.push(cleanId);
+      isSaved = true;
     }
     localStorage.setItem('praman_saved_standards', JSON.stringify(saved));
     localStorage.setItem('praman_saved', JSON.stringify(saved));
-    return saved.includes(standardId);
+    return isSaved;
   },
 
   isStandardSaved(standardId) {
-    return this.getSavedStandards().includes(standardId);
+    if (!standardId) return false;
+    const cleanId = String(standardId).trim().toLowerCase();
+    return this.getSavedStandards().some(item => item.toLowerCase() === cleanId);
   },
 
   // Location Selector Preference

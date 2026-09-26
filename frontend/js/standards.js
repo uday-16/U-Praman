@@ -10,6 +10,8 @@ import { showToast } from './components/toast.js';
 export function initStandardsExplorer() {
   const container = document.getElementById('standards-explorer-grid');
   if (!container) return;
+  if (container.dataset.initialized === 'true') return;
+  container.dataset.initialized = 'true';
 
   const searchInput = document.getElementById('standards-search-input');
   const categoryFilter = document.getElementById('standards-category-select');
@@ -160,9 +162,9 @@ export function initStandardsExplorer() {
             </div>
 
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <a href="/pages/standard-details.html?id=${item.id}" class="btn btn-primary btn-sm" style="flex: 1; font-weight: 700; text-align: center; border-radius: 6px; padding: 0.5rem 0.85rem;">View Standard</a>
-              <a href="/pages/compare.html?ids=${item.id}" class="btn btn-secondary btn-sm" style="font-weight: 700; border-radius: 6px; padding: 0.5rem 0.75rem;">Compare</a>
-              <button class="btn btn-secondary btn-sm standard-save-btn" data-id="${item.id}" title="${isSaved ? 'Remove from saved' : 'Save standard'}" style="font-weight: 700; border-radius: 6px; padding: 0.5rem 0.65rem; min-width: 38px;">
+              <a href="/pages/standard-details.html?id=${encodeURIComponent(item.id)}" class="btn btn-primary btn-sm" style="flex: 1; font-weight: 700; text-align: center; border-radius: 6px; padding: 0.5rem 0.85rem;">View Standard</a>
+              <a href="/pages/compare.html?ids=${encodeURIComponent(item.id)}" class="btn btn-secondary btn-sm" style="font-weight: 700; border-radius: 6px; padding: 0.5rem 0.75rem;">Compare</a>
+              <button class="btn btn-secondary btn-sm standard-save-btn ${isSaved ? 'is-saved' : ''}" data-id="${item.id}" title="${isSaved ? 'Remove from saved' : 'Save standard'}" style="font-weight: 700; border-radius: 6px; padding: 0.5rem 0.65rem; min-width: 38px; font-size: 1.15rem; line-height: 1; ${isSaved ? 'color: #d97706; background: #fffbeb; border-color: #fde68a;' : 'color: #64748b;'}">
                 ${isSaved ? '★' : '☆'}
               </button>
             </div>
@@ -202,12 +204,24 @@ export function initStandardsExplorer() {
   container.addEventListener('click', (e) => {
     const saveBtn = e.target.closest('.standard-save-btn');
     if (saveBtn) {
+      e.preventDefault();
+      e.stopPropagation();
       const id = saveBtn.getAttribute('data-id');
       if (Storage.toggleSaveStandard) {
         const saved = Storage.toggleSaveStandard(id);
         saveBtn.innerText = saved ? '★' : '☆';
         saveBtn.title = saved ? 'Remove from saved' : 'Save standard';
-        showToast(saved ? 'Standard saved to your workspace' : 'Standard removed from saved', saved ? 'success' : 'info');
+        saveBtn.classList.toggle('is-saved', saved);
+        if (saved) {
+          saveBtn.style.color = '#d97706';
+          saveBtn.style.background = '#fffbeb';
+          saveBtn.style.borderColor = '#fde68a';
+        } else {
+          saveBtn.style.color = '#64748b';
+          saveBtn.style.background = '';
+          saveBtn.style.borderColor = '';
+        }
+        showToast(saved ? '★ Standard saved to your workspace bookmarks' : 'Standard removed from bookmarks', saved ? 'success' : 'info');
       }
     }
   });

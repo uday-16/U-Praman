@@ -19,6 +19,20 @@ REPORTS_CACHE: dict[str, ProcurementReport] = {}
 
 def generate_procurement_report(req: ReportCreateRequest, analysis: AnalysisResult) -> ProcurementReport:
     REPORT_STORE.mkdir(parents=True, exist_ok=True)
+    
+    # Check if a report already exists for this analysis ID
+    existing_reports = list_all_reports()
+    for existing in existing_reports:
+        if existing.analysis and existing.analysis.id == analysis.id:
+            # Update analysis data or officer name if changed
+            existing.analysis = analysis
+            if req.officer_name:
+                existing.officer_name = req.officer_name
+            with REPORT_LOCK:
+                atomic_json(REPORT_STORE / f"report-{existing.id}.json", existing.model_dump())
+                REPORTS_CACHE[existing.id] = existing
+            return existing
+
     report_id = f"rpt-{uuid.uuid4().hex[:8]}"
     created_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     title = f"Procurement Standards Report: {analysis.extracted.product_name}"
@@ -71,8 +85,11 @@ def list_all_reports() -> List[ProcurementReport]:
                     reports.append(rep)
                 except Exception:
                     pass
-    # Deduplicate by id
-    unique = {}
+    # Deduplicate: keep latest report per unique analysis.id
+    unique_by_analysis = {}
     for r in reports:
-        unique[r.id] = r
-    return list(unique.values())
+        key = (r.analysis.id if (r.analysis and r.analysis.id) else r.id)
+        if key not in unique_by_analysis or (r.created_at or "") > (unique_by_analysis[key].created_at or ""):
+            unique_by_analysis[key] = r
+    return sorted(list(unique_by_analysis.values()), key=lambda r: r.created_at or "", reverse=True)
+

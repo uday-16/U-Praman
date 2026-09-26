@@ -117,18 +117,29 @@ def get_job_status(job_id: str, user=Depends(require_session)):
 
 @router.get('')
 def list_analyses(user=Depends(require_session)):
-    results = []
+    results = {}
     for path in STORE.glob('analysis-*.json'):
         try:
             record = json.loads(path.read_text(encoding='utf-8'))
-            if record['owner'] == owner_id(user):
+            if record.get('owner') == owner_id(user):
                 a = AnalysisResult.model_validate(record['data'])
-                results.append({'id': a.id, 'product': a.extracted.product_name, 'requirementText': a.extracted.source_text,
-                    'category': a.category or a.extracted.category, 'status': a.status,
-                    'standardsCount': len(a.recommendations), 'date': a.analyzed_at or a.extracted.extracted_at})
+                dt = a.analyzed_at or a.extracted.extracted_at or ''
+                # Key by normalized product name or analysis ID to avoid repeated duplicates
+                key = (a.extracted.product_name or '').strip().lower() if (a.extracted and a.extracted.product_name) else a.id
+                entry = {
+                    'id': a.id,
+                    'product': a.extracted.product_name if a.extracted else 'Procurement Requirement',
+                    'requirementText': (a.extracted.source_text if a.extracted else '') or '',
+                    'category': a.category or (a.extracted.category if a.extracted else None) or 'General',
+                    'status': a.status or 'Completed',
+                    'standardsCount': len(a.recommendations or []),
+                    'date': dt
+                }
+                if key not in results or (dt > (results[key].get('date') or '')):
+                    results[key] = entry
         except (OSError, ValueError, KeyError):
             continue
-    return sorted(results, key=lambda a: a['date'], reverse=True)
+    return sorted(list(results.values()), key=lambda a: a['date'] or '', reverse=True)
 
 
 class CategoryUpdate(BaseModel):

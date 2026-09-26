@@ -82,5 +82,31 @@
     "created_at": "2026-09-24 10:39:29.646614+00:00",
     "_id": "doc-dc1fbe401eac4b33",
     "verified_at": "2026-09-24 10:39:48.241441+00:00"
+  },
+  {
+    "identifier": "masteruday3025@gmail.com",
+    "otp_type": "email",
+    "otp_hash": "93b839a48ab0b0d2735666374bc946227dfc03cbe9249865576ee1145288cb6e",
+    "salt": "4ecb9101331216d78a59d61ccd5921f8",
+    "attempt_count": 0,
+    "max_attempts": 5,
+    "expires_at": "2026-09-26 07:40:19.795520+00:00",
+    "is_verified": -1,
+    "status": "superseded",
+    "created_at": "2026-09-26 07:30:19.795520+00:00",
+    "_id": "doc-01018235990d9ba1"
+  },
+  {
+    "identifier": "masteruday3025@gmail.com",
+    "otp_type": "email",
+    "otp_hash": "a70c81b388d6fa8f981554eb4d611c1db8fa2fc3dae05e7c707d2a7e02f24105",
+    "salt": "dd46e11cf57c0028df0d46840e9df306",
+    "attempt_count": 0,
+    "max_attempts": 5,
+    "expires_at": "2026-09-26 08:02:46.409140+00:00",
+    "is_verified": 0,
+    "status": "pending",
+    "created_at": "2026-09-26 07:52:46.409140+00:00",
+    "_id": "doc-714af4d2865e6fe5"
   }
 ]

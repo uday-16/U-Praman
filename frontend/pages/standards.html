@@ -231,12 +231,17 @@
 
     <!-- Results Count Bar -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
-      <h2 style="font-size: 1.15rem; font-weight: 800; color: #082B4C; margin: 0;">
-        Available Indian Standards
-      </h2>
-      <span id="standards-count" style="font-size: 0.85rem; font-weight: 700; color: #64748B;" role="status" aria-live="polite">
-        Loading standards...
-      </span>
+      <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap;">
+        <h2 style="font-size: 1.15rem; font-weight: 800; color: #082B4C; margin: 0;">
+          Available Indian Standards
+        </h2>
+        <span id="standards-count" style="font-size: 0.85rem; font-weight: 700; color: #64748B;" role="status" aria-live="polite">
+          Loading standards...
+        </span>
+      </div>
+      <a href="/pages/saved.html" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 700; border-radius: 6px; padding: 0.45rem 0.9rem; text-decoration: none;">
+        <span style="color: #d97706; font-size: 1rem;">★</span> View Saved Standards
+      </a>
     </div>
 
     <!-- Dynamic Standards Grid -->
@@ -391,12 +396,10 @@
   <script type="module" src="/js/main.js"></script>
   <script type="module">
     import { renderPublicNavbar, initNavbarEvents } from '/js/components/navbar.js';
-    import { initStandardsExplorer } from '/js/standards.js';
     import { initGlobalSearchModal } from '/js/components/search-modal.js';
 
     document.getElementById('navbar-root').innerHTML = renderPublicNavbar('/pages/standards.html');
     initNavbarEvents();
-    initStandardsExplorer();
     initGlobalSearchModal();
   </script>
 </body>

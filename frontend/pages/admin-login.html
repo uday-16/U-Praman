@@ -1,24 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow"><meta name="referrer" content="same-origin">
-  <title>Administrator Login — PRAMAN</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="same-origin">
+  <title>Administrator Login — PRAMAN Gateway</title>
   <link rel="icon" href="/assets/brand/praman-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/reset.css"><link rel="stylesheet" href="/css/variables.css">
-  <link rel="stylesheet" href="/css/components.css"><link rel="stylesheet" href="/css/forms.css"><link rel="stylesheet" href="/css/admin-auth.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/admin-auth.css">
 </head>
 <body class="admin-auth-page" data-admin-auth="login">
-  <header class="admin-auth-header"><a class="admin-brand" href="/"><img src="/assets/brand/praman-mark.svg" alt=""><span><strong>PRAMAN</strong><small>STANDARDS. ASSURANCE. TRUST.</small></span></a><span>Restricted administrator access</span></header>
+  <div class="admin-top-stripe"></div>
+  
+  <header class="admin-auth-header">
+    <a class="admin-brand" href="/">
+      <img src="/assets/brand/praman-mark.svg" alt="PRAMAN Emblem">
+      <span>
+        <strong>PRAMAN</strong>
+        <small>STANDARDS · ASSURANCE · TRUST</small>
+      </span>
+    </a>
+    <div class="admin-auth-header-badge">
+      <span></span>
+      Restricted Administrator Portal
+    </div>
+  </header>
+
   <main class="admin-auth-layout">
-    <section class="admin-auth-intro"><span class="admin-auth-eyebrow">Administration workspace</span><h1>Trusted standards.<br>Accountable control.</h1><p>A dedicated workspace for the people who maintain PRAMAN. Manage access, curate standards, and keep every administrative change traceable.</p><ul class="admin-auth-features"><li><b>01</b><span><strong>Accounts & permissions</strong><small>Manage users, roles and active sessions.</small></span></li><li><b>02</b><span><strong>Standards & evidence</strong><small>Upload, archive, restore and index documents.</small></span></li><li><b>03</b><span><strong>Activity & oversight</strong><small>Review audit records and service health.</small></span></li></ul></section>
-    <section class="admin-auth-card" aria-labelledby="auth-title"><span class="admin-auth-eyebrow">Administrator portal</span><h2 id="auth-title">Welcome back.</h2><p>Log in with your administrator email and password.</p>
-      <form id="admin-auth-form"><label for="email">Administrator email</label><input class="form-input" id="email" type="email" autocomplete="username" required maxlength="254" placeholder="you@organization.gov.in">
-        <label for="password">Password</label><input class="form-input" id="password" type="password" autocomplete="current-password" required maxlength="256" placeholder="Enter your password">
-        <label><input id="show-password" type="checkbox"> Show password</label>
-        <p id="auth-message" role="alert" aria-live="polite"></p><button class="btn btn-primary" type="submit">Log in to administration →</button>
-      </form><p>New administrator? <a href="/pages/admin-signup.html">Create an authorized account</a></p><p><a href="/pages/login.html">Return to officer login</a></p>
+    <!-- Left Hero Information Column -->
+    <section class="admin-auth-intro">
+      <span class="admin-auth-eyebrow">Administration Workspace</span>
+      <h1>Trusted standards.<br>Accountable control.</h1>
+      <p>A dedicated governance workspace for the personnel who maintain PRAMAN. Manage access, curate standards, and keep every administrative change traceable.</p>
+      
+      <ul class="admin-auth-features">
+        <li>
+          <b>01</b>
+          <span>
+            <strong>Accounts &amp; Permissions</strong>
+            <small>Manage procurement officer accounts, roles and active sessions.</small>
+          </span>
+        </li>
+        <li>
+          <b>02</b>
+          <span>
+            <strong>Standards &amp; Evidence</strong>
+            <small>Upload, archive, restore and index BIS standard documents.</small>
+          </span>
+        </li>
+        <li>
+          <b>03</b>
+          <span>
+            <strong>Activity &amp; Oversight</strong>
+            <small>Review tamper-proof audit trails and system telemetry.</small>
+          </span>
+        </li>
+      </ul>
     </section>
-  </main><footer class="admin-auth-footer">PRAMAN · Administrator access is verified by the server.</footer>
+
+    <!-- Right Login Card Column -->
+    <section class="admin-auth-card" aria-labelledby="auth-title">
+      <span class="admin-auth-eyebrow">Secure Access</span>
+      <h2 id="auth-title">Welcome back</h2>
+      <p>Log in with your verified administrator email and password.</p>
+
+      <form id="admin-auth-form" novalidate>
+        <div>
+          <label for="email">Administrator Email</label>
+          <input 
+            class="form-input" 
+            id="email" 
+            type="email" 
+            autocomplete="username" 
+            required 
+            maxlength="254" 
+            placeholder="you@organization.gov.in"
+          />
+        </div>
+
+        <div>
+          <label for="password">Password</label>
+          <input 
+            class="form-input" 
+            id="password" 
+            type="password" 
+            autocomplete="current-password" 
+            required 
+            maxlength="256" 
+            placeholder="Enter your administrator password"
+          />
+        </div>
+
+        <label class="show-password-row">
+          <input id="show-password" type="checkbox">
+          Show password
+        </label>
+
+        <p id="auth-message" role="alert" aria-live="polite"></p>
+
+        <button class="btn btn-primary" type="submit">
+          Log in to Administration &rarr;
+        </button>
+      </form>
+
+      <div class="auth-bottom-links">
+        <div>New administrator? <a href="/pages/admin-signup.html">Create an authorized account</a></div>
+        <div><a href="/pages/login.html">&larr; Return to Officer Portal</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="admin-auth-footer">
+    PRAMAN · Administrator access is cryptographically verified and recorded in the audit log.
+  </footer>
+
   <script type="module" src="/js/admin-auth.js"></script>
-</body></html>
+</body>
+</html>

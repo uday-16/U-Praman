@@ -280,20 +280,27 @@ export const Storage = {
   },
 
   toggleSaveStandard(id) {
+    if (!id) return false;
+    const cleanId = String(id).trim();
     const saved = this.getSavedStandards();
-    const index = saved.indexOf(id);
-    if (index > -1) {
-      saved.splice(index, 1);
+    const existingIndex = saved.findIndex(item => item.toLowerCase() === cleanId.toLowerCase());
+    let isSaved = false;
+    if (existingIndex > -1) {
+      saved.splice(existingIndex, 1);
+      isSaved = false;
     } else {
-      saved.push(id);
+      saved.push(cleanId);
+      isSaved = true;
     }
     localStorage.setItem(KEYS.SAVED_STANDARDS, JSON.stringify(saved));
     localStorage.setItem('praman_saved_standards', JSON.stringify(saved));
-    return saved.includes(id);
+    return isSaved;
   },
 
   isStandardSaved(id) {
-    return this.getSavedStandards().includes(id);
+    if (!id) return false;
+    const cleanId = String(id).trim().toLowerCase();
+    return this.getSavedStandards().some(item => item.toLowerCase() === cleanId);
   },
 
   getAnalyses() {

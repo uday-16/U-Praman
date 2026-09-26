@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pydantic import ValidationError
 from app.schemas.analysis import ExtractedRequirement
 from app.services.document_reader import clean_text
+from app.services.requirement_text import labelled_value, source_clauses
 from app.services.gemini_service import extract_requirements_with_gemini, GenerationUnavailable
 
 MAX_INPUT_CHARS = 100000
@@ -35,7 +36,8 @@ def extract_requirements_from_input(req):
         id='req-' + uuid.uuid4().hex, product_name=req.product_name or lines[0][:180],
         application=req.application or '', purpose=req.purpose or '', key_requirements=lines[:40],
         technical_parameters=params, safety_parameters=[line for line in lines if re.search(r'safety|hazard|protect|flame|insulat|toxic', line, re.I)][:20],
-        extracted_at=datetime.now(timezone.utc).isoformat(), source_text=text, quantity=req.quantity or '')
+        extracted_at=datetime.now(timezone.utc).isoformat(), source_text=text,
+        quantity=req.quantity or labelled_value(text, 'Quantity'))
     try:
         extracted = extract_requirements_with_gemini(text, req.product_name or '')
         if not isinstance(extracted, dict): raise ValueError('Invalid extraction')
@@ -50,6 +52,13 @@ def extract_requirements_from_input(req):
     except (GenerationUnavailable, ValidationError, ValueError, TypeError) as error:
         reason = str(error) if isinstance(error, GenerationUnavailable) else 'The AI extraction did not match the expected format.'
         result.warning = 'Requirement reasoning could not be completed. Fields contain source text only; review and edit or try again.'
+    # Summaries can omit obligations. Keep exact source clauses available for
+    # retrieval and traceability instead of silently dropping them.
+    normalized = {' '.join(value.lower().split()) for value in result.key_requirements}
+    for clause in source_clauses(text):
+        if ' '.join(clause.lower().split()) not in normalized:
+            result.key_requirements.append(clause)
+            normalized.add(' '.join(clause.lower().split()))
     return result
 
 

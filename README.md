@@ -28,7 +28,7 @@ SIH26108/
 ### Running the Backend (FastAPI Python)
 ```bash
 cd backend
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python scripts/ingest_standards.py
 python -m uvicorn app.main:app --reload --port 8000
 ```

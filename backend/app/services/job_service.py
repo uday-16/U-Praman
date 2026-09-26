@@ -56,7 +56,10 @@ def load_job(job_id, user_id=None):
     if not re.fullmatch(r'[a-z0-9-]{1,80}', job_id):
         return None
     try:
-        job = AnalysisJobState.model_validate_json((JOB_STORE / f'job-{job_id}.json').read_text(encoding='utf-8'))
+        # Share the writer's lock: on Windows, reading while the progress file
+        # is replaced can raise an OSError and look like a missing job.
+        with JOB_LOCK:
+            job = AnalysisJobState.model_validate_json((JOB_STORE / f'job-{job_id}.json').read_text(encoding='utf-8'))
         return job if user_id is None or job.user_id == user_id else None
     except (OSError, ValueError):
         return None
@@ -101,9 +104,11 @@ def build_analysis(extracted, stage=lambda key: None):
     applicability_rows = applicability(extracted, recommendations)
     stage('ANALYZING_GAPS')
     completeness = evaluate_specification_completeness(extracted)
-    gaps = completeness.recommendations_to_improve
+    gaps = list(completeness.recommendations_to_improve)
     stage('TRACEABILITY')
     trace = traceability(extracted, mappings, recommendations)
+    gaps.extend(f'No verified source mapping for: {row.requirement}'
+                for row in trace if row.status in ('Review Required', 'Not Found'))
     flags = []
     if recommendations:
         flags.append('Current versions and amendment applicability require authoritative BIS verification.')
@@ -141,6 +146,7 @@ def _execute_job_pipeline(job_id, user_id, extracted, raw_input, document=None):
         job.updated_at = _now()
         save_job(job)
     try:
+        job.error = None
         stage('VALIDATING')
         if extracted is None and raw_input is None and document is None:
             raise ValueError('Enter a procurement requirement or upload a document to continue.')

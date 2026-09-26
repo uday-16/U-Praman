@@ -1,30 +1,211 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow"><meta name="referrer" content="same-origin">
-  <title>Administrator Sign Up — PRAMAN</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="same-origin">
+  <title>Administrator Sign Up — PRAMAN Gateway</title>
   <link rel="icon" href="/assets/brand/praman-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/reset.css"><link rel="stylesheet" href="/css/variables.css">
-  <link rel="stylesheet" href="/css/components.css"><link rel="stylesheet" href="/css/forms.css"><link rel="stylesheet" href="/css/admin-auth.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/typography.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/admin-auth.css">
 </head>
 <body class="admin-auth-page" data-admin-auth="signup">
-  <header class="admin-auth-header"><a class="admin-brand" href="/"><img src="/assets/brand/praman-mark.svg" alt=""><span><strong>PRAMAN</strong><small>STANDARDS. ASSURANCE. TRUST.</small></span></a><span>Authorized registration</span></header>
+  <div class="admin-top-stripe"></div>
+
+  <header class="admin-auth-header">
+    <a class="admin-brand" href="/">
+      <img src="/assets/brand/praman-mark.svg" alt="PRAMAN Emblem">
+      <span>
+        <strong>PRAMAN</strong>
+        <small>STANDARDS · ASSURANCE · TRUST</small>
+      </span>
+    </a>
+    <div class="admin-auth-header-badge">
+      <span></span>
+      Authorized Admin Registration
+    </div>
+  </header>
+
   <main class="admin-auth-layout">
-    <section class="admin-auth-intro"><span class="admin-auth-eyebrow">Administrator onboarding</span><h1>Access granted.<br>Responsibility shared.</h1><p>Create an administrator account with approval from an existing administrator. Verify your email and choose your own password.</p><ul class="admin-auth-features"><li><b>01</b><span><strong>Verify your identity</strong><small>A one-time code confirms your email.</small></span></li><li><b>02</b><span><strong>Authorize access</strong><small>An existing administrator enters their credentials.</small></span></li><li><b>03</b><span><strong>Start managing PRAMAN</strong><small>Log in through the dedicated administrator portal.</small></span></li></ul></section>
-    <section class="admin-auth-card" aria-labelledby="auth-title"><span class="admin-auth-eyebrow">Administrator sign up</span><h2 id="auth-title">Create your account.</h2><p>An existing administrator must authorize this registration in person. Do not ask them to share their password.</p>
-      <form id="admin-auth-form">
-        <label for="full-name">Full name</label><input id="full-name" class="form-input" autocomplete="name" minlength="2" maxlength="120" required>
-        <label for="department">Department / organization</label><input id="department" class="form-input" autocomplete="organization" minlength="2" maxlength="160" required>
-        <label for="email">Your work email</label><input id="email" class="form-input" type="email" autocomplete="email" maxlength="254" required>
-        <button id="send-code" class="btn btn-secondary" type="button">Send verification code</button>
-        <label for="email-otp">Email verification code</label><input id="email-otp" class="form-input" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="6-digit code" required>
-        <label for="password">Your new password</label><input id="password" class="form-input" type="password" minlength="12" maxlength="256" autocomplete="new-password" placeholder="At least 12 characters" required>
-        <label for="confirm-password">Confirm password</label><input id="confirm-password" class="form-input" type="password" minlength="12" maxlength="256" autocomplete="new-password" required>
-        <fieldset><legend>Existing administrator authorization</legend><label for="approving-email">Approving administrator email</label><input id="approving-email" class="form-input" type="email" autocomplete="off" maxlength="254" required><label for="approving-password">Approving administrator password</label><input id="approving-password" class="form-input" type="password" autocomplete="off" maxlength="256" required></fieldset>
-        <p id="auth-message" role="alert" aria-live="polite"></p><button class="btn btn-primary" type="submit">Create administrator account →</button>
-      </form><p>Already registered? <a href="/pages/admin-login.html">Log in as administrator</a></p>
+    <!-- Left Hero Information Column -->
+    <section class="admin-auth-intro">
+      <span class="admin-auth-eyebrow">Administrator Onboarding</span>
+      <h1>Access granted.<br>Responsibility shared.</h1>
+      <p>Create an authorized administrator account with peer verification from an active administrator. All provisioned credentials adhere to National Procurement Governance protocols.</p>
+      
+      <ul class="admin-auth-features">
+        <li>
+          <b>01</b>
+          <span>
+            <strong>Verify Your Identity</strong>
+            <small>A 6-digit one-time code verifies your designated government email.</small>
+          </span>
+        </li>
+        <li>
+          <b>02</b>
+          <span>
+            <strong>Authorize Access</strong>
+            <small>An existing active administrator securely authorizes this registration.</small>
+          </span>
+        </li>
+        <li>
+          <b>03</b>
+          <span>
+            <strong>Start Managing PRAMAN</strong>
+            <small>Log in through the dedicated administrator portal to manage portal datasets.</small>
+          </span>
+        </li>
+      </ul>
     </section>
-  </main><footer class="admin-auth-footer">PRAMAN · Administrator creation is recorded in the audit log.</footer>
+
+    <!-- Right Signup Card Column -->
+    <section class="admin-auth-card" aria-labelledby="auth-title">
+      <span class="admin-auth-eyebrow">Authorization Gateway</span>
+      <h2 id="auth-title">Create Administrator Account</h2>
+      <p>An existing administrator must authorize this registration with their active credentials.</p>
+
+      <form id="admin-auth-form" novalidate>
+        <div>
+          <label for="full-name">Full Name</label>
+          <input 
+            id="full-name" 
+            class="form-input" 
+            autocomplete="name" 
+            minlength="2" 
+            maxlength="120" 
+            required 
+            placeholder="e.g. Dr. Rajesh Sharma"
+          />
+        </div>
+
+        <div>
+          <label for="department">Department / Organization</label>
+          <input 
+            id="department" 
+            class="form-input" 
+            autocomplete="organization" 
+            minlength="2" 
+            maxlength="160" 
+            required 
+            placeholder="e.g. BIS Technical Directorate"
+          />
+        </div>
+
+        <div>
+          <label for="email">Work Email</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input 
+              id="email" 
+              class="form-input" 
+              type="email" 
+              autocomplete="email" 
+              maxlength="254" 
+              required 
+              placeholder="you@organization.gov.in"
+            />
+            <button id="send-code" class="btn btn-secondary" type="button" style="white-space: nowrap;">
+              Send OTP
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label for="email-otp">Email Verification OTP</label>
+          <input 
+            id="email-otp" 
+            class="form-input" 
+            inputmode="numeric" 
+            pattern="[0-9]{6}" 
+            maxlength="6" 
+            autocomplete="one-time-code" 
+            placeholder="Enter 6-digit code" 
+            required
+          />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label for="password">New Password</label>
+            <input 
+              id="password" 
+              class="form-input" 
+              type="password" 
+              minlength="12" 
+              maxlength="256" 
+              autocomplete="new-password" 
+              placeholder="Min. 12 characters" 
+              required
+            />
+          </div>
+          <div>
+            <label for="confirm-password">Confirm Password</label>
+            <input 
+              id="confirm-password" 
+              class="form-input" 
+              type="password" 
+              minlength="12" 
+              maxlength="256" 
+              autocomplete="new-password" 
+              placeholder="Re-enter password" 
+              required
+            />
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Existing Administrator Authorization</legend>
+          <div>
+            <label for="approving-email">Approving Administrator Email</label>
+            <input 
+              id="approving-email" 
+              class="form-input" 
+              type="email" 
+              autocomplete="off" 
+              maxlength="254" 
+              required 
+              placeholder="approver@organization.gov.in"
+            />
+          </div>
+          <div>
+            <label for="approving-password">Approving Administrator Password</label>
+            <input 
+              id="approving-password" 
+              class="form-input" 
+              type="password" 
+              autocomplete="off" 
+              maxlength="256" 
+              required 
+              placeholder="Approver's password"
+            />
+          </div>
+        </fieldset>
+
+        <p id="auth-message" role="alert" aria-live="polite"></p>
+
+        <button class="btn btn-primary" type="submit">
+          Create Administrator Account &rarr;
+        </button>
+      </form>
+
+      <div class="auth-bottom-links">
+        <div>Already registered? <a href="/pages/admin-login.html">Log in as administrator</a></div>
+        <div><a href="/pages/login.html">&larr; Return to Officer Portal</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="admin-auth-footer">
+    PRAMAN · Administrator account creation is recorded in the permanent audit log.
+  </footer>
+
   <script type="module" src="/js/admin-auth.js"></script>
-</body></html>
+</body>
+</html>

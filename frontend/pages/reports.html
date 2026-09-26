@@ -136,36 +136,48 @@
         console.warn('Could not load reports from API:', err);
       }
 
-      const combined = (reports || []).map(r => ({
+      // Deduplicate reports by analysis id and normalized title
+      const uniqueMap = new Map();
+      (reports || []).forEach(r => {
+        const key = (r.analysis && r.analysis.id) ? r.analysis.id : (r.product_name || r.title || r.id).trim().toLowerCase();
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, r);
+        }
+      });
+
+      const combined = Array.from(uniqueMap.values()).map(r => ({
         id: r.id,
         title: r.product_name || r.title || 'Procurement Standards Report',
         standardsCount: (r.analysis && r.analysis.recommendations ? r.analysis.recommendations.length : 0),
         date: r.created_at || 'Recent',
-        linkId: r.id
+        linkId: r.id,
+        downloadUrl: r.pdf_download_url || `/api/v1/reports/${r.id}/download`
       }));
-
 
       const tbody = document.getElementById('reports-table-body');
       if (combined.length > 0) {
         tbody.innerHTML = combined.map(r => `
           <tr>
-            <td style="font-weight: 700; color: #123F63; font-size: 0.86rem; letter-spacing: -0.01em;">
-              ${r.id}
+            <td style="font-weight: 700; color: #123F63; font-size: 0.86rem; letter-spacing: -0.01em; font-family: monospace;">
+              ${esc(r.id)}
             </td>
             <td>
-              <span class="truncate-text" title="${r.title}" style="font-weight: 600; color: #17324D;">
-                ${r.title}
+              <span class="truncate-text" title="${esc(r.title)}" style="font-weight: 600; color: #17324D;">
+                ${esc(r.title)}
               </span>
             </td>
-            <td style="color: #52657A; font-weight: 500;">
-              ${r.standardsCount} Standards
+            <td style="color: #52657A; font-weight: 600;">
+              ${esc(String(r.standardsCount))} Standards
             </td>
             <td style="color: #64748B; font-size: 0.84rem;">
-              ${r.date}
+              ${esc(r.date)}
             </td>
-            <td style="text-align: right;">
-              <a href="/pages/report-view.html?id=${encodeURIComponent(r.linkId)}" style="display: inline-flex; align-items: center; font-size: 0.84rem; font-weight: 600; color: #123F63; text-decoration: none; padding: 5px 12px; border-radius: 4px; border: 1px solid #CBD5E1; background: #FFFFFF; transition: all 0.15s ease;">
+            <td style="text-align: right; white-space: nowrap;">
+              <a href="/pages/report-view.html?id=${encodeURIComponent(r.linkId)}" style="display: inline-flex; align-items: center; font-size: 0.84rem; font-weight: 600; color: #123F63; text-decoration: none; padding: 5px 12px; border-radius: 4px; border: 1px solid #CBD5E1; background: #FFFFFF; transition: all 0.15s ease; margin-right: 0.35rem;">
                 View report &rarr;
+              </a>
+              <a href="${esc(r.downloadUrl)}" target="_blank" title="Download PDF" style="display: inline-flex; align-items: center; font-size: 0.84rem; font-weight: 600; color: #475569; text-decoration: none; padding: 5px 8px; border-radius: 4px; border: 1px solid #CBD5E1; background: #F8FAFC;">
+                PDF
               </a>
             </td>
           </tr>
